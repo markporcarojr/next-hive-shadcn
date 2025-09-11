@@ -16,7 +16,7 @@ export const PRODUCT_TYPE_VALUES = [
 // 2. Create the Zod enum using the tuple
 export const ProductTypeEnum = z.enum(PRODUCT_TYPE_VALUES);
 
-// 3. Create Mantine-compatible label/value pair list
+// 3. Create label/value pair list for dropdowns
 export const PRODUCT_TYPES = PRODUCT_TYPE_VALUES.map((value) => ({
   value,
   label: value
