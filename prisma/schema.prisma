@@ -1,0 +1,177 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Expense {
+  amount    Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  date      DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  item      String
+  notes     String? // Optional
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model Harvest {
+  createdAt     DateTime @default(now())
+  harvestAmount Float
+  harvestDate   DateTime
+  harvestType   String
+  id            Int      @id @default(autoincrement())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id])
+  userId        Int
+}
+
+model Hive {
+  breed            String?
+  broodBoxes       Int?
+  createdAt        DateTime     @default(now())
+  frames           Int?
+  hiveDate         DateTime
+  hiveImage        String?
+  hiveNumber       Int
+  hiveSource       String
+  hiveStrength     Int?
+  id               Int          @id @default(autoincrement())
+  inspections      Inspection[]
+  isFromSwarmTrap  Boolean      @default(false)
+  latitude         Float? // required for map
+  longitude        Float? // required for map
+  queenAge         String?
+  queenColor       String?
+  queenExcluder    String?
+  superBoxes       Int?
+  swarmCaptureDate DateTime?
+  swarmTrap        SwarmTrap?   @relation(fields: [swarmTrapId], references: [id])
+  swarmTrapId      Int? // Optional link to trap
+  todo             String?
+  updatedAt        DateTime     @updatedAt
+  user             User         @relation(fields: [userId], references: [id])
+  userId           Int
+}
+
+model Income {
+  amount    Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  date      DateTime
+  id        Int      @id @default(autoincrement())
+  notes     String?
+  source    String // e.g., "Honey Sale", "Candle Sale"
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model Inspection {
+  brood            Boolean? // optional
+  createdAt        DateTime @default(now())
+  disease          Boolean? // optional
+  eggs             Boolean? // optional
+  feeding          String? // optional
+  hive             Hive     @relation(fields: [hiveId], references: [id], onDelete: Cascade)
+  hiveId           Int
+  hiveStrength     Int
+  id               Int      @id @default(autoincrement())
+  inspectionDate   DateTime
+  inspectionImage  String? // optional
+  inspectionNote   String? // optional
+  pests            String? // optional
+  queen            Boolean? // optional
+  queenCell        Boolean? // optional
+  temperament      String
+  treatments       String? // optional
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id])
+  userId           Int
+  weatherCondition String? // optional
+  weatherTemp      String? // optional
+}
+
+model Inventory {
+  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  location  String
+  name      String
+  quantity  Int
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model Invoice {
+  id           Int           @id @default(autoincrement())
+  createdAt    DateTime      @default(now())
+  customerName String
+  date         DateTime
+  email        String?
+  phone        String?
+  notes        String?
+  total        Decimal       @db.Decimal(10, 2)
+  items        InvoiceItem[] // ← One-to-many relation
+  user         User          @relation(fields: [userId], references: [id])
+  userId       Int
+}
+
+model InvoiceItem {
+  id        Int     @id @default(autoincrement())
+  product   String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  invoiceId Int
+}
+
+model Settings {
+  createdAt   DateTime @default(now())
+  darkMode    Boolean  @default(false)
+  hiveAddress String?
+  id          Int      @id @default(autoincrement())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int      @unique
+}
+
+model SwarmTrap {
+  createdAt   DateTime  @default(now())
+  hives       Hive[] // Linked hives that came from this trap
+  id          Int       @id @default(autoincrement())
+  installedAt DateTime
+  label       String // general description
+  latitude    Float // required for map
+  longitude   Float // required for map
+  notes       String?
+  removedAt   DateTime?
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+}
+
+model User {
+  clerkId    String       @unique
+  email      String       @unique
+  Expense    Expense[]
+  harvests   Harvest[]
+  Hive       Hive[]
+  id         Int          @id @default(autoincrement())
+  Income     Income[]
+  Inspection Inspection[]
+  Inventory  Inventory[]
+  Invoice    Invoice[]
+  name       String?
+  settings   Settings?
+  SwarmTrap  SwarmTrap[]
+}
