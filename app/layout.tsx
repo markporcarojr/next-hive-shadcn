@@ -1,17 +1,18 @@
-import { cookies } from "next/headers";
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 
 import "./globals.css";
 
 import { cn } from "@/lib/utils";
 
-import { ThemeProvider } from "./../components/theme-provider";
 import { ActiveThemeProvider } from "@/components/active-theme";
+import { ThemeProvider } from "./../components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "Orcish Dashboard",
+  title: "Next Hive - Beekeeping Helper App",
   description:
-    "A fully responsive analytics dashboard featuring dynamic charts, interactive tables, a collapsible sidebar, and a light/dark mode theme switcher. Built with modern web technologies, it ensures seamless performance across devices, offering an intuitive user interface for data visualization and exploration.",
+    "Your personal beekeeping assistant. Track your hives, manage tasks, and monitor health with ease.",
 };
 
 export default async function RootLayout({
@@ -24,26 +25,28 @@ export default async function RootLayout({
   const isScaled = activeThemeValue?.endsWith("-scaled");
 
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={cn(
-          "bg-background overscroll-none font-sans antialiased",
-          activeThemeValue ? `theme-${activeThemeValue}` : "",
-          isScaled ? "theme-scaled" : ""
-        )}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-          enableColorScheme
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning>
+        <body
+          className={cn(
+            "bg-background overscroll-none font-sans antialiased",
+            activeThemeValue ? `theme-${activeThemeValue}` : "",
+            isScaled ? "theme-scaled" : ""
+          )}
         >
-          <ActiveThemeProvider initialTheme={activeThemeValue}>
-            {children}
-          </ActiveThemeProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+            enableColorScheme
+          >
+            <ActiveThemeProvider initialTheme={activeThemeValue}>
+              {children}
+            </ActiveThemeProvider>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
