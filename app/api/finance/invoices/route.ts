@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { invoiceSchema } from "@/lib/schemas/invoice";
 import { sendInvoiceEmail } from "@/lib/sendInvoiceEmail";
 import { auth } from "@clerk/nextjs/server";

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 // import { Harvest } from "@/lib/models/harvest"; // placeholder
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
 export async function GET(
