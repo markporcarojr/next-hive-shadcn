@@ -1,5 +1,6 @@
 import {
   IconCamera,
+  IconCash,
   IconChartBar,
   IconDashboard,
   IconDatabase,
@@ -7,6 +8,7 @@ import {
   IconFileDescription,
   IconFileWord,
   IconFolder,
+  IconGrain,
   IconHelp,
   IconListDetails,
   IconReport,
@@ -24,28 +26,28 @@ export const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
-      url: "#",
-      icon: IconListDetails,
+      title: "Expenses",
+      url: "/finance/expenses",
+      icon: IconCash,
     },
     {
-      title: "Analytics",
-      url: "#",
+      title: "Income",
+      url: "/finance/income",
       icon: IconChartBar,
     },
     {
-      title: "Projects",
-      url: "#",
+      title: "Invoices",
+      url: "/finance/invoices",
       icon: IconFolder,
     },
     {
-      title: "Team",
-      url: "#",
-      icon: IconUsers,
+      title: "Harvests",
+      url: "/harvest",
+      icon: IconGrain,
     },
   ],
   navClouds: [
