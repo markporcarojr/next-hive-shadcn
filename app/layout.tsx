@@ -5,9 +5,11 @@ import { cookies } from "next/headers";
 import "./globals.css";
 
 import { cn } from "@/lib/utils";
-
 import { ActiveThemeProvider } from "@/components/active-theme";
-import { ThemeProvider } from "./../components/theme-provider";
+import { ThemeProvider } from "@/components/theme-provider";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
   title: "Next Hive - Beekeeping Helper App",
@@ -17,9 +19,9 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   const cookieStore = await cookies();
   const activeThemeValue = cookieStore.get("active_theme")?.value;
   const isScaled = activeThemeValue?.endsWith("-scaled");
@@ -42,7 +44,22 @@ export default async function RootLayout({
             enableColorScheme
           >
             <ActiveThemeProvider initialTheme={activeThemeValue}>
-              {children}
+              <SidebarProvider
+                style={
+                  {
+                    "--sidebar-width": "calc(var(--spacing) * 72)",
+                    "--header-height": "calc(var(--spacing) * 12)",
+                  } as React.CSSProperties
+                }
+              >
+                <AppSidebar variant="inset" />
+                <SidebarInset>
+                  <SiteHeader />
+                  <main className="flex-1 flex flex-col overflow-y-auto">
+                    {children}
+                  </main>
+                </SidebarInset>
+              </SidebarProvider>
             </ActiveThemeProvider>
           </ThemeProvider>
         </body>

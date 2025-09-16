@@ -1,10 +1,18 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { formatDateMMDDYYYY } from "@/lib/formatDate";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default async function ExpensePage() {
   const { userId: clerkId } = await auth();
@@ -17,9 +25,16 @@ export default async function ExpensePage() {
 
   if (!user) return notFound();
 
+  // No manual normalization needed — prisma.$extends handles it
   const expenses = await prisma.expense.findMany({
     where: { userId: user.id },
     orderBy: { date: "desc" },
+    select: {
+      id: true,
+      item: true,
+      amount: true, // already a number
+      date: true, // still a Date
+    },
   });
 
   return (
@@ -40,27 +55,18 @@ export default async function ExpensePage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {expenses.map((expense: any) => (
+            {expenses.map((expense) => (
               <TableRow key={expense.id}>
                 <TableCell>{expense.item}</TableCell>
                 <TableCell>${expense.amount.toFixed(2)}</TableCell>
-                <TableCell>{new Date(expense.date).toISOString().split("T")[0]}</TableCell>
+                <TableCell>
+                  {formatDateMMDDYYYY(expense.date.toISOString())}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </CardContent>
-    </Card>
-  );
-}
-            <tr key={expense.id}>
-              <td>{expense.item}</td>
-              <td>${expense.amount.toFixed(2)}</td>
-              <td>{new Date(expense.date).toISOString().split("T")[0]}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
     </Card>
   );
 }

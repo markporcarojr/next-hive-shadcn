@@ -1,32 +1,35 @@
 "use client";
 
-import { ExpenseInput, expenseSchema } from "@/lib/schemas/expense";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Button,
-  Card,
-  NumberInput,
-  Stack,
-  TextInput,
-  Title,
-} from "@mantine/core";
-import { DateInput } from "@mantine/dates";
-import { useForm } from "@mantine/form";
-import { zodResolver } from "mantine-form-zod-resolver";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { formatDateMMDDYYYY } from "@/lib/formatDate";
+import { ExpenseInput, expenseSchema } from "@/lib/schemas/expense";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 export default function NewExpensePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<ExpenseInput>({
-    initialValues: {
+    resolver: zodResolver(expenseSchema),
+    defaultValues: {
       item: "",
       amount: 0,
       date: new Date(),
       notes: "",
     },
-    validate: zodResolver(expenseSchema),
   });
 
   const onSubmit = async (values: ExpenseInput) => {
@@ -52,40 +55,96 @@ export default function NewExpensePage() {
   };
 
   return (
-    <Card withBorder shadow="sm" radius="md" p="lg">
-      <Title order={3} mb="lg">
-        Add New Expense
-      </Title>
-      <form onSubmit={form.onSubmit(onSubmit)}>
-        <Stack gap="sm">
-          <TextInput
-            label="Item"
-            placeholder="Item"
-            {...form.getInputProps("item")}
-          />
-          <NumberInput
-            label="Amount ($)"
-            placeholder="Amount"
-            min={0}
-            step={0.01}
-            {...form.getInputProps("amount")}
-          />
-          <DateInput
-            label="Date"
-            placeholder="Date"
-            {...form.getInputProps("date")}
-          />
+    <Card className="max-w-md mx-auto mt-8">
+      <CardHeader>
+        <CardTitle>Add New Expense</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="item"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Item</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Item" disabled={loading} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <TextInput
-            label="Notes"
-            placeholder="Notes"
-            {...form.getInputProps("notes")}
-          />
-          <Button type="submit" loading={loading} variant="primary">
-            Add Expense
-          </Button>
-        </Stack>
-      </form>
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Amount ($)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      placeholder="Amount"
+                      disabled={loading}
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      disabled={loading}
+                      value={
+                        field.value
+                          ? formatDateMMDDYYYY(field.value, "yyyy-MM-dd")
+                          : ""
+                      }
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value ? new Date(e.target.value) : new Date()
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Notes" disabled={loading} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" disabled={loading}>
+              {loading ? "Adding..." : "Add Expense"}
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
     </Card>
   );
 }
