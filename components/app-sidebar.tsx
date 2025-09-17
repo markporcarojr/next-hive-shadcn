@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/sidebar";
 
 import { data } from "../Data/nav-data";
-import { SignedIn, UserButton } from "@clerk/nextjs";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (

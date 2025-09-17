@@ -10,11 +10,9 @@ import {
   IconFolder,
   IconGrain,
   IconHelp,
-  IconListDetails,
   IconReport,
   IconSearch,
   IconSettings,
-  IconUsers,
 } from "@tabler/icons-react";
 
 export const data = {

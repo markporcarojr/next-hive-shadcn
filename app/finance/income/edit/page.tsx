@@ -1,14 +1,9 @@
 "use client";
 
 import { IncomeInput, incomeSchema } from "@/lib/schemas/income";
-import {
-  Box,
-  Button,
-  NumberInput,
-  Text,
-  TextInput,
-  Title,
-} from "@mantine/core";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -58,46 +53,56 @@ export default function EditIncomePage() {
     }
   };
 
-  if (loading) return <Text>Loading...</Text>;
-  if (error) return <Text c="red">{error}</Text>;
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
   if (!formData) return null;
 
   return (
-    <Box maw={500} mx="auto">
-      <Title order={3} mb="md">
-        Edit Income
-      </Title>
-      <form onSubmit={handleSubmit}>
-        <TextInput
-          label="Source"
-          placeholder="Sold honey or candles....."
-          value={formData.source}
-          onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-          required
-        />
-        <NumberInput
-          label="Amount"
-          value={formData.amount}
-          onChange={(value) =>
-            setFormData({ ...formData, amount: Number(value) })
-          }
-          required
-          step={0.01}
-          min={0}
-        />
-        <TextInput
-          label="Date"
-          type="date"
-          value={formData.date.toString().slice(0, 10)}
-          onChange={(e) =>
-            setFormData({ ...formData, date: new Date(e.target.value) })
-          }
-          required
-        />
-        <Button mt="md" type="submit" fullWidth>
+    <div className="max-w-md mx-auto p-6">
+      <h3 className="text-2xl font-semibold mb-4">Edit Income</h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="source">Source</Label>
+          <Input
+            id="source"
+            placeholder="Sold honey or candles....."
+            value={formData.source}
+            onChange={(e) =>
+              setFormData({ ...formData, source: e.target.value })
+            }
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="amount">Amount</Label>
+          <Input
+            id="amount"
+            type="number"
+            value={formData.amount}
+            onChange={(e) =>
+              setFormData({ ...formData, amount: Number(e.target.value) })
+            }
+            required
+            step={0.01}
+            min={0}
+          />
+        </div>
+        <div>
+          <Label htmlFor="date">Date</Label>
+          <Input
+            id="date"
+            type="date"
+            value={formData.date.toString().slice(0, 10)}
+            onChange={(e) =>
+              setFormData({ ...formData, date: new Date(e.target.value) })
+            }
+            required
+          />
+        </div>
+        <Button type="submit" className="w-full mt-2">
           Update Income
         </Button>
       </form>
-    </Box>
+    </div>
   );
 }

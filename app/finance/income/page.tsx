@@ -1,15 +1,25 @@
 // app/finance/income/page.tsx
-import prisma from "@/lib/prisma";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { formatDateMMDDYYYY } from "@/lib/formatDate";
+import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { Button, Card, Group, Table, Text, Title } from "@mantine/core";
 import Link from "next/link";
 
 export default async function IncomePage() {
   const { userId: clerkId } = await auth();
-  if (!clerkId) return <Text c="red">Unauthorized</Text>;
+  if (!clerkId) return <div className="text-red-600">Unauthorized</div>;
 
   const user = await prisma.user.findUnique({ where: { clerkId } });
-  if (!user) return <Text c="red">User not found</Text>;
+  if (!user) return <div className="text-red-600">User not found</div>;
 
   const incomes = await prisma.income.findMany({
     where: { userId: user.id },
@@ -22,75 +32,86 @@ export default async function IncomePage() {
 
   return (
     <>
-      <Card withBorder p="lg" shadow="sm">
-        <Group justify="space-between" mb="md">
-          <Title order={3}>Income</Title>
-          <Button component={Link} href="/finance/income/new">
-            Add Income
+      <Card className="mb-6">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <CardTitle className="text-lg">Income</CardTitle>
+          <Button asChild>
+            <Link href="/finance/income/new">Add Income</Link>
           </Button>
-        </Group>
-        <Table highlightOnHover withColumnBorders>
-          <thead className="text-left">
-            <tr>
-              <th>Source</th>
-              <th>Amount</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {incomes.map((income) => (
-              <tr key={income.id}>
-                <td>{income.source}</td>
-                <td>${income.amount.toFixed(2)}</td>
-                <td>{new Date(income.date).toISOString().split("T")[0]}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow className="text-left">
+                <TableHead>Source</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {incomes.map((income) => (
+                <TableRow key={income.id}>
+                  <TableCell>{income.source}</TableCell>
+                  <TableCell>${income.amount.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {formatDateMMDDYYYY(income.date.toISOString())}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
       </Card>
 
-      <Card withBorder p="lg" shadow="sm">
-        <Group justify="space-between" mt="md">
-          <Title order={4}>Invoices</Title>
-          <Button component={Link} href="/finance/invoices/new">
-            New Invoice
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <CardTitle className="text-base">Invoices</CardTitle>
+          <Button asChild>
+            <Link href="/finance/invoices/new">New Invoice</Link>
           </Button>
-        </Group>
-        {invoices.length === 0 ? (
-          <Text c="dimmed" ta="center">
-            No invoices yet. Click &quot;New Invoice&quot; below to create your
-            first one.
-          </Text>
-        ) : (
-          <Table highlightOnHover withColumnBorders mt="md">
-            <thead className="text-left">
-              <tr>
-                <th>ID</th>
-                <th>Customer</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Total</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoices.map((invoice) => (
-                <tr key={invoice.id}>
-                  <td>
-                    <Link href={`/finance/invoices/${invoice.id}`}>
-                      {invoice.id}
-                    </Link>
-                  </td>
-                  <td>{invoice.customerName}</td>
-                  <td>{invoice.email}</td>
-                  <td>{invoice.phone}</td>
-                  <td>${invoice.total.toFixed(2)}</td>
-                  <td>{new Date(invoice.date).toISOString().split("T")[0]}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        )}
+        </CardHeader>
+        <CardContent>
+          {invoices.length === 0 ? (
+            <div className="text-muted-foreground text-center py-4">
+              No invoices yet. Click &quot;New Invoice&quot; below to create
+              your first one.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="text-left">
+                  <TableHead>ID</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invoices.map((invoice) => (
+                  <TableRow key={invoice.id}>
+                    <TableCell>
+                      <Link
+                        href={`/finance/invoices/${invoice.id}`}
+                        className="underline"
+                      >
+                        {invoice.id}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{invoice.customerName}</TableCell>
+                    <TableCell>{invoice.email}</TableCell>
+                    <TableCell>{invoice.phone}</TableCell>
+                    <TableCell>${invoice.total.toFixed(2)}</TableCell>
+                    <TableCell>
+                      {new Date(invoice.date).toISOString().split("T")[0]}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
       </Card>
     </>
   );

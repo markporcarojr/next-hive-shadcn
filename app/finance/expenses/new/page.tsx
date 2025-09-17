@@ -11,7 +11,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { formatDateMMDDYYYY } from "@/lib/formatDate";
 import { ExpenseInput, expenseSchema } from "@/lib/schemas/expense";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -90,7 +89,16 @@ export default function NewExpensePage() {
                       placeholder="Amount"
                       disabled={loading}
                       {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      value={
+                        typeof field.value === "number" && !isNaN(field.value)
+                          ? field.value
+                          : ""
+                      }
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? "" : Number(e.target.value)
+                        )
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -109,9 +117,9 @@ export default function NewExpensePage() {
                       type="date"
                       disabled={loading}
                       value={
-                        field.value
-                          ? formatDateMMDDYYYY(field.value, "yyyy-MM-dd")
-                          : ""
+                        new Date(field.value as string | number | Date)
+                          .toISOString()
+                          .split("T")[0]
                       }
                       onChange={(e) =>
                         field.onChange(

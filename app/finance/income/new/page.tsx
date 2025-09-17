@@ -1,35 +1,37 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { zodResolver } from "mantine-form-zod-resolver";
-import { useForm } from "@mantine/form";
-import { incomeSchema, IncomeInput } from "@/lib/schemas/income";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Button,
-  Card,
-  Group,
-  TextInput,
-  NumberInput,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
-
-import { DateInput } from "@mantine/dates";
+  Form,
+  FormField,
+  FormItem,
+  FormMessage,
+  FormControl,
+  FormLabel,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { formatDateMMDDYYYY } from "@/lib/formatDate";
+import { IncomeInput, incomeSchema } from "@/lib/schemas/income";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 export default function NewIncomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<IncomeInput>({
-    initialValues: {
+    resolver: zodResolver(incomeSchema),
+    defaultValues: {
       source: "",
       amount: 0,
       date: new Date(),
       notes: "",
     },
-    validate: zodResolver(incomeSchema),
   });
 
   const onSubmit = async (values: IncomeInput) => {
@@ -55,55 +57,118 @@ export default function NewIncomePage() {
   };
 
   return (
-    <Card withBorder shadow="sm" radius="md" p="lg">
-      <Title order={3} mb="lg">
-        Add New Income
-      </Title>
-      <form onSubmit={form.onSubmit(onSubmit)}>
-        <Stack>
-          <TextInput
-            label="Source"
-            placeholder="e.g., Honey Sale, Candle Sale"
-            {...form.getInputProps("source")}
-          />
-          <NumberInput
-            label="Amount"
-            placeholder="Enter amount"
-            {...form.getInputProps("amount")}
-            min={0}
-            step={0.01}
-          />
-          <DateInput
-            placeholder="Select date"
-            clearable={false}
-            required
-            minDate={new Date("2020-01-01")}
-            maxDate={new Date()}
-            error={form.errors.date ? form.errors.date : undefined}
-            {...form.getInputProps("date")}
-          />
-          <TextInput
-            label="Notes"
-            placeholder="Optional notes"
-            {...form.getInputProps("notes")}
-          />
-          <Group mt="md">
-            <Button type="submit" loading={loading}>
-              Submit
-            </Button>
+    <Card className="max-w-lg mx-auto mt-8">
+      <CardHeader>
+        <CardTitle>Add New Income</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Source */}
+            <FormField
+              control={form.control}
+              name="source"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Source</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Honey Sale, Candle Sale"
+                      {...field}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <Button
-              variant="outline"
-              onClick={() => router.push("/finance/income")}
-            >
-              Cancel
-            </Button>
-          </Group>
-        </Stack>
-      </form>
-      <Text mt="md" size="sm" color="dimmed">
-        Please ensure all fields are filled out correctly before submitting.
-      </Text>
+            {/* Amount */}
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Amount ($)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      placeholder="Enter amount"
+                      {...field}
+                      disabled={loading}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Date */}
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date</FormLabel>
+                  <FormControl>
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      fromDate={new Date("2020-01-01")}
+                      toDate={new Date()}
+                      className={cn("w-full")}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {field.value
+                      ? formatDateMMDDYYYY(field.value.toISOString())
+                      : "Select date"}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Notes */}
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Optional notes"
+                      {...field}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Actions */}
+            <div className="flex gap-2 mt-4">
+              <Button type="submit" disabled={loading}>
+                {loading ? "Submitting..." : "Submit"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push("/finance/income")}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
     </Card>
   );
 }

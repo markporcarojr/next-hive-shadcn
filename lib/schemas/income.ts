@@ -7,4 +7,4 @@ export const incomeSchema = z.object({
   notes: z.string().optional(),
 });
 
-export type IncomeInput = z.infer<typeof incomeSchema>;
+export type IncomeInput = z.input<typeof incomeSchema>;
