@@ -7,23 +7,24 @@ import {
   PRODUCT_TYPE_VALUES,
   invoiceSchema,
 } from "@/lib/schemas/invoice";
-import {
-  Button,
-  Card,
-  Divider,
-  Group,
-  NumberInput,
-  Select,
-  Stack,
-  TextInput,
-  Textarea,
-  Title,
-} from "@mantine/core";
-import { DateInput } from "@mantine/dates";
-import { useForm } from "@mantine/form";
-import { zodResolver } from "mantine-form-zod-resolver";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 
 const PRICE_MAP: Record<(typeof PRODUCT_TYPE_VALUES)[number], number> = {
   honey: 8,
@@ -46,14 +47,14 @@ export default function NewInvoicePage() {
   ]);
 
   const form = useForm<Omit<InvoiceInput, "items" | "total">>({
-    initialValues: {
+    resolver: zodResolver(invoiceSchema.omit({ items: true, total: true })),
+    defaultValues: {
       customerName: "",
       email: "",
       phone: "",
       date: new Date(),
       notes: "",
     },
-    validate: zodResolver(invoiceSchema.omit({ items: true, total: true })),
   });
 
   const calculateTotal = () =>
@@ -78,9 +79,9 @@ export default function NewInvoicePage() {
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const onSubmit = async () => {
+  const onSubmit = async (data: Omit<InvoiceInput, "items" | "total">) => {
     const values: InvoiceInput = {
-      ...form.values,
+      ...data,
       items,
       total: calculateTotal(),
     };
@@ -107,101 +108,146 @@ export default function NewInvoicePage() {
   };
 
   return (
-    <Card withBorder shadow="sm" radius="md" p="lg">
-      <Title order={3} mb="lg">
-        New Invoice
-      </Title>
-      <form onSubmit={form.onSubmit(onSubmit)}>
-        <Stack gap="sm">
-          <TextInput
-            label="Customer Name"
-            placeholder="e.g. John Appleseed"
-            {...form.getInputProps("customerName")}
-          />
-          <TextInput
-            label="Email"
-            placeholder="e.g. john@example.com"
-            {...form.getInputProps("email")}
-          />
-          <TextInput
-            label="Phone"
-            placeholder="e.g. 5551234567"
-            {...form.getInputProps("phone")}
-          />
-          <DateInput
-            label="Invoice Date"
-            valueFormat="YYYY-MM-DD"
-            {...form.getInputProps("date")}
-          />
+    <Card className="max-w-2xl mx-auto mt-8 p-8">
+      <h3 className="text-2xl font-semibold mb-6">New Invoice</h3>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="space-y-4">
+          {/* Customer Info */}
+          <div>
+            <Label htmlFor="customerName">Customer Name</Label>
+            <Input
+              id="customerName"
+              placeholder="e.g. John Appleseed"
+              {...form.register("customerName")}
+            />
+          </div>
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="e.g. john@example.com"
+              {...form.register("email")}
+            />
+          </div>
+          <div>
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              placeholder="e.g. 5551234567"
+              {...form.register("phone")}
+            />
+          </div>
+          <div>
+            <Label htmlFor="date">Invoice Date</Label>
+            <Input
+              id="date"
+              type="date"
+              {...form.register("date", {
+                setValueAs: (v) => (v ? new Date(v) : new Date()),
+              })}
+              defaultValue={format(new Date(), "yyyy-MM-dd")}
+            />
+          </div>
+          <div>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              placeholder="Optional notes"
+              {...form.register("notes")}
+              rows={2}
+            />
+          </div>
 
-          <Textarea
-            label="Notes"
-            placeholder="Optional notes"
-            autosize
-            minRows={2}
-            {...form.getInputProps("notes")}
-          />
-
-          <Divider label="Products" mt="sm" mb="xs" />
+          {/* Products */}
+          <Separator className="my-4" />
+          <div className="font-semibold mb-2">Products</div>
 
           {items.map((item, index) => (
-            <Group key={index} grow align="end">
-              <Select
-                label="Product"
-                data={PRODUCT_TYPES}
-                value={item.product}
-                onChange={(value) => {
-                  const price =
-                    PRICE_MAP[value as InvoiceItemInput["product"]] ?? 0;
-                  updateItem(index, {
-                    product: value as any,
-                    unitPrice: price,
-                  });
-                }}
-              />
-              <NumberInput
-                label="Qty"
-                min={1}
-                value={item.quantity}
-                onChange={(val) =>
-                  updateItem(index, {
-                    quantity: typeof val === "number" ? val : 1,
-                  })
-                }
-              />
-              <NumberInput
-                label="Unit Price"
-                value={item.unitPrice}
-                onChange={(val) =>
-                  updateItem(index, {
-                    unitPrice: typeof val === "number" ? val : 0,
-                  })
-                }
-              />
-              <Button color="red" onClick={() => removeItem(index)}>
+            <div key={index} className="flex gap-2 items-end">
+              <div className="flex-1">
+                <Label>Product</Label>
+                <Select
+                  value={item.product}
+                  onValueChange={(value) => {
+                    const price =
+                      PRICE_MAP[value as InvoiceItemInput["product"]] ?? 0;
+                    updateItem(index, {
+                      product: value as InvoiceItemInput["product"],
+                      unitPrice: price,
+                    });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRODUCT_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-24">
+                <Label>Qty</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={item.quantity}
+                  onChange={(e) =>
+                    updateItem(index, {
+                      quantity: Number(e.target.value) || 1,
+                    })
+                  }
+                />
+              </div>
+              <div className="w-32">
+                <Label>Unit Price</Label>
+                <Input
+                  type="number"
+                  value={item.unitPrice}
+                  onChange={(e) =>
+                    updateItem(index, {
+                      unitPrice: Number(e.target.value) || 0,
+                    })
+                  }
+                />
+              </div>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => removeItem(index)}
+                className="h-10"
+              >
                 Remove
               </Button>
-            </Group>
+            </div>
           ))}
 
-          <Button variant="light" onClick={addItem}>
+          <Button type="button" variant="outline" onClick={addItem}>
             + Add Item
           </Button>
 
-          <Divider />
+          {/* Total */}
+          <Separator className="my-4" />
+          <div>
+            <Label>Total</Label>
+            <Input
+              readOnly
+              value={`$${calculateTotal().toFixed(2)}`}
+              className="font-bold"
+            />
+          </div>
 
-          <TextInput
-            label="Total"
-            value={`$${calculateTotal().toFixed(2)}`}
-            readOnly
-          />
-
-          <Group justify="flex-end" mt="md">
-            <Button type="submit" loading={loading}>
-              Save Invoice
+          {/* Submit */}
+          <div className="flex justify-end mt-4">
+            <Button type="submit" disabled={loading}>
+              {loading ? "Saving..." : "Save Invoice"}
             </Button>
-          </Group>
-        </Stack>
+          </div>
+        </div>
       </form>
     </Card>
   );
