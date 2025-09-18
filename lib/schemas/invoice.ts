@@ -49,5 +49,5 @@ export const invoiceSchema = z.object({
 });
 
 // 6. Types
-export type InvoiceInput = z.infer<typeof invoiceSchema>;
+export type InvoiceInput = z.input<typeof invoiceSchema>;
 export type InvoiceItemInput = z.infer<typeof invoiceItemSchema>;

@@ -109,7 +109,11 @@ export default function EditIncomePage() {
                     step={0.01}
                     min={0}
                     {...field}
-                    value={field.value ?? ""}
+                    value={
+                      field.value !== undefined && field.value !== null
+                        ? String(field.value)
+                        : ""
+                    }
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />
                 </FormControl>
@@ -127,7 +131,11 @@ export default function EditIncomePage() {
                   <Input
                     type="date"
                     {...field}
-                    value={field.value ?? ""}
+                    value={
+                      field.value !== undefined && field.value !== null
+                        ? String(field.value)
+                        : ""
+                    }
                     onChange={(e) => field.onChange(e.target.value)}
                   />
                 </FormControl>
