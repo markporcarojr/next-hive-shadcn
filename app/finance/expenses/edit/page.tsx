@@ -1,25 +1,41 @@
 "use client";
 
-import { ExpenseInput, expenseSchema } from "@/lib/schemas/expense";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Box,
-  Button,
-  NumberInput,
-  Text,
-  TextInput,
-  Title,
-} from "@mantine/core";
-import { useParams, useRouter } from "next/navigation";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { ExpenseInput, expenseSchema } from "@/lib/schemas/expense";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { Loader2 } from "lucide-react";
 
 export default function EditExpensePage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
 
-  const [formData, setFormData] = useState<ExpenseInput | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const form = useForm<ExpenseInput>({
+    resolver: zodResolver(expenseSchema),
+    defaultValues: {
+      item: "",
+      amount: 0,
+      date: "",
+      notes: "",
+    },
+  });
 
   useEffect(() => {
     const fetchExpense = async () => {
@@ -27,8 +43,11 @@ export default function EditExpensePage() {
         const res = await fetch(`/api/expense/${id}`);
         if (!res.ok) throw new Error("Failed to fetch expense");
         const data = await res.json();
-        setFormData(data);
-      } catch (err) {
+        form.reset({
+          ...data,
+          date: data.date ? new Date(data.date).toISOString().slice(0, 10) : "",
+        });
+      } catch {
         setError("Failed to load expense record.");
       } finally {
         setLoading(false);
@@ -36,20 +55,17 @@ export default function EditExpensePage() {
     };
 
     fetchExpense();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData) return;
-
+  const onSubmit = async (values: ExpenseInput) => {
+    setError("");
     try {
-      expenseSchema.parse(formData);
       const res = await fetch(`/api/expense/${id}`, {
         method: "PATCH",
-        body: JSON.stringify(formData),
+        body: JSON.stringify(values),
         headers: { "Content-Type": "application/json" },
       });
-
       if (!res.ok) throw new Error("Failed to update expense");
       router.push("/finance");
     } catch (err) {
@@ -58,52 +74,102 @@ export default function EditExpensePage() {
     }
   };
 
-  if (loading) return <Text>Loading...</Text>;
-  if (error) return <Text c="red">{error}</Text>;
-  if (!formData) return null;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-40">
+        <Loader2 className="animate-spin w-6 h-6" />
+        <span className="ml-2">Loading...</span>
+      </div>
+    );
+  if (error)
+    return <div className="text-destructive text-center mt-8">{error}</div>;
 
   return (
-    <Box maw={500} mx="auto">
-      <Title order={3} mb="md">
-        Edit Expense
-      </Title>
-      <form onSubmit={handleSubmit}>
-        <TextInput
-          label="Item"
-          placeholder="Smoker"
-          value={formData.item}
-          onChange={(e) => setFormData({ ...formData, item: e.target.value })}
-          required
-        />
-
-        <NumberInput
-          label="Amount"
-          value={formData.amount}
-          onChange={(value) =>
-            setFormData({ ...formData, amount: Number(value) })
-          }
-          required
-          step={0.01}
-          min={0}
-        />
-        <TextInput
-          label="Date"
-          type="date"
-          value={formData.date.toString().slice(0, 10)}
-          onChange={(e) =>
-            setFormData({ ...formData, date: new Date(e.target.value) })
-          }
-          required
-        />
-        <TextInput
-          label="Notes"
-          value={formData.notes || ""}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-        />
-        <Button mt="md" type="submit" fullWidth>
-          Update Expense
-        </Button>
-      </form>
-    </Box>
+    <div className="max-w-md mx-auto mt-10">
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Expense</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="item"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Item</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Smoker" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Amount</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        {...field}
+                        value={
+                          field.value !== undefined && field.value !== null
+                            ? String(field.value)
+                            : ""
+                        }
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                        value={
+                          typeof field.value === "string" ? field.value : ""
+                        }
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Optional notes" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full">
+                Update Expense
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

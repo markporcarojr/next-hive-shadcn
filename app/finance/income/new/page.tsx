@@ -97,6 +97,7 @@ export default function NewIncomePage() {
                       min={0}
                       placeholder="Enter amount"
                       {...field}
+                      value={typeof field.value === "number" ? field.value : ""}
                       disabled={loading}
                       onChange={(e) => field.onChange(Number(e.target.value))}
                     />
@@ -116,16 +117,16 @@ export default function NewIncomePage() {
                   <FormControl>
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={
+                        field.value instanceof Date ? field.value : undefined
+                      }
                       onSelect={field.onChange}
-                      fromDate={new Date("2020-01-01")}
-                      toDate={new Date()}
                       className={cn("w-full")}
                       disabled={loading}
                     />
                   </FormControl>
                   <div className="text-xs text-muted-foreground mt-1">
-                    {field.value
+                    {field.value instanceof Date
                       ? formatDateMMDDYYYY(field.value.toISOString())
                       : "Select date"}
                   </div>
