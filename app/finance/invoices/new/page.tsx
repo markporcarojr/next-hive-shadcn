@@ -1,18 +1,8 @@
 "use client";
 
-import {
-  InvoiceInput,
-  InvoiceItemInput,
-  PRODUCT_TYPES,
-  PRODUCT_TYPE_VALUES,
-  invoiceSchema,
-} from "@/lib/schemas/invoice";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -22,9 +12,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useForm } from "react-hook-form";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  InvoiceInput,
+  InvoiceItemInput,
+  PRODUCT_TYPES,
+  PRODUCT_TYPE_VALUES,
+  invoiceSchema,
+} from "@/lib/schemas/invoice";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 const PRICE_MAP: Record<(typeof PRODUCT_TYPE_VALUES)[number], number> = {
   honey: 8,
@@ -46,8 +46,8 @@ export default function NewInvoicePage() {
     { product: "honey", quantity: 1, unitPrice: PRICE_MAP["honey"] },
   ]);
 
-  const form = useForm<Omit<InvoiceInput, "items" | "total">>({
-    resolver: zodResolver(invoiceSchema.omit({ items: true, total: true })),
+  const form = useForm<InvoiceInput>({
+    resolver: zodResolver(invoiceSchema),
     defaultValues: {
       customerName: "",
       email: "",
@@ -56,8 +56,7 @@ export default function NewInvoicePage() {
       notes: "",
     },
   });
-
-  const calculateTotal = () =>
+  const calculateTotal = (items: InvoiceItemInput[]) =>
     items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
   const updateItem = (index: number, updated: Partial<InvoiceItemInput>) => {
@@ -83,7 +82,7 @@ export default function NewInvoicePage() {
     const values: InvoiceInput = {
       ...data,
       items,
-      total: calculateTotal(),
+      total: calculateTotal(items),
     };
 
     setLoading(true);
@@ -195,7 +194,7 @@ export default function NewInvoicePage() {
                 <Input
                   type="number"
                   min={1}
-                  value={item.quantity}
+                  value={Number(item.quantity)}
                   onChange={(e) =>
                     updateItem(index, {
                       quantity: Number(e.target.value) || 1,
@@ -207,7 +206,7 @@ export default function NewInvoicePage() {
                 <Label>Unit Price</Label>
                 <Input
                   type="number"
-                  value={item.unitPrice}
+                  value={Number(item.unitPrice)}
                   onChange={(e) =>
                     updateItem(index, {
                       unitPrice: Number(e.target.value) || 0,
@@ -236,7 +235,7 @@ export default function NewInvoicePage() {
             <Label>Total</Label>
             <Input
               readOnly
-              value={`$${calculateTotal().toFixed(2)}`}
+              value={`$${calculateTotal(items).toFixed(2)}`}
               className="font-bold"
             />
           </div>
