@@ -32,7 +32,7 @@ export default function EditExpensePage() {
     defaultValues: {
       item: "",
       amount: 0,
-      date: "",
+      date: new Date(),
       notes: "",
     },
   });

@@ -5,14 +5,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
-  FormMessage,
-  FormControl,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { formatDateMMDDYYYY } from "@/lib/formatDate";
+import { formatDate } from "@/lib/formatDate";
 import { IncomeInput, incomeSchema } from "@/lib/schemas/income";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -127,7 +127,7 @@ export default function NewIncomePage() {
                   </FormControl>
                   <div className="text-xs text-muted-foreground mt-1">
                     {field.value instanceof Date
-                      ? formatDateMMDDYYYY(field.value.toISOString())
+                      ? formatDate(field.value.toISOString())
                       : "Select date"}
                   </div>
                   <FormMessage />

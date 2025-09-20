@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDateMMDDYYYY } from "@/lib/formatDate";
+import { formatDate } from "@/lib/formatDate";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
@@ -53,9 +53,7 @@ export default async function IncomePage() {
                 <TableRow key={income.id}>
                   <TableCell>{income.source}</TableCell>
                   <TableCell>${income.amount.toFixed(2)}</TableCell>
-                  <TableCell>
-                    {formatDateMMDDYYYY(income.date.toISOString())}
-                  </TableCell>
+                  <TableCell>{formatDate(income.date.toISOString())}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

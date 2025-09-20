@@ -1,13 +1,12 @@
 // lib/schemas/expense.ts
-
 import { z } from "zod";
 
-// Prisma Decimal type is usually handled as string or number in input schemas
 export const expenseSchema = z.object({
-  amount: z.coerce.number().positive("Amount must be positive"),
-  date: z.coerce.date(),
+  amount: z.number().positive("Amount must be positive"),
+  date: z.date(), // coerces strings -> Date
   item: z.string().min(1, "Item is required"),
   notes: z.string().optional(),
 });
 
-export type ExpenseInput = z.input<typeof expenseSchema>;
+// ✅ Correct type: parsed/output values
+export type ExpenseInput = z.infer<typeof expenseSchema>;

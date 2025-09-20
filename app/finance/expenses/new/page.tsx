@@ -16,12 +16,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import z from "zod";
 
 export default function NewExpensePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const form = useForm<ExpenseInput>({
+  const form = useForm<z.infer<typeof expenseSchema>>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       item: "",

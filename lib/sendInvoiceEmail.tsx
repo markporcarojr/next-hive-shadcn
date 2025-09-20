@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 // import { renderToBuffer } from "@react-pdf/renderer";
 // import InvoicePDF from "@/components/InvoicePDF"; // TODO: Create this component
-import { formatDateMMDDYYYY } from "./formatDate";
+import { formatDate } from "./formatDate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -31,7 +31,7 @@ export async function sendInvoiceEmail({
   //   />
   // );
 
-  const goodDate = formatDateMMDDYYYY(date);
+  const goodDate = formatDate(date);
   // const base64PDF = pdfBuffer.toString("base64");
 
   // Styled email HTML

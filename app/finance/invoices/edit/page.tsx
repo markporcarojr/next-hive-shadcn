@@ -69,7 +69,10 @@ export default function EditInvoicePage() {
         method: "PATCH",
         body: JSON.stringify({
           ...values,
-          date: new Date(values.date as string),
+          date:
+            typeof values.date === "string"
+              ? new Date(values.date)
+              : values.date,
         }),
         headers: { "Content-Type": "application/json" },
       });

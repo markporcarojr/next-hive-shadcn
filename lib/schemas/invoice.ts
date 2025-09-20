@@ -30,14 +30,14 @@ export const PRODUCT_TYPES = PRODUCT_TYPE_VALUES.map((value) => ({
 // 4. Invoice item schema using the enum
 export const invoiceItemSchema = z.object({
   product: ProductTypeEnum,
-  quantity: z.coerce.number().positive(),
-  unitPrice: z.coerce.number().nonnegative(),
+  quantity: z.number().positive(),
+  unitPrice: z.number().nonnegative(),
 });
 
 // 5. Full invoice schema
 export const invoiceSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
-  date: z.coerce.date(),
+  date: z.date(),
   email: z.email("Invalid email format").optional(),
   notes: z.string().optional(),
   phone: z
@@ -45,9 +45,9 @@ export const invoiceSchema = z.object({
     .regex(/^\d{10}$/)
     .optional(),
   items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
-  total: z.coerce.number().nonnegative(),
+  total: z.number().nonnegative(),
 });
 
 // 6. Types
-export type InvoiceInput = z.input<typeof invoiceSchema>;
+export type InvoiceInput = z.infer<typeof invoiceSchema>;
 export type InvoiceItemInput = z.infer<typeof invoiceItemSchema>;

@@ -1,15 +1,15 @@
 // app/finance/invoices/[id]/page.tsx
 
-import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
-import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { prisma } from "@/lib/prisma";
 import { PRODUCT_TYPES } from "@/lib/schemas/invoice";
+import { auth } from "@clerk/nextjs/server";
 import { format } from "date-fns";
+import { notFound } from "next/navigation";
 
 interface InvoicePageProps {
   params: Promise<{ id: string }>;

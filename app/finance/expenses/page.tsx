@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDateMMDDYYYY } from "@/lib/formatDate";
+import { formatDate } from "@/lib/formatDate";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
@@ -59,9 +59,7 @@ export default async function ExpensePage() {
               <TableRow key={expense.id}>
                 <TableCell>{expense.item}</TableCell>
                 <TableCell>${expense.amount.toFixed(2)}</TableCell>
-                <TableCell>
-                  {formatDateMMDDYYYY(expense.date.toISOString())}
-                </TableCell>
+                <TableCell>{formatDate(expense.date.toISOString())}</TableCell>
               </TableRow>
             ))}
           </TableBody>

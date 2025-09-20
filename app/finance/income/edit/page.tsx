@@ -29,7 +29,7 @@ export default function EditIncomePage() {
     defaultValues: {
       source: "",
       amount: 0,
-      date: "",
+      date: new Date(),
     },
   });
 
