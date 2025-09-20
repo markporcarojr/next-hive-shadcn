@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -24,13 +23,12 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ITEM_NAMES } from "../../../data/inventoryAutoComplete";
+import { ITEM_NAMES } from "../../../Data/inventoryAutoComplete";
 
 const LOCATIONS = ["Storage", "Shop", "Garage", "Field", "Other"];
 
 export default function NewInventoryPage() {
   const router = useRouter();
-  const [items, setItems] = useState(ITEM_NAMES);
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<InventoryInput>({
@@ -57,7 +55,7 @@ export default function NewInventoryPage() {
       } else {
         toast.error("Failed to save inventory item");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to save inventory item");
     } finally {
       setIsLoading(false);

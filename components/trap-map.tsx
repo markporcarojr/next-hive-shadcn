@@ -13,7 +13,7 @@ import {
   TileLayer,
   ZoomControl,
 } from "react-leaflet";
-import { honeyIcon } from "../data/mapIcons";
+import { honeyIcon } from "../Data/mapIcons";
 
 const { BaseLayer, Overlay } = LayersControl;
 

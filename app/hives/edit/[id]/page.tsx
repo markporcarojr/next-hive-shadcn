@@ -3,7 +3,6 @@
 import { HiveInput, hiveSchema } from "@/lib/schemas/hive";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -57,7 +56,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
       try {
         const res = await fetch("/api/hives");
         const data = await res.json();
-        const current = data.find((h: any) => h.id === Number(params.id));
+        const current = data.find((h: { id: number }) => h.id === Number(params.id));
         if (!current) return router.push("/hives");
 
         form.reset({
@@ -69,7 +68,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
           superBoxes: current.superBoxes || 0,
           todo: current.todo || "",
         });
-      } catch (e) {
+      } catch (e: unknown) {
         toast.error("Failed to load data");
         router.push("/hives");
       } finally {

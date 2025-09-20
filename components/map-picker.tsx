@@ -14,7 +14,7 @@ import {
   TileLayer,
   useMapEvents,
 } from "react-leaflet";
-import { honeyIcon } from "../data/mapIcons";
+import { honeyIcon } from "../Data/mapIcons";
 
 type MapPickerProps = {
   initialLat?: number;
