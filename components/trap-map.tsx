@@ -2,7 +2,7 @@
 "use client";
 
 import { SwarmInput } from "@/lib/schemas/swarmTrap";
-import { Card, Text, Title } from "@mantine/core";
+import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import {
   LayerGroup,
@@ -67,19 +67,21 @@ export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
                     icon={honeyIcon}
                   >
                     <Popup>
-                      <Card shadow="xs" padding="sm">
-                        <Title order={5}>{trap.label || "Unnamed Trap"}</Title>
-                        <Text size="sm">
-                          Trap Set:{" "}
-                          {
-                            new Date(trap.installedAt)
-                              .toISOString()
-                              .split("T")[0]
-                          }
-                        </Text>
-                        <Text size="sm" c="dimmed">
-                          Label: {trap.label}
-                        </Text>
+                      <Card className="shadow-sm">
+                        <CardContent className="p-3">
+                          <h5 className="font-medium text-sm mb-1">{trap.label || "Unnamed Trap"}</h5>
+                          <p className="text-sm text-muted-foreground">
+                            Trap Set:{" "}
+                            {
+                              new Date(trap.installedAt)
+                                .toISOString()
+                                .split("T")[0]
+                            }
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Label: {trap.label}
+                          </p>
+                        </CardContent>
                       </Card>
                     </Popup>
                   </Marker>

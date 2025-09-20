@@ -1,7 +1,8 @@
 // components/MapPicker.tsx
 "use client";
 
-import { Box, Button, Group, rem, Stack, Text, TextInput } from "@mantine/core";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { IconSearch, IconTarget } from "@tabler/icons-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -39,11 +40,13 @@ function LocationMarker({
   return (
     <Marker position={selectedPosition} icon={honeyIcon}>
       <Popup>
-        <Text fw={500}>Selected Location</Text>
-        <Text size="sm">
-          Lat: {selectedPosition.lat.toFixed(4)}, Lng:{" "}
-          {selectedPosition.lng.toFixed(4)}
-        </Text>
+        <div>
+          <p className="font-medium">Selected Location</p>
+          <p className="text-sm text-muted-foreground">
+            Lat: {selectedPosition.lat.toFixed(4)}, Lng:{" "}
+            {selectedPosition.lng.toFixed(4)}
+          </p>
+        </div>
       </Popup>
     </Marker>
   );
@@ -97,29 +100,30 @@ export default function MapPicker({
   };
 
   return (
-    <Stack gap="xs">
-      <Group grow>
-        <TextInput
-          placeholder="Search for address"
-          leftSection={<IconSearch size={rem(16)} />}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.currentTarget.value)}
-        />
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <div className="flex-1 relative">
+          <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search for address"
+            className="pl-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
         <Button onClick={handleGeocode}>Search</Button>
         <Button
-          variant="light"
-          leftSection={<IconTarget size={16} />}
+          variant="outline"
           onClick={handleUseCurrentLocation}
         >
+          <IconTarget className="mr-2 h-4 w-4" />
           Use Current Location
         </Button>
-      </Group>
+      </div>
 
-      <Box
+      <div
+        className="border-2 border-yellow-400 rounded-xl overflow-hidden shadow-lg"
         style={{
-          border: "2px solid #f4b400",
-          borderRadius: "12px",
-          overflow: "hidden",
           boxShadow: "0 0 10px rgba(244, 180, 0, 0.5)",
         }}
       >
@@ -139,7 +143,7 @@ export default function MapPicker({
           />
           <LocationMarker onSelect={onSelect} selectedPosition={position} />
         </MapContainer>
-      </Box>
-    </Stack>
+      </div>
+    </div>
   );
 }

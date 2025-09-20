@@ -2,19 +2,31 @@
 "use client";
 
 import { InventoryInput } from "@/lib/schemas/inventory";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Button,
-  Card,
-  Group,
-  Modal,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
   Select,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
-import { notifications } from "@mantine/notifications";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
 import { IconX } from "@tabler/icons-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -24,7 +36,7 @@ const ITEMS_PER_PAGE = 5;
 export default function InventoryPage() {
   const [items, setItems] = useState<InventoryInput[]>([]);
   const [page, setPage] = useState(1);
-  const [modalOpen, { open, close }] = useDisclosure(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [inventoryToDelete, setInventoryToDelete] = useState<number | null>(
     null
@@ -42,9 +54,9 @@ export default function InventoryPage() {
   // Check if items data is loaded
   if (!items || items.length === 0) {
     return (
-      <main style={{ padding: "2rem" }}>
-        <Title order={2}>Inventory</Title>
-        <Text mt="md">No inventory data found.</Text>
+      <main className="p-8">
+        <h2 className="text-3xl font-bold tracking-tight">Inventory</h2>
+        <p className="mt-4 text-muted-foreground">No inventory data found.</p>
       </main>
     );
   }
@@ -66,10 +78,7 @@ export default function InventoryPage() {
 
   const uniqueLocations =
     items && items.length > 0
-      ? Array.from(new Set(items.map((item) => item.location))).map((loc) => ({
-          label: loc,
-          value: loc,
-        }))
+      ? Array.from(new Set(items.map((item) => item.location)))
       : [];
 
   const handleDelete = async () => {
@@ -81,103 +90,119 @@ export default function InventoryPage() {
 
     if (res.ok) {
       setItems((prev) => prev.filter((h) => h.id !== inventoryToDelete));
-      close();
+      setModalOpen(false);
       setInventoryToDelete(null);
+      toast.success("Inventory item deleted successfully");
     } else {
-      notifications.show({
-        position: "top-center",
-        title: "Error",
-        message: "Failed to delete inventory record.",
-        color: "red",
-        icon: <IconX size={20} />,
-        autoClose: 4000,
-        withCloseButton: true,
-      });
+      toast.error("Failed to delete inventory record");
     }
   };
 
   return (
-    <main style={{ padding: "2rem" }}>
-      <Group justify="space-between" mb="md">
-        <Title order={2}>Inventory</Title>
-        <Button
-          variant="filled"
-          color="#f4b400"
-          component={Link}
-          href="/inventory/new"
-        >
-          Add Inventory Item
-        </Button>
-        <Select
-          placeholder="Filter by location"
-          data={uniqueLocations}
-          clearable
-          value={selectedLocation}
-          onChange={setSelectedLocation}
-        />
-      </Group>
+    <main className="p-8">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold tracking-tight">Inventory</h2>
+        <div className="flex gap-4 items-center">
+          <Select value={selectedLocation || ""} onValueChange={setSelectedLocation}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter by location" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All locations</SelectItem>
+              {uniqueLocations.map((location) => (
+                <SelectItem key={location} value={location}>
+                  {location}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button asChild className="bg-yellow-500 hover:bg-yellow-600">
+            <Link href="/inventory/new">Add Inventory Item</Link>
+          </Button>
+        </div>
+      </div>
 
-      <Stack gap="sm">
+      <div className="space-y-4">
         {displayed.map((item) => (
-          <Card key={item.id} withBorder shadow="xs" padding="md">
-            <Group justify="space-between">
-              <Text fw={500}>{item.name}</Text>
-              <Text c="dimmed">Qty: {item.quantity}</Text>
-            </Group>
-            <Text size="sm" c="dimmed">
-              Location: {item.location}
-            </Text>
-            <Group justify="space-between">
-              <Button
-                size="xs"
-                variant="light"
-                component={Link}
-                href={`/inventory/edit/${item.id}`}
-              >
-                Edit
-              </Button>
-              <Button
-                color="red"
-                variant="light"
-                size="xs"
-                onClick={() => {
-                  setInventoryToDelete(item.id!);
-                  open();
-                }}
-              >
-                Delete
-              </Button>
-            </Group>
+          <Card key={item.id} className="border shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <h3 className="font-medium">{item.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Location: {item.location}
+                  </p>
+                </div>
+                <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+              </div>
+              <div className="flex justify-between items-center mt-4">
+                <Button size="sm" variant="outline" asChild>
+                  <Link href={`/inventory/edit/${item.id}`}>Edit</Link>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => {
+                    setInventoryToDelete(item.id!);
+                    setModalOpen(true);
+                  }}
+                >
+                  Delete
+                </Button>
+              </div>
+            </CardContent>
           </Card>
         ))}
-      </Stack>
+      </div>
 
-      <Pagination
-        mt="xl"
-        total={Math.ceil(filteredItems.length / ITEMS_PER_PAGE)}
-        value={page}
-        onChange={setPage}
-        color="honey"
-      />
-      <Modal
-        opened={modalOpen}
-        onClose={() => {
-          close();
-          setInventoryToDelete(null);
-        }}
-        title="Confirm Deletion"
-        centered
-      >
-        <Text mb="md">Are you sure you want to delete this record?</Text>
-        <Group justify="flex-end">
-          <Button variant="default" onClick={close}>
-            Cancel
-          </Button>
-          <Button color="red" onClick={handleDelete}>
-            Confirm Delete
-          </Button>
-        </Group>
-      </Modal>
+      {filteredItems.length > ITEMS_PER_PAGE && (
+        <div className="mt-8 flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              {Array.from({ length: Math.ceil(filteredItems.length / ITEMS_PER_PAGE) }, (_, i) => (
+                <PaginationItem key={i + 1}>
+                  <PaginationLink
+                    onClick={() => setPage(i + 1)}
+                    isActive={page === i + 1}
+                    className="cursor-pointer"
+                  >
+                    {i + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setPage(Math.min(Math.ceil(filteredItems.length / ITEMS_PER_PAGE), page + 1))}
+                  className={page === Math.ceil(filteredItems.length / ITEMS_PER_PAGE) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          <p className="mb-4">Are you sure you want to delete this record?</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Confirm Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }

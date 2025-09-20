@@ -1,31 +1,41 @@
 "use client";
 
-import { useForm } from "@mantine/form";
 import { inventorySchema, InventoryInput } from "@/lib/schemas/inventory";
-import { zodResolver } from "mantine-form-zod-resolver";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  Button,
-  NumberInput,
-  Stack,
-  Title,
   Select,
-  Autocomplete,
-} from "@mantine/core";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ITEM_NAMES } from "../../../data/inventoryAutoComplete";
 
 const LOCATIONS = ["Storage", "Shop", "Garage", "Field", "Other"];
 
-// Preset item names (could later be loaded from DB)
-
 export default function NewInventoryPage() {
   const router = useRouter();
   const [items, setItems] = useState(ITEM_NAMES);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<InventoryInput>({
-    validate: zodResolver(inventorySchema),
-    initialValues: {
+    resolver: zodResolver(inventorySchema),
+    defaultValues: {
       name: "",
       quantity: 0,
       location: "",
@@ -33,54 +43,104 @@ export default function NewInventoryPage() {
   });
 
   const handleSubmit = async (values: InventoryInput) => {
-    const res = await fetch("/api/inventory", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/inventory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
 
-    if (res.ok) router.push("/inventory");
-    else alert("Failed to save inventory item");
+      if (res.ok) {
+        toast.success("Inventory item saved successfully");
+        router.push("/inventory");
+      } else {
+        toast.error("Failed to save inventory item");
+      }
+    } catch (error) {
+      toast.error("Failed to save inventory item");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack>
-        <Title order={2}>Add Inventory Item</Title>
+    <main className="p-8 max-w-md mx-auto">
+      <h2 className="text-3xl font-bold tracking-tight mb-6">Add Inventory Item</h2>
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Item Name</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Enter item name" 
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Autocomplete
-          label="Item Name"
-          placeholder="Select or type a new item"
-          required
-          data={items}
-          value={form.values.name}
-          onChange={(value) => {
-            form.setFieldValue("name", value);
-            if (!items.includes(value) && value.trim()) {
-              setItems((prev) => [...prev, value]);
-            }
-          }}
-        />
+          <FormField
+            control={form.control}
+            name="quantity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Quantity</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    min="0"
+                    placeholder="0"
+                    {...field}
+                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <NumberInput
-          label="Quantity"
-          required
-          min={0}
-          {...form.getInputProps("quantity")}
-        />
+          <FormField
+            control={form.control}
+            name="location"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Location</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a location" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {LOCATIONS.map((location) => (
+                      <SelectItem key={location} value={location}>
+                        {location}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Select
-          label="Location"
-          placeholder="Choose a location"
-          data={LOCATIONS}
-          required
-          {...form.getInputProps("location")}
-        />
-
-        <Button type="submit" color="yellow">
-          Save Item
-        </Button>
-      </Stack>
-    </form>
+          <Button 
+            type="submit" 
+            disabled={isLoading} 
+            className="w-full bg-yellow-500 hover:bg-yellow-600"
+          >
+            {isLoading ? "Saving..." : "Save Item"}
+          </Button>
+        </form>
+      </Form>
+    </main>
   );
 }
