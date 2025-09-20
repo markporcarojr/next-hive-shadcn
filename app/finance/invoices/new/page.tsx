@@ -113,7 +113,9 @@ export default function NewInvoicePage() {
         <div className="space-y-4">
           {/* Customer Info */}
           <div>
-            <Label htmlFor="customerName">Customer Name</Label>
+            <Label className="mb-3" htmlFor="customerName">
+              Customer Name
+            </Label>
             <Input
               id="customerName"
               placeholder="e.g. John Appleseed"
@@ -121,7 +123,9 @@ export default function NewInvoicePage() {
             />
           </div>
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label className="mb-3" htmlFor="email">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -130,7 +134,9 @@ export default function NewInvoicePage() {
             />
           </div>
           <div>
-            <Label htmlFor="phone">Phone</Label>
+            <Label className="mb-3" htmlFor="phone">
+              Phone
+            </Label>
             <Input
               id="phone"
               placeholder="e.g. 5551234567"
@@ -138,7 +144,9 @@ export default function NewInvoicePage() {
             />
           </div>
           <div>
-            <Label htmlFor="date">Invoice Date</Label>
+            <Label className="mb-3" htmlFor="date">
+              Invoice Date
+            </Label>
             <Input
               id="date"
               type="date"
@@ -149,7 +157,9 @@ export default function NewInvoicePage() {
             />
           </div>
           <div>
-            <Label htmlFor="notes">Notes</Label>
+            <Label className="mb-3" htmlFor="notes">
+              Notes
+            </Label>
             <Textarea
               id="notes"
               placeholder="Optional notes"
@@ -165,7 +175,7 @@ export default function NewInvoicePage() {
           {items.map((item, index) => (
             <div key={index} className="flex gap-2 items-end">
               <div className="flex-1">
-                <Label>Product</Label>
+                <Label className="mb-3">Product</Label>
                 <Select
                   value={item.product}
                   onValueChange={(value) => {
@@ -190,7 +200,7 @@ export default function NewInvoicePage() {
                 </Select>
               </div>
               <div className="w-24">
-                <Label>Qty</Label>
+                <Label className="mb-3">Qty</Label>
                 <Input
                   type="number"
                   min={1}
@@ -203,7 +213,7 @@ export default function NewInvoicePage() {
                 />
               </div>
               <div className="w-32">
-                <Label>Unit Price</Label>
+                <Label className="mb-3">Unit Price</Label>
                 <Input
                   type="number"
                   value={Number(item.unitPrice)}
@@ -232,7 +242,7 @@ export default function NewInvoicePage() {
           {/* Total */}
           <Separator className="my-4" />
           <div>
-            <Label>Total</Label>
+            <Label className="mb-3">Total</Label>
             <Input
               readOnly
               value={`$${calculateTotal(items).toFixed(2)}`}

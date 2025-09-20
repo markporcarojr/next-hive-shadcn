@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -12,9 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { formatDate } from "@/lib/formatDate";
 import { IncomeInput, incomeSchema } from "@/lib/schemas/income";
-import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -115,21 +112,21 @@ export default function NewIncomePage() {
                 <FormItem>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <Calendar
-                      mode="single"
-                      selected={
-                        field.value instanceof Date ? field.value : undefined
-                      }
-                      onSelect={field.onChange}
-                      className={cn("w-full")}
+                    <Input
+                      type="date"
                       disabled={loading}
+                      value={
+                        new Date(field.value as string | number | Date)
+                          .toISOString()
+                          .split("T")[0]
+                      }
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value ? new Date(e.target.value) : new Date()
+                        )
+                      }
                     />
                   </FormControl>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {field.value instanceof Date
-                      ? formatDate(field.value.toISOString())
-                      : "Select date"}
-                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -141,7 +138,7 @@ export default function NewIncomePage() {
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel className="mb-3">Notes</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Optional notes"
