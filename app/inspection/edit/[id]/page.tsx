@@ -1,26 +1,41 @@
 "use client";
 
-import { InspectionInput, inspectionSchema } from "@/lib/schemas/inspection";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Button,
-  Checkbox,
-  Container,
-  Group,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
   Select,
-  Slider,
-  Stack,
-  Text,
-  TextInput,
-  Textarea,
-  Title,
-} from "@mantine/core";
-import { DateInput } from "@mantine/dates";
-import { useForm } from "@mantine/form";
-import { notifications } from "@mantine/notifications";
-import { IconHeart, IconPlus } from "@tabler/icons-react";
-import { zodResolver } from "mantine-form-zod-resolver";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
+import { InspectionInput, inspectionSchema } from "@/lib/schemas/inspection";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { CalendarIcon, Edit } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function getStrengthLabel(value: number) {
   if (value < 35) return "Weak";
@@ -55,18 +70,19 @@ export default function EditInspectionPage() {
   }, []);
 
   const form = useForm<InspectionInput>({
-    initialValues: {
+    resolver: zodResolver(inspectionSchema),
+    defaultValues: {
       id: 0,
       temperament: "",
       hiveStrength: 0,
       hiveId: 0,
       inspectionDate: new Date(),
       inspectionImage: "",
-      queen: undefined,
-      queenCell: undefined,
-      brood: undefined,
-      disease: undefined,
-      eggs: undefined,
+      queen: false,
+      queenCell: false,
+      brood: false,
+      disease: false,
+      eggs: false,
       pests: "",
       feeding: "",
       treatments: "",
@@ -74,7 +90,6 @@ export default function EditInspectionPage() {
       weatherCondition: "",
       weatherTemp: "",
     },
-    validate: zodResolver(inspectionSchema),
   });
 
   useEffect(() => {
@@ -85,7 +100,7 @@ export default function EditInspectionPage() {
         const current = data.find((h: any) => h.id === Number(params.id));
         if (!current) return router.push("/inspection");
 
-        form.setValues({
+        form.reset({
           id: current.id,
           temperament: current.temperament,
           hiveStrength: current.hiveStrength,
@@ -102,14 +117,10 @@ export default function EditInspectionPage() {
           treatments: current.treatments,
           inspectionNote: current.inspectionNote,
           weatherCondition: current.weatherCondition,
+          weatherTemp: current.weatherTemp,
         });
       } catch (e) {
-        notifications.show({
-          position: "top-center",
-          title: "Error",
-          message: "Failed to load data",
-          color: "red",
-        });
+        toast.error("Failed to load data");
         router.push("/inspection");
       } finally {
         setLoading(false);
@@ -117,7 +128,7 @@ export default function EditInspectionPage() {
     };
 
     fetchData();
-  }, [params.id]);
+  }, [params.id, form, router]);
 
   const handleSubmit = async (values: InspectionInput) => {
     const parsed = {
@@ -136,161 +147,391 @@ export default function EditInspectionPage() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        notifications.show({
-          position: "top-center",
-          title: "Error",
-          message: errorData.message || "Failed to create inspection",
-          color: "red",
-        });
+        toast.error(errorData.message || "Failed to update inspection");
         return;
       }
 
-      notifications.show({
-        position: "top-center",
-        title: "Inspection Updated",
-        message: "Successfully Updates inspection",
-        color: "green",
-      });
+      toast.success("Successfully updated inspection");
       router.push("/inspection");
     } catch (error) {
       console.error(error);
-      notifications.show({
-        position: "top-center",
-        title: "Network Error",
-        message: "Could not update inspection.",
-        color: "red",
-      });
+      toast.error("Could not update inspection.");
     }
   };
-  console.log("Hives array:", hives);
+  if (loading) {
+    return (
+      <main className="p-8 max-w-2xl mx-auto">
+        <Card>
+          <CardContent>
+            <div className="flex justify-center p-8">Loading...</div>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
 
   return (
-    <Container size="sm" mt="xl">
-      <Title order={2} mb="lg">
-        Edit Inspection
-      </Title>
+    <main className="p-8 max-w-2xl mx-auto">
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Inspection</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              {/* Inspection Date */}
+              <FormField
+                control={form.control}
+                name="inspectionDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Inspection Date *</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack>
-          <DateInput
-            label="Inspection Date"
-            {...form.getInputProps("inspectionDate")}
-            required
-          />
-          <Select
-            label="Select Hive"
-            placeholder="Choose a hive"
-            data={hives}
-            {...form.getInputProps("hiveId")}
-            required
-          />
+              {/* Hive Selection */}
+              <FormField
+                control={form.control}
+                name="hiveId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Select Hive *</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value ? String(field.value) : ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose a hive" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {hives.map((hive) => (
+                          <SelectItem key={hive.value} value={hive.value}>
+                            {hive.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Text fw={500} size="sm">
-            Hive Strength
-          </Text>
-          <Slider
-            label={` ${getStrengthLabel(form.values.hiveStrength)}`}
-            thumbChildren={<IconHeart size={16} />}
-            color={getColor(form.values.hiveStrength)}
-            thumbSize={26}
-            min={0}
-            max={100}
-            step={1}
-            value={form.values.hiveStrength}
-            onChange={(value) => form.setFieldValue("hiveStrength", value)}
-            styles={{ thumb: { borderWidth: 2, padding: 3 } }}
-          />
+              {/* Hive Strength Slider */}
+              <FormField
+                control={form.control}
+                name="hiveStrength"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hive Strength: {getStrengthLabel(field.value)}</FormLabel>
+                    <FormControl>
+                      <div className="px-3">
+                        <Slider
+                          value={[field.value]}
+                          onValueChange={(values) => field.onChange(values[0])}
+                          max={100}
+                          min={0}
+                          step={1}
+                          className="w-full"
+                        />
+                        <div className="flex justify-between text-sm text-gray-500 mt-1">
+                          <span>0</span>
+                          <span>50</span>
+                          <span>100</span>
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Checkbox
-            label="Queen"
-            {...form.getInputProps("queen", { type: "checkbox" })}
-          />
+              {/* Checkboxes */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="queen"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">Queen</FormLabel>
+                    </FormItem>
+                  )}
+                />
 
-          <Checkbox
-            label="Queen Cell"
-            {...form.getInputProps("queenCell", { type: "checkbox" })}
-          />
+                <FormField
+                  control={form.control}
+                  name="queenCell"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">Queen Cell</FormLabel>
+                    </FormItem>
+                  )}
+                />
 
-          <Checkbox
-            label="Brood"
-            {...form.getInputProps("brood", { type: "checkbox" })}
-          />
+                <FormField
+                  control={form.control}
+                  name="brood"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">Brood</FormLabel>
+                    </FormItem>
+                  )}
+                />
 
-          <Checkbox
-            label="Disease"
-            {...form.getInputProps("disease", { type: "checkbox" })}
-          />
+                <FormField
+                  control={form.control}
+                  name="disease"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">Disease</FormLabel>
+                    </FormItem>
+                  )}
+                />
 
-          <Checkbox
-            label="Eggs"
-            {...form.getInputProps("eggs", { type: "checkbox" })}
-          />
+                <FormField
+                  control={form.control}
+                  name="eggs"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">Eggs</FormLabel>
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-          <Select
-            label="Temperament"
-            placeholder="Pick value"
-            data={["Calm", "Aggressive", "Defensive", "Normal", "Other"]}
-            {...form.getInputProps("temperament")}
-          />
+              {/* Temperament */}
+              <FormField
+                control={form.control}
+                name="temperament"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Temperament</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pick value" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Calm">Calm</SelectItem>
+                        <SelectItem value="Aggressive">Aggressive</SelectItem>
+                        <SelectItem value="Defensive">Defensive</SelectItem>
+                        <SelectItem value="Normal">Normal</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Select
-            label="Pests"
-            placeholder="Pick value"
-            data={[
-              "Varroa Mites",
-              "Hive Beetles",
-              "Ants",
-              "Mice",
-              "Wax Moths",
-              "Other",
-            ]}
-            {...form.getInputProps("pests")}
-          />
-          <Select
-            label="Feeding"
-            placeholder="Pick value"
-            data={[
-              "Fondant",
-              "Pollen Patties",
-              "Sugar Syrup",
-              "No Feeding",
-              "Other",
-            ]}
-            {...form.getInputProps("feeding")}
-          />
-          <Select
-            label="Treatmnets"
-            placeholder="Pick value"
-            data={[
-              "Oxalic Acid",
-              "Formic Acid",
-              "Apivar",
-              "Diatomaceous Earth",
-              "No Treatments",
-              "Other",
-            ]}
-            {...form.getInputProps("treatments")}
-          />
+              {/* Pests */}
+              <FormField
+                control={form.control}
+                name="pests"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pests</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pick value" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Varroa Mites">Varroa Mites</SelectItem>
+                        <SelectItem value="Hive Beetles">Hive Beetles</SelectItem>
+                        <SelectItem value="Ants">Ants</SelectItem>
+                        <SelectItem value="Mice">Mice</SelectItem>
+                        <SelectItem value="Wax Moths">Wax Moths</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Textarea label="Notes" {...form.getInputProps("inspectionNote")} />
+              {/* Feeding */}
+              <FormField
+                control={form.control}
+                name="feeding"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Feeding</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pick value" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Fondant">Fondant</SelectItem>
+                        <SelectItem value="Pollen Patties">Pollen Patties</SelectItem>
+                        <SelectItem value="Sugar Syrup">Sugar Syrup</SelectItem>
+                        <SelectItem value="No Feeding">No Feeding</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <TextInput
-            label="Weather Condition"
-            {...form.getInputProps("weatherCondition")}
-          />
+              {/* Treatments */}
+              <FormField
+                control={form.control}
+                name="treatments"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Treatments</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pick value" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Oxalic Acid">Oxalic Acid</SelectItem>
+                        <SelectItem value="Formic Acid">Formic Acid</SelectItem>
+                        <SelectItem value="Apivar">Apivar</SelectItem>
+                        <SelectItem value="Diatomaceous Earth">Diatomaceous Earth</SelectItem>
+                        <SelectItem value="No Treatments">No Treatments</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <TextInput
-            label="Weather Temp"
-            {...form.getInputProps("weatherTemp")}
-          />
+              {/* Notes */}
+              <FormField
+                control={form.control}
+                name="inspectionNote"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Inspection notes..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Group justify="flex-end" mt="xl">
-            <Button type="submit" leftSection={<IconPlus size={16} />}>
-              Update Inspection
-            </Button>
-          </Group>
-        </Stack>
-      </form>
-    </Container>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Weather Condition */}
+                <FormField
+                  control={form.control}
+                  name="weatherCondition"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Weather Condition</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., Sunny, Cloudy"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Weather Temperature */}
+                <FormField
+                  control={form.control}
+                  name="weatherTemp"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Weather Temp</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., 75°F"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex justify-end">
+                <Button type="submit" disabled={loading}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Update Inspection
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </main>
   );
 }
