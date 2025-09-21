@@ -1,31 +1,42 @@
-// app/inventory/edit/[id]/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  TextInput,
-  NumberInput,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
   Select,
-  Button,
-  Stack,
-  Title,
-  Loader,
-} from "@mantine/core";
-import { useForm } from "@mantine/form";
-import { zodResolver } from "mantine-form-zod-resolver";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { inventorySchema, InventoryInput } from "@/lib/schemas/inventory";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter, useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { Edit } from "lucide-react";
 
-const locations = ["Workshop", "Honey Room", "Storage Shed", "Garage", "Van"];
+const LOCATIONS = ["Workshop", "Honey Room", "Storage Shed", "Garage", "Van"];
 
 export default function EditInventoryPage() {
   const router = useRouter();
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<InventoryInput>({
-    validate: zodResolver(inventorySchema),
-    initialValues: {
+    resolver: zodResolver(inventorySchema),
+    defaultValues: {
       name: "",
       quantity: 0,
       location: "",
@@ -34,62 +45,152 @@ export default function EditInventoryPage() {
 
   useEffect(() => {
     const fetchInventory = async () => {
-      const res = await fetch(`/api/inventory/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        form.setValues({
-          name: data.name,
-          quantity: data.quantity,
-          location: data.location,
-        });
+      try {
+        const res = await fetch(`/api/inventory/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          form.reset({
+            name: data.name,
+            quantity: data.quantity,
+            location: data.location,
+          });
+        } else {
+          toast.error("Failed to load inventory item");
+          router.push("/inventory");
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load inventory item");
+        router.push("/inventory");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     if (id) fetchInventory();
-  }, [id]);
+  }, [id, form, router]);
 
   const handleSubmit = async (values: InventoryInput) => {
-    const res = await fetch(`/api/inventory/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/inventory/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
 
-    if (res.ok) {
-      router.push("/inventory");
-    } else {
-      alert("Update failed.");
+      if (res.ok) {
+        toast.success("Inventory item updated successfully");
+        router.push("/inventory");
+      } else {
+        toast.error("Update failed");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Update failed");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  if (loading) return <Loader />;
+  if (loading) {
+    return (
+      <main className="p-8 max-w-lg mx-auto">
+        <Card>
+          <CardContent>
+            <div className="flex justify-center p-8">Loading...</div>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack>
-        <Title order={3}>Edit Inventory</Title>
+    <main className="p-8 max-w-lg mx-auto">
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Inventory</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              {/* Item Name */}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Item Name *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter item name"
+                        {...field}
+                        disabled={submitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <TextInput label="Item Name" required {...form.getInputProps("name")} />
+              {/* Quantity */}
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Quantity *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        disabled={submitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <NumberInput
-          label="Quantity"
-          required
-          min={0}
-          {...form.getInputProps("quantity")}
-        />
+              {/* Location */}
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose a location" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {LOCATIONS.map((location) => (
+                          <SelectItem key={location} value={location}>
+                            {location}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <Select
-          label="Location"
-          required
-          data={locations.map((loc) => ({ label: loc, value: loc }))}
-          {...form.getInputProps("location")}
-        />
-
-        <Button type="submit" color="yellow">
-          Update Item
-        </Button>
-      </Stack>
-    </form>
+              <div className="flex justify-end">
+                <Button type="submit" disabled={submitting}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  {submitting ? "Updating..." : "Update Item"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </main>
   );
 }

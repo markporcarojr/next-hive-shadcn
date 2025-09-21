@@ -1,31 +1,40 @@
 "use client";
 
-import { useForm } from "@mantine/form";
-import { inventorySchema, InventoryInput } from "@/lib/schemas/inventory";
-import { zodResolver } from "mantine-form-zod-resolver";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Button,
-  NumberInput,
-  Stack,
-  Title,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
   Select,
-  Autocomplete,
-} from "@mantine/core";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { inventorySchema, InventoryInput } from "@/lib/schemas/inventory";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ITEM_NAMES } from "../../../data/inventoryAutoComplete";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { Plus } from "lucide-react";
 
 const LOCATIONS = ["Storage", "Shop", "Garage", "Field", "Other"];
 
-// Preset item names (could later be loaded from DB)
-
 export default function NewInventoryPage() {
   const router = useRouter();
-  const [items, setItems] = useState(ITEM_NAMES);
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<InventoryInput>({
-    validate: zodResolver(inventorySchema),
-    initialValues: {
+    resolver: zodResolver(inventorySchema),
+    defaultValues: {
       name: "",
       quantity: 0,
       location: "",
@@ -33,54 +42,114 @@ export default function NewInventoryPage() {
   });
 
   const handleSubmit = async (values: InventoryInput) => {
-    const res = await fetch("/api/inventory", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
+    setLoading(true);
+    try {
+      const res = await fetch("/api/inventory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
 
-    if (res.ok) router.push("/inventory");
-    else alert("Failed to save inventory item");
+      if (res.ok) {
+        toast.success("Inventory item added successfully");
+        router.push("/inventory");
+      } else {
+        toast.error("Failed to save inventory item");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to save inventory item");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack>
-        <Title order={2}>Add Inventory Item</Title>
+    <main className="p-8 max-w-lg mx-auto">
+      <Card>
+        <CardHeader>
+          <CardTitle>Add Inventory Item</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              {/* Item Name */}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Item Name *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter item name"
+                        {...field}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <Autocomplete
-          label="Item Name"
-          placeholder="Select or type a new item"
-          required
-          data={items}
-          value={form.values.name}
-          onChange={(value) => {
-            form.setFieldValue("name", value);
-            if (!items.includes(value) && value.trim()) {
-              setItems((prev) => [...prev, value]);
-            }
-          }}
-        />
+              {/* Quantity */}
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Quantity *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <NumberInput
-          label="Quantity"
-          required
-          min={0}
-          {...form.getInputProps("quantity")}
-        />
+              {/* Location */}
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose a location" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {LOCATIONS.map((location) => (
+                          <SelectItem key={location} value={location}>
+                            {location}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <Select
-          label="Location"
-          placeholder="Choose a location"
-          data={LOCATIONS}
-          required
-          {...form.getInputProps("location")}
-        />
-
-        <Button type="submit" color="yellow">
-          Save Item
-        </Button>
-      </Stack>
-    </form>
+              <div className="flex justify-end">
+                <Button type="submit" disabled={loading}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {loading ? "Saving..." : "Save Item"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </main>
   );
 }
