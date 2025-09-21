@@ -8,7 +8,11 @@ import { cn } from "@/lib/utils";
 import { ActiveThemeProvider } from "@/components/active-theme";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import {
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { Toaster } from "sonner";
 
@@ -58,6 +62,7 @@ export default async function RootLayout({
                 <SidebarInset>
                   <SiteHeader />
                   <main className="flex-1 flex flex-col overflow-y-auto">
+                    <SidebarTrigger />
                     {children}
                   </main>
                   <Toaster />

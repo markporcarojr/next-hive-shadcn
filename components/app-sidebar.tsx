@@ -14,13 +14,21 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 import { data } from "../Data/nav-data";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const currentPath = usePathname(); // Replace with actual current path logic
+  const currentPath = usePathname();
+  const { setOpenMobile } = useSidebar();
+
+  useEffect(() => {
+    setOpenMobile(false);
+  }, [currentPath, setOpenMobile]);
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
