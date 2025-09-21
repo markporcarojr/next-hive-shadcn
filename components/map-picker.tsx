@@ -1,8 +1,10 @@
 // components/MapPicker.tsx
 "use client";
 
-import { Box, Button, Group, rem, Stack, Text, TextInput } from "@mantine/core";
-import { IconSearch, IconTarget } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Search, Target } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useRef, useState } from "react";
@@ -13,7 +15,7 @@ import {
   TileLayer,
   useMapEvents,
 } from "react-leaflet";
-import { honeyIcon } from "../data/mapIcons";
+import { honeyIcon } from "../Data/mapIcons";
 
 type MapPickerProps = {
   initialLat?: number;
@@ -39,11 +41,11 @@ function LocationMarker({
   return (
     <Marker position={selectedPosition} icon={honeyIcon}>
       <Popup>
-        <Text fw={500}>Selected Location</Text>
-        <Text size="sm">
+        <div className="font-medium">Selected Location</div>
+        <div className="text-sm text-gray-600">
           Lat: {selectedPosition.lat.toFixed(4)}, Lng:{" "}
           {selectedPosition.lng.toFixed(4)}
-        </Text>
+        </div>
       </Popup>
     </Marker>
   );
@@ -97,49 +99,58 @@ export default function MapPicker({
   };
 
   return (
-    <Stack gap="xs">
-      <Group grow>
-        <TextInput
-          placeholder="Search for address"
-          leftSection={<IconSearch size={rem(16)} />}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.currentTarget.value)}
-        />
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search for address"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
         <Button onClick={handleGeocode}>Search</Button>
         <Button
-          variant="light"
-          leftSection={<IconTarget size={16} />}
+          variant="outline"
           onClick={handleUseCurrentLocation}
         >
-          Use Current Location
+          <Target className="h-4 w-4 mr-2" />
+          Current Location
         </Button>
-      </Group>
+      </div>
 
-      <Box
-        style={{
-          border: "2px solid #f4b400",
-          borderRadius: "12px",
-          overflow: "hidden",
-          boxShadow: "0 0 10px rgba(244, 180, 0, 0.5)",
-        }}
-      >
-        <MapContainer
-          center={[initialLat, initialLng]}
-          zoom={13}
-          style={{ height: "400px", width: "100%" }}
-          ref={(ref) => {
-            if (ref && !mapRef.current) {
-              mapRef.current = ref;
-            }
-          }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution="© OpenStreetMap contributors"
-          />
-          <LocationMarker onSelect={onSelect} selectedPosition={position} />
-        </MapContainer>
-      </Box>
-    </Stack>
+      <Card>
+        <CardContent className="p-0">
+          <div
+            style={{
+              border: "2px solid #f4b400",
+              borderRadius: "12px",
+              overflow: "hidden",
+              boxShadow: "0 0 10px rgba(244, 180, 0, 0.5)",
+            }}
+          >
+            <MapContainer
+              center={[initialLat, initialLng]}
+              zoom={13}
+              style={{ height: "400px", width: "100%" }}
+              ref={(ref) => {
+                if (ref && !mapRef.current) {
+                  mapRef.current = ref;
+                }
+              }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="© OpenStreetMap contributors"
+              />
+              <LocationMarker onSelect={onSelect} selectedPosition={position} />
+            </MapContainer>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -1,38 +1,48 @@
 "use client";
 
-import { SwarmInput, swarmTrapSchema } from "@/lib/schemas/swarmTrap";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Button,
-  Container,
-  Group,
-  NumberInput,
-  Stack,
-  TextInput,
-  Textarea,
-  Title,
-} from "@mantine/core";
-import { DateInput } from "@mantine/dates";
-import { useForm } from "@mantine/form";
-import { notifications } from "@mantine/notifications";
-import { IconEdit } from "@tabler/icons-react";
-import { zodResolver } from "mantine-form-zod-resolver";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { SwarmInput, swarmTrapSchema } from "@/lib/schemas/swarmTrap";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { CalendarIcon, Edit } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function EditSwarmPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<SwarmInput>({
-    initialValues: {
-      location: "",
+    resolver: zodResolver(swarmTrapSchema),
+    defaultValues: {
+      label: "",
       latitude: 42.78,
       longitude: -83.77,
       installedAt: new Date(),
       removedAt: undefined,
       notes: "",
     },
-    validate: zodResolver(swarmTrapSchema),
   });
 
   useEffect(() => {
@@ -43,16 +53,11 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
 
         const data = await res.json();
         if (!data) {
-          notifications.show({
-            position: "top-center",
-            title: "Error",
-            message: "Swarm trap not found",
-            color: "red",
-          });
+          toast.error("Swarm trap not found");
           return router.push("/swarm");
         }
 
-        form.setValues({
+        form.reset({
           label: data.label,
           latitude: data.latitude,
           longitude: data.longitude,
@@ -61,20 +66,18 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
           notes: data.notes || "",
         });
       } catch (error) {
-        notifications.show({
-          position: "top-center",
-          title: "Error",
-          message: "Failed to load swarm trap data",
-          color: "red",
-        });
+        toast.error("Failed to load swarm trap data");
+        router.push("/swarm");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, [params.id]);
+  }, [params.id, form, router]);
 
   const onSubmit = async (values: SwarmInput) => {
-    setLoading(true);
+    setSubmitting(true);
     try {
       const res = await fetch(`/api/swarm/${params.id}`, {
         method: "PATCH",
@@ -82,100 +85,231 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
         body: JSON.stringify({
           ...values,
           installedAt: new Date(values.installedAt).toISOString(),
+          removedAt: values.removedAt ? new Date(values.removedAt).toISOString() : null,
         }),
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        notifications.show({
-          position: "top-center",
-
-          title: "Error",
-          message: errorData.message || "Failed to update swarm trap",
-          color: "red",
-        });
+        toast.error(errorData.message || "Failed to update swarm trap");
         return;
       } else {
-        notifications.show({
-          position: "top-center",
-          title: "Success",
-          message: "Swarm trap updated successfully",
-          color: "green",
-        });
+        toast.success("Swarm trap updated successfully");
         router.push("/swarm");
       }
     } catch (error) {
-      notifications.show({
-        position: "top-center",
-        title: "Error",
-        message: "Failed to update swarm trap",
-        color: "red",
-      });
+      toast.error("Failed to update swarm trap");
+      console.error(error);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
+  if (loading) {
+    return (
+      <main className="p-8 max-w-2xl mx-auto">
+        <Card>
+          <CardContent>
+            <div className="flex justify-center p-8">Loading...</div>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
+
   return (
-    <Container size="sm" mt="xl">
-      <Title order={2} mb="lg">
-        Edit Trap
-      </Title>
-      <form onSubmit={form.onSubmit(onSubmit)}>
-        <Stack>
-          <TextInput
-            label="Location"
-            required
-            {...form.getInputProps("location")}
-          />
+    <main className="p-8 max-w-2xl mx-auto">
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Swarm Trap</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Label */}
+              <FormField
+                control={form.control}
+                name="label"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Label *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter trap label"
+                        {...field}
+                        disabled={submitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <NumberInput
-            label="Latitude"
-            min={-90}
-            max={90}
-            required
-            {...form.getInputProps("latitude")}
-          />
+              <div className="grid grid-cols-2 gap-4">
+                {/* Latitude */}
+                <FormField
+                  control={form.control}
+                  name="latitude"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Latitude *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={-90}
+                          max={90}
+                          step={0.000001}
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          disabled={submitting}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          <NumberInput
-            label="Longitude"
-            min={-180}
-            max={180}
-            required
-            {...form.getInputProps("longitude")}
-          />
+                {/* Longitude */}
+                <FormField
+                  control={form.control}
+                  name="longitude"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Longitude *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={-180}
+                          max={180}
+                          step={0.000001}
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          disabled={submitting}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-          <DateInput
-            label="Installed At"
-            required
-            {...form.getInputProps("installedAt")}
-          />
+              {/* Installed At Date */}
+              <FormField
+                control={form.control}
+                name="installedAt"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Installed At *</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <DateInput
-            label="Removed At"
-            clearable
-            {...form.getInputProps("removedAt")}
-          />
+              {/* Removed At Date (Optional) */}
+              <FormField
+                control={form.control}
+                name="removedAt"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Removed At (Optional)</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date (optional)</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Textarea
-            label="Notes"
-            autosize
-            minRows={3}
-            {...form.getInputProps("notes")}
-          />
+              {/* Notes */}
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Additional notes about this trap..."
+                        {...field}
+                        disabled={submitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Group justify="flex-end">
-            <Button
-              type="submit"
-              leftSection={<IconEdit size={16} />}
-              loading={loading}
-              color="yellow"
-            >
-              Update Trap
-            </Button>
-          </Group>
-        </Stack>
-      </form>
-    </Container>
+              <div className="flex justify-end">
+                <Button type="submit" disabled={submitting}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  {submitting ? "Updating..." : "Update Trap"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </main>
   );
 }
