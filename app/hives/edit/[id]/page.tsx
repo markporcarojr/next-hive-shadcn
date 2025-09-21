@@ -1,31 +1,47 @@
 "use client";
 
-import { HiveInput, hiveSchema } from "@/lib/schemas/hive";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Button,
-  Container,
-  Group,
-  NumberInput,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
   Select,
-  Stack,
-  TextInput,
-  Textarea,
-  Title,
-} from "@mantine/core";
-import { DateInput } from "@mantine/dates";
-import { useForm } from "@mantine/form";
-import { notifications } from "@mantine/notifications";
-import { IconEdit } from "@tabler/icons-react";
-import { zodResolver } from "mantine-form-zod-resolver";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { HiveInput, hiveSchema } from "@/lib/schemas/hive";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { CalendarIcon, Edit } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function EditHivesPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const form = useForm<HiveInput>({
-    initialValues: {
+    resolver: zodResolver(hiveSchema),
+    defaultValues: {
       hiveNumber: 0,
       hiveSource: "",
       hiveDate: new Date(),
@@ -34,7 +50,6 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
       superBoxes: 0,
       todo: "",
     },
-    validate: zodResolver(hiveSchema),
   });
 
   useEffect(() => {
@@ -45,7 +60,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
         const current = data.find((h: any) => h.id === Number(params.id));
         if (!current) return router.push("/hives");
 
-        form.setValues({
+        form.reset({
           hiveNumber: current.hiveNumber,
           hiveSource: current.hiveSource,
           hiveDate: new Date(current.hiveDate),
@@ -55,12 +70,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
           todo: current.todo || "",
         });
       } catch (e) {
-        notifications.show({
-          position: "top-center",
-          title: "Error",
-          message: "Failed to load data",
-          color: "red",
-        });
+        toast.error("Failed to load data");
         router.push("/hives");
       } finally {
         setLoading(false);
@@ -68,7 +78,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
     };
 
     fetchData();
-  }, [params.id]);
+  }, [params.id, form, router]);
 
   const handleSubmit = async (values: HiveInput) => {
     setLoading(true);
@@ -84,90 +94,224 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
 
       if (!res.ok) {
         const errorData = await res.json();
-        notifications.show({
-          position: "top-center",
-          title: "Update failed",
-          message: errorData.message || "Could not update hive.",
-          color: "red",
-        });
+        toast.error(errorData.message || "Could not update hive.");
       } else {
-        notifications.show({
-          position: "top-center",
-          title: "Hive Updated",
-          message: `Hive #${values.hiveNumber} was updated successfully.`,
-          color: "green",
-        });
+        toast.success(`Hive #${values.hiveNumber} was updated successfully.`);
         router.push("/hives");
       }
     } catch (error) {
       console.error(error);
-      notifications.show({
-        position: "top-center",
-        title: "Network error",
-        message: "Something went wrong.",
-        color: "red",
-      });
+      toast.error("Something went wrong.");
     } finally {
       setLoading(false);
     }
   };
 
+  if (loading) {
+    return (
+      <main className="p-8 max-w-2xl mx-auto">
+        <Card>
+          <CardContent>
+            <div className="flex justify-center p-8">Loading...</div>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
+
   return (
-    <Container size="sm" mt="xl">
-      <Title order={2} mb="lg">
-        Edit Hive
-      </Title>
+    <main className="p-8 max-w-2xl mx-auto">
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Hive</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              {/* Hive Date */}
+              <FormField
+                control={form.control}
+                name="hiveDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Hive Date *</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack>
-          <DateInput
-            label="Hive Date"
-            {...form.getInputProps("hiveDate")}
-            required
-          />
+              {/* Hive Number */}
+              <FormField
+                control={form.control}
+                name="hiveNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hive Number *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <NumberInput
-            label="Hive Number"
-            {...form.getInputProps("hiveNumber")}
-            required
-          />
+              {/* Hive Source */}
+              <FormField
+                control={form.control}
+                name="hiveSource"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hive Source *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select source" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Nucleus">Nucleus</SelectItem>
+                        <SelectItem value="Package">Package</SelectItem>
+                        <SelectItem value="Capture Swarm">Capture Swarm</SelectItem>
+                        <SelectItem value="Split">Split</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Select
-            label="Hive Source"
-            data={["Nucleus", "Package", "Capture Swarm", "Split"]}
-            {...form.getInputProps("hiveSource")}
-            required
-          />
+              {/* Queen Color */}
+              <FormField
+                control={form.control}
+                name="queenColor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Queen Color</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g., Red, Blue"
+                        {...field}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <TextInput
-            label="Queen Color"
-            {...form.getInputProps("queenColor")}
-          />
+              <div className="grid grid-cols-2 gap-4">
+                {/* Brood Boxes */}
+                <FormField
+                  control={form.control}
+                  name="broodBoxes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Brood Boxes</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          disabled={loading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          <NumberInput
-            label="Brood Boxes"
-            {...form.getInputProps("broodBoxes")}
-          />
+                {/* Super Boxes */}
+                <FormField
+                  control={form.control}
+                  name="superBoxes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Super Boxes</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          disabled={loading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-          <NumberInput
-            label="Super Boxes"
-            {...form.getInputProps("superBoxes")}
-          />
+              {/* To-do */}
+              <FormField
+                control={form.control}
+                name="todo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>To-do</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Notes or tasks for this hive"
+                        {...field}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Textarea label="To-do" {...form.getInputProps("todo")} />
-
-          <Group justify="flex-end" mt="xl">
-            <Button
-              type="submit"
-              leftSection={<IconEdit size={16} />}
-              loading={loading}
-              color="yellow"
-            >
-              Update Hive
-            </Button>
-          </Group>
-        </Stack>
-      </form>
-    </Container>
+              <div className="flex justify-end">
+                <Button type="submit" disabled={loading}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  {loading ? "Updating..." : "Update Hive"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </main>
   );
 }

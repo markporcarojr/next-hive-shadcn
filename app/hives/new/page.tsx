@@ -1,31 +1,48 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import MapPicker from "@/components/map-picker";
 import { HiveInput, hiveSchema } from "@/lib/schemas/hive";
-import {
-  Button,
-  Group,
-  NumberInput,
-  Select,
-  Stack,
-  TextInput,
-  Textarea,
-  Title,
-} from "@mantine/core";
-import { DateInput } from "@mantine/dates";
-import "@mantine/dates/styles.css";
-import { useForm } from "@mantine/form";
-import { notifications } from "@mantine/notifications";
-import { zodResolver } from "mantine-form-zod-resolver";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function NewHivePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<HiveInput>({
-    initialValues: {
+    resolver: zodResolver(hiveSchema),
+    defaultValues: {
       hiveDate: new Date(),
       hiveNumber: 1,
       hiveSource: "",
@@ -40,7 +57,6 @@ export default function NewHivePage() {
       frames: 0,
       todo: "",
     },
-    validate: zodResolver(hiveSchema),
   });
 
   const handleSubmit = async (values: HiveInput) => {
@@ -54,29 +70,14 @@ export default function NewHivePage() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        notifications.show({
-          position: "top-center",
-          title: "Error",
-          message: errorData.message || "Failed to save hive",
-          color: "red",
-        });
+        toast.error(errorData.message || "Failed to save hive");
         return;
       } else {
-        notifications.show({
-          position: "top-center",
-          title: "Success",
-          message: "Hive saved successfully",
-          color: "green",
-        });
+        toast.success("Hive saved successfully");
         router.push("/hives");
       }
     } catch (error) {
-      notifications.show({
-        position: "top-center",
-        title: "Error",
-        message: "Failed to save hive",
-        color: "red",
-      });
+      toast.error("Failed to save hive");
       console.error("Failed to save hive:", error);
     } finally {
       setLoading(false);
@@ -84,91 +85,342 @@ export default function NewHivePage() {
   };
 
   return (
-    <main style={{ padding: "2rem", maxWidth: 600, margin: "0 auto" }}>
-      <Title order={2} mb="lg">
-        Add New Hive
-      </Title>
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack>
-          <MapPicker
-            {...form.getInputProps("hiveLocation")}
-            initialLat={form.values.latitude}
-            initialLng={form.values.longitude}
-            onSelect={(lat, lng) => {
-              form.setFieldValue("latitude", lat);
-              form.setFieldValue("longitude", lng);
-            }}
-          />
-          <DateInput label="Hive Date" {...form.getInputProps("hiveDate")} />
-          <NumberInput
-            label="Hive Number"
-            {...form.getInputProps("hiveNumber")}
-            required
-          />
-          <Select
-            label="Hive Source"
-            placeholder="Select source"
-            data={["Nucleus", "Package", "Capture Swarm", "Split"]}
-            {...form.getInputProps("hiveSource")}
-            required
-          />
-          <TextInput
-            label="Hive Image URL"
-            placeholder="Optional image URL"
-            error={false}
-            {...form.getInputProps("hiveImage")}
-          />
-          <NumberInput
-            label="Brood Boxes"
-            {...form.getInputProps("broodBoxes")}
-          />
-          <NumberInput
-            label="Super Boxes"
-            {...form.getInputProps("superBoxes")}
-          />
-          <NumberInput
-            label="Hive Strength"
-            min={0}
-            max={100}
-            {...form.getInputProps("hiveStrength")}
-          />
-          <TextInput
-            label="Queen Color"
-            {...form.getInputProps("queenColor")}
-          />
-          <TextInput label="Queen Age" {...form.getInputProps("queenAge")} />
-          <Select
-            label="Queen Excluder"
-            data={["Yes", "No"]}
-            placeholder="Select option"
-            {...form.getInputProps("queenExcluder")}
-          />
-          <Select
-            label="Breed"
-            data={[
-              "Italian",
-              "Carniolan",
-              "Buckfast",
-              "Russian",
-              "German",
-              "Caucasian",
-            ]}
-            placeholder="Select breed"
-            {...form.getInputProps("breed")}
-          />
-          <NumberInput label="Frames" {...form.getInputProps("frames")} />
-          <Textarea
-            label="To-do"
-            placeholder="Notes or tasks for this hive"
-            {...form.getInputProps("todo")}
-          />
-          <Group justify="flex-end">
-            <Button type="submit" loading={loading} color="yellow">
-              Save Hive
-            </Button>
-          </Group>
-        </Stack>
-      </form>
+    <main className="p-8 max-w-2xl mx-auto">
+      <Card>
+        <CardHeader>
+          <CardTitle>Add New Hive</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              {/* Map Picker for Location */}
+              <MapPicker
+                initialLat={form.watch("latitude")}
+                initialLng={form.watch("longitude")}
+                onSelect={(lat, lng) => {
+                  form.setValue("latitude", lat);
+                  form.setValue("longitude", lng);
+                }}
+              />
+
+              {/* Hive Date */}
+              <FormField
+                control={form.control}
+                name="hiveDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Hive Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Hive Number */}
+              <FormField
+                control={form.control}
+                name="hiveNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hive Number *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Hive Source */}
+              <FormField
+                control={form.control}
+                name="hiveSource"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hive Source *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select source" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Nucleus">Nucleus</SelectItem>
+                        <SelectItem value="Package">Package</SelectItem>
+                        <SelectItem value="Capture Swarm">Capture Swarm</SelectItem>
+                        <SelectItem value="Split">Split</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Hive Image URL */}
+              <FormField
+                control={form.control}
+                name="hiveImage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hive Image URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Optional image URL"
+                        {...field}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Brood Boxes */}
+                <FormField
+                  control={form.control}
+                  name="broodBoxes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Brood Boxes</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          disabled={loading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Super Boxes */}
+                <FormField
+                  control={form.control}
+                  name="superBoxes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Super Boxes</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          disabled={loading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Hive Strength */}
+              <FormField
+                control={form.control}
+                name="hiveStrength"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hive Strength (0-100)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Queen Color */}
+                <FormField
+                  control={form.control}
+                  name="queenColor"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Queen Color</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., Red, Blue"
+                          {...field}
+                          disabled={loading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Queen Age */}
+                <FormField
+                  control={form.control}
+                  name="queenAge"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Queen Age</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., 1 year"
+                          {...field}
+                          disabled={loading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Queen Excluder */}
+              <FormField
+                control={form.control}
+                name="queenExcluder"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Queen Excluder</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select option" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Yes">Yes</SelectItem>
+                        <SelectItem value="No">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Breed */}
+              <FormField
+                control={form.control}
+                name="breed"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Breed</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select breed" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Italian">Italian</SelectItem>
+                        <SelectItem value="Carniolan">Carniolan</SelectItem>
+                        <SelectItem value="Buckfast">Buckfast</SelectItem>
+                        <SelectItem value="Russian">Russian</SelectItem>
+                        <SelectItem value="German">German</SelectItem>
+                        <SelectItem value="Caucasian">Caucasian</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Frames */}
+              <FormField
+                control={form.control}
+                name="frames"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Frames</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* To-do */}
+              <FormField
+                control={form.control}
+                name="todo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>To-do</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Notes or tasks for this hive"
+                        {...field}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end">
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Saving..." : "Save Hive"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </main>
   );
 }
