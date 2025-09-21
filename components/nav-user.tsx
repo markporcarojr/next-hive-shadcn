@@ -1,7 +1,6 @@
 "use client";
 
 import { IconDotsVertical, IconLogout } from "@tabler/icons-react";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -24,18 +23,15 @@ import {
   SignOutButton,
   SignUpButton,
   UserButton,
+  useUser,
 } from "@clerk/nextjs";
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    email: string;
-    avatar: string;
-  };
-}) {
+export function NavUser() {
   const { isMobile } = useSidebar();
+  const { user } = useUser();
+
+  // Optionally handle loading or signed out state
+  if (!user) return null;
 
   return (
     <SidebarMenu>
@@ -52,9 +48,13 @@ export function NavUser({
                 </SignedIn>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">
+                  {user.fullName ||
+                    user.username ||
+                    user.primaryEmailAddress?.emailAddress}
+                </span>
                 <span className="text-muted-foreground truncate text-xs">
-                  {user.email}
+                  {user.primaryEmailAddress?.emailAddress}
                 </span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
@@ -69,13 +69,23 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">HT</AvatarFallback>
+                  <AvatarImage
+                    src={user.imageUrl}
+                    alt={user.fullName || user.username || "User"}
+                  />
+                  <AvatarFallback className="rounded-lg">
+                    {user.firstName?.[0]}
+                    {user.lastName?.[0]}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-medium">
+                    {user.fullName ||
+                      user.username ||
+                      user.primaryEmailAddress?.emailAddress}
+                  </span>
                   <span className="text-muted-foreground truncate text-xs">
-                    {user.email}
+                    {user.primaryEmailAddress?.emailAddress}
                   </span>
                 </div>
               </div>
