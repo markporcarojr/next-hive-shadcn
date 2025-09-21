@@ -14,16 +14,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const DEFAULT_THEMES = [
+const HONEY_THEMES = [
   { name: "Default", value: "default" },
   { name: "Blue", value: "blue" },
   { name: "Green", value: "green" },
+  { name: "Honey", value: "honey" },
   { name: "Amber", value: "amber" },
+  { name: "Cream", value: "cream" },
+  { name: "Brown", value: "brown" },
+  { name: "Deep", value: "deep" },
 ];
 
-const SCALED_THEMES = [
-  { name: "Default", value: "default-scaled" },
-  { name: "Blue", value: "blue-scaled" },
+const SPECIAL_THEMES = [
+  { name: "Wax", value: "wax" },
+  { name: "Hive", value: "hive" },
+  { name: "Smoke", value: "smoke" },
 ];
 
 const MONO_THEMES = [{ name: "Mono", value: "mono-scaled" }];
@@ -68,26 +73,18 @@ export function ThemeSelector() {
         </SelectTrigger>
         <SelectContent align="end">
           <SelectGroup>
-            <SelectLabel>Default</SelectLabel>
-            {DEFAULT_THEMES.map((theme) => (
-              <SelectItem key={theme.name} value={theme.value}>
+            <SelectLabel>Honey Palette</SelectLabel>
+            {HONEY_THEMES.map((theme) => (
+              <SelectItem key={theme.value} value={theme.value}>
                 {theme.name}
               </SelectItem>
             ))}
           </SelectGroup>
           <SelectSeparator />
           <SelectGroup>
-            <SelectLabel>Scaled</SelectLabel>
-            {SCALED_THEMES.map((theme) => (
-              <SelectItem key={theme.name} value={theme.value}>
-                {theme.name}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-          <SelectGroup>
-            <SelectLabel>Monospaced</SelectLabel>
-            {MONO_THEMES.map((theme) => (
-              <SelectItem key={theme.name} value={theme.value}>
+            <SelectLabel>Special</SelectLabel>
+            {SPECIAL_THEMES.map((theme) => (
+              <SelectItem key={theme.value} value={theme.value}>
                 {theme.name}
               </SelectItem>
             ))}
