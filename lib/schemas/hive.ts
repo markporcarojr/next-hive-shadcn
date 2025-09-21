@@ -5,7 +5,7 @@ export const hiveSchema = z.object({
   breed: z.string().optional(),
   broodBoxes: z.number().int().nonnegative().optional(),
   frames: z.number().int().nonnegative().optional(),
-  hiveDate: z.coerce.date(), // ensures a real Date object
+  hiveDate: z.date(), // ensures a real Date object
   hiveImage: z.string().optional(),
   hiveNumber: z.number().int().min(1, "Hive number is required"),
   hiveSource: z.string().min(1, "Hive source is required"),

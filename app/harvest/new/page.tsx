@@ -1,13 +1,16 @@
 "use client";
 
-import { HarvestInput, harvestSchema } from "@/lib/schemas/harvest";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -15,29 +18,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { format } from "date-fns";
-import { IconCalendar, IconPlus } from "@tabler/icons-react";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { HarvestInput, harvestSchema } from "@/lib/schemas/harvest";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { format } from "date-fns";
+import { IconCalendar, IconPlus } from "@tabler/icons-react";
+import z from "zod";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function CreateHarvestPage() {
   const router = useRouter();
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [loading, setLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-    reset,
-    watch,
-  } = useForm<HarvestInput>({
+  const form = useForm<z.infer<typeof harvestSchema>>({
     resolver: zodResolver(harvestSchema),
     defaultValues: {
       harvestAmount: 0,
@@ -46,121 +48,152 @@ export default function CreateHarvestPage() {
     },
   });
 
-  // Keep react-hook-form in sync with date picker
-  const watchedDate = watch("harvestDate");
-  // If date changes, update form value
-  if (date && watchedDate !== date) setValue("harvestDate", date);
-
   const onSubmit = async (values: HarvestInput) => {
+    setLoading(true);
     try {
       const res = await fetch("/api/harvest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...values,
-          harvestDate: values.harvestDate.toISOString(),
         }),
       });
 
-      const result = await res.json();
-
-      if (!res.ok) {
-        toast.error(result.error || "Something went wrong");
-        return;
+      if (res.ok) {
+        toast.success("Harvest added successfully!");
+        router.push("/harvest");
+      } else {
+        const error = await res.json();
+        toast.error(error.error || "Something went wrong.");
       }
-
-      toast.success("Harvest added!");
-
-      reset();
-      router.push("/harvest");
-    } catch (error) {
-      console.error(error);
-      toast.error("Could not save harvest. Please try again.");
+    } catch {
+      toast.error("Something went wrong.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10">
-      <h2 className="text-2xl font-bold mb-6">Add New Harvest</h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div>
-          <Label htmlFor="harvestAmount">Harvest Amount (lbs)</Label>
-          <Input
-            id="harvestAmount"
-            type="number"
-            step="any"
-            {...register("harvestAmount", { valueAsNumber: true })}
-          />
-          {errors.harvestAmount && (
-            <p className="text-sm text-red-600 mt-1">
-              {errors.harvestAmount.message}
-            </p>
-          )}
-        </div>
+    <Card className="max-w-md mx-auto mt-8">
+      <CardHeader>
+        <CardTitle>Add New Harvest</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Harvest Amount */}
+            <FormField
+              control={form.control}
+              name="harvestAmount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Harvest Amount (lbs)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      placeholder="Amount"
+                      disabled={loading}
+                      {...field}
+                      value={
+                        typeof field.value === "number" && !isNaN(field.value)
+                          ? field.value
+                          : ""
+                      }
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? "" : Number(e.target.value)
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div>
-          <Label htmlFor="harvestType">Harvest Type</Label>
-          <Select
-            onValueChange={(value) => setValue("harvestType", value)}
-            defaultValue=""
-          >
-            <SelectTrigger id="harvestType">
-              <SelectValue placeholder="Pick one" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Honey">Honey</SelectItem>
-              <SelectItem value="Wax">Wax</SelectItem>
-            </SelectContent>
-          </Select>
-          {errors.harvestType && (
-            <p className="text-sm text-red-600 mt-1">
-              {errors.harvestType.message}
-            </p>
-          )}
-        </div>
+            {/* Harvest Type */}
+            <FormField
+              control={form.control}
+              name="harvestType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Harvest Type</FormLabel>
+                  <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={loading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pick one" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Honey">Honey</SelectItem>
+                        <SelectItem value="Wax">Wax</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div>
-          <Label htmlFor="harvestDate">Harvest Date</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-                type="button"
-              >
-                <IconCalendar className="mr-2 h-4 w-4" />
-                {date ? format(date, "MM-dd-yyyy") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(selected) => {
-                  setDate(selected as Date);
-                  setValue("harvestDate", selected as Date);
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          {errors.harvestDate && (
-            <p className="text-sm text-red-600 mt-1">
-              {errors.harvestDate.message}
-            </p>
-          )}
-        </div>
+            {/* Harvest Date */}
+            {/* Harvest Date */}
+            <FormField
+              control={form.control}
+              name="harvestDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Harvest Date</FormLabel>
+                  <FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                          type="button"
+                          disabled={loading}
+                        >
+                          <IconCalendar className="mr-2 h-4 w-4" />
+                          {field.value instanceof Date
+                            ? format(field.value, "MM-dd-yyyy")
+                            : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={
+                            field.value instanceof Date
+                              ? field.value
+                              : new Date()
+                          }
+                          onSelect={(d) => {
+                            if (d) field.onChange(d); // <-- always Date
+                          }}
+                          autoFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div className="flex justify-end">
-          <Button type="submit">
-            <IconPlus className="mr-2 h-4 w-4" />
-            Add Harvest
-          </Button>
-        </div>
-      </form>
-    </div>
+            <Button type="submit" disabled={loading}>
+              <IconPlus className="mr-2 h-4 w-4" />
+              {loading ? "Adding..." : "Add Harvest"}
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

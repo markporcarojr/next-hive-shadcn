@@ -1,18 +1,22 @@
 import {
+  IconArchive,
   IconCamera,
   IconCash,
   IconChartBar,
+  IconClipboardSearch,
   IconDashboard,
   IconDatabase,
   IconFileAi,
   IconFileDescription,
   IconFileWord,
   IconFolder,
-  IconGrain,
   IconHelp,
+  IconListTree,
   IconReport,
   IconSearch,
+  IconSeedling,
   IconSettings,
+  IconTransform,
 } from "@tabler/icons-react";
 
 export const data = {
@@ -45,7 +49,27 @@ export const data = {
     {
       title: "Harvests",
       url: "/harvest",
-      icon: IconGrain,
+      icon: IconSeedling,
+    },
+    {
+      title: "Hives",
+      url: "/hives",
+      icon: IconArchive,
+    },
+    {
+      title: "Inspections",
+      url: "/inspection",
+      icon: IconClipboardSearch,
+    },
+    {
+      title: "Inventory",
+      url: "/inventory",
+      icon: IconListTree,
+    },
+    {
+      title: "Swarms",
+      url: "/swarm",
+      icon: IconTransform,
     },
   ],
   navClouds: [

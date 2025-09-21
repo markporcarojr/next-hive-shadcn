@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { CalendarIcon, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Hive } from "@prisma/client";
 
 export default function EditHivesPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -57,7 +58,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
       try {
         const res = await fetch("/api/hives");
         const data = await res.json();
-        const current = data.find((h: any) => h.id === Number(params.id));
+        const current = data.find((h: Hive) => h.id === Number(params.id));
         if (!current) return router.push("/hives");
 
         form.reset({
@@ -69,7 +70,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
           superBoxes: current.superBoxes || 0,
           todo: current.todo || "",
         });
-      } catch (e) {
+      } catch {
         toast.error("Failed to load data");
         router.push("/hives");
       } finally {
@@ -127,7 +128,10 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-6"
+            >
               {/* Hive Date */}
               <FormField
                 control={form.control}
@@ -209,7 +213,9 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
                       <SelectContent>
                         <SelectItem value="Nucleus">Nucleus</SelectItem>
                         <SelectItem value="Package">Package</SelectItem>
-                        <SelectItem value="Capture Swarm">Capture Swarm</SelectItem>
+                        <SelectItem value="Capture Swarm">
+                          Capture Swarm
+                        </SelectItem>
                         <SelectItem value="Split">Split</SelectItem>
                       </SelectContent>
                     </Select>
@@ -251,7 +257,9 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
                           min={0}
                           {...field}
                           value={field.value || ""}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           disabled={loading}
                         />
                       </FormControl>
@@ -273,7 +281,9 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
                           min={0}
                           {...field}
                           value={field.value || ""}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           disabled={loading}
                         />
                       </FormControl>

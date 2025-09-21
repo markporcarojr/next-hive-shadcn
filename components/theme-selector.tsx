@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useThemeConfig } from "@/components/active-theme";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,44 +15,39 @@ import {
 } from "@/components/ui/select";
 
 const DEFAULT_THEMES = [
-  {
-    name: "Default",
-    value: "default",
-  },
-  {
-    name: "Blue",
-    value: "blue",
-  },
-  {
-    name: "Green",
-    value: "green",
-  },
-  {
-    name: "Amber",
-    value: "amber",
-  },
+  { name: "Default", value: "default" },
+  { name: "Blue", value: "blue" },
+  { name: "Green", value: "green" },
+  { name: "Amber", value: "amber" },
 ];
 
 const SCALED_THEMES = [
-  {
-    name: "Default",
-    value: "default-scaled",
-  },
-  {
-    name: "Blue",
-    value: "blue-scaled",
-  },
+  { name: "Default", value: "default-scaled" },
+  { name: "Blue", value: "blue-scaled" },
 ];
 
-const MONO_THEMES = [
-  {
-    name: "Mono",
-    value: "mono-scaled",
-  },
-];
+const MONO_THEMES = [{ name: "Mono", value: "mono-scaled" }];
+
+const THEME_STORAGE_KEY = "theme-selector-active-theme";
 
 export function ThemeSelector() {
   const { activeTheme, setActiveTheme } = useThemeConfig();
+
+  // Load theme from localStorage on mount
+  useEffect(() => {
+    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (storedTheme && storedTheme !== activeTheme) {
+      setActiveTheme(storedTheme);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save theme to localStorage when it changes
+  useEffect(() => {
+    if (activeTheme) {
+      localStorage.setItem(THEME_STORAGE_KEY, activeTheme);
+    }
+  }, [activeTheme]);
 
   return (
     <div className="flex items-center gap-2">

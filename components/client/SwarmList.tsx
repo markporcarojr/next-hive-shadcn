@@ -134,7 +134,8 @@ export default function ClientSwarmList({ swarms }: SwarmListProps) {
                           <DialogHeader>
                             <DialogTitle>Confirm Deletion</DialogTitle>
                             <DialogDescription>
-                              Are you sure you want to delete "{swarm.label}"? This action cannot be undone.
+                              Are you sure you want to delete &quot;
+                              {swarm.label}&quot;? This action cannot be undone.
                             </DialogDescription>
                           </DialogHeader>
                           <DialogFooter>

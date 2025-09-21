@@ -36,6 +36,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { CalendarIcon, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Hive, Inspection } from "@prisma/client";
 
 function getStrengthLabel(value: number) {
   if (value < 35) return "Weak";
@@ -59,7 +60,7 @@ export default function EditInspectionPage() {
     const fetchHives = async () => {
       const res = await fetch("/api/hives");
       const data = await res.json();
-      const simplified = data.map((h: any) => ({
+      const simplified = data.map((h: Hive) => ({
         value: String(h.id),
         label: `Hive #${h.hiveNumber}`,
       }));
@@ -97,7 +98,9 @@ export default function EditInspectionPage() {
       try {
         const res = await fetch("/api/inspection");
         const data = await res.json();
-        const current = data.find((h: any) => h.id === Number(params.id));
+        const current = data.find(
+          (h: Inspection) => h.id === Number(params.id)
+        );
         if (!current) return router.push("/inspection");
 
         form.reset({
@@ -119,7 +122,7 @@ export default function EditInspectionPage() {
           weatherCondition: current.weatherCondition,
           weatherTemp: current.weatherTemp,
         });
-      } catch (e) {
+      } catch {
         toast.error("Failed to load data");
         router.push("/inspection");
       } finally {
@@ -178,7 +181,10 @@ export default function EditInspectionPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-6"
+            >
               {/* Inspection Date */}
               <FormField
                 control={form.control}
@@ -229,7 +235,10 @@ export default function EditInspectionPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Select Hive *</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value ? String(field.value) : ""}>
+                    <Select
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      value={field.value ? String(field.value) : ""}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Choose a hive" />
@@ -254,12 +263,19 @@ export default function EditInspectionPage() {
                 name="hiveStrength"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hive Strength: {getStrengthLabel(field.value)}</FormLabel>
+                    <FormLabel>
+                      Hive Strength:{" "}
+                      <span style={{ color: getColor(field.value) }}>
+                        {getStrengthLabel(field.value)}
+                      </span>
+                    </FormLabel>
                     <FormControl>
                       <div className="px-3">
                         <Slider
                           value={[field.value]}
-                          onValueChange={(values) => field.onChange(values[0])}
+                          onValueChange={(values: number[]) =>
+                            field.onChange(values[0])
+                          }
                           max={100}
                           min={0}
                           step={1}
@@ -400,8 +416,12 @@ export default function EditInspectionPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Varroa Mites">Varroa Mites</SelectItem>
-                        <SelectItem value="Hive Beetles">Hive Beetles</SelectItem>
+                        <SelectItem value="Varroa Mites">
+                          Varroa Mites
+                        </SelectItem>
+                        <SelectItem value="Hive Beetles">
+                          Hive Beetles
+                        </SelectItem>
                         <SelectItem value="Ants">Ants</SelectItem>
                         <SelectItem value="Mice">Mice</SelectItem>
                         <SelectItem value="Wax Moths">Wax Moths</SelectItem>
@@ -428,7 +448,9 @@ export default function EditInspectionPage() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Fondant">Fondant</SelectItem>
-                        <SelectItem value="Pollen Patties">Pollen Patties</SelectItem>
+                        <SelectItem value="Pollen Patties">
+                          Pollen Patties
+                        </SelectItem>
                         <SelectItem value="Sugar Syrup">Sugar Syrup</SelectItem>
                         <SelectItem value="No Feeding">No Feeding</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
@@ -456,8 +478,12 @@ export default function EditInspectionPage() {
                         <SelectItem value="Oxalic Acid">Oxalic Acid</SelectItem>
                         <SelectItem value="Formic Acid">Formic Acid</SelectItem>
                         <SelectItem value="Apivar">Apivar</SelectItem>
-                        <SelectItem value="Diatomaceous Earth">Diatomaceous Earth</SelectItem>
-                        <SelectItem value="No Treatments">No Treatments</SelectItem>
+                        <SelectItem value="Diatomaceous Earth">
+                          Diatomaceous Earth
+                        </SelectItem>
+                        <SelectItem value="No Treatments">
+                          No Treatments
+                        </SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
@@ -474,10 +500,7 @@ export default function EditInspectionPage() {
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Inspection notes..."
-                        {...field}
-                      />
+                      <Textarea placeholder="Inspection notes..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -493,10 +516,7 @@ export default function EditInspectionPage() {
                     <FormItem>
                       <FormLabel>Weather Condition</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="e.g., Sunny, Cloudy"
-                          {...field}
-                        />
+                        <Input placeholder="e.g., Sunny, Cloudy" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -511,10 +531,7 @@ export default function EditInspectionPage() {
                     <FormItem>
                       <FormLabel>Weather Temp</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="e.g., 75°F"
-                          {...field}
-                        />
+                        <Input placeholder="e.g., 75°F" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

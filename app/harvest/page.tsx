@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { formatDate } from "@/lib/formatDate";
 import { prisma } from "@/lib/prisma";
@@ -16,6 +17,15 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const ITEMS_PER_PAGE = 4;
 
@@ -53,60 +63,105 @@ export default async function HarvestPage({
 
   return (
     <main className="p-8 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Your Harvests</h2>
-        <Button asChild>
-          <Link href="/harvest/new">Add Harvest</Link>
-        </Button>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <Avatar>
+            <AvatarFallback>H</AvatarFallback>
+          </Avatar>
+          <h2 className="text-3xl font-bold tracking-tight">Your Harvests</h2>
+        </div>
       </div>
+      <Button asChild>
+        <Link href="/harvest/new">Add Harvest</Link>
+      </Button>
 
-      <div className="space-y-4">
-        {harvests.map((entry) => (
-          <Card key={entry.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-lg">{entry.harvestType}</CardTitle>
-              <Badge variant="secondary">
-                {formatDate(entry.harvestDate.toISOString())}
-              </Badge>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-              <div>Amount: {entry.harvestAmount} lbs</div>
-              <div className="flex gap-2 mt-2">
-                <Button asChild size="sm" variant="outline">
-                  <Link href={`/harvest/edit/${entry.id}`}>Edit</Link>
-                </Button>
+      <Separator className="mb-8" />
 
-                {/* Delete with confirmation dialog */}
-                <Dialog>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Confirm Deletion</DialogTitle>
-                    </DialogHeader>
-                    <p>
-                      Are you sure you want to delete this harvest record? This
-                      action cannot be undone.
-                    </p>
-                    <DialogFooter>
-                      <Button variant="outline">Cancel</Button>
-                      <form action={async () => handleDelete(entry.id)}>
-                        <Button size="sm" variant="destructive" type="submit">
-                          Confirm Delete
+      <ScrollArea className="h-[420px] pr-2">
+        <div className="space-y-6">
+          {harvests.map((entry) => (
+            <Card key={entry.id} className="shadow-sm border">
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <div className="flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge variant="secondary">
+                          {formatDate(entry.harvestDate.toISOString())}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Harvested on{" "}
+                        {formatDate(entry.harvestDate.toISOString())}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <CardTitle className="text-lg font-semibold">
+                    {entry.harvestType}
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <Separator />
+              <CardContent>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="text-muted-foreground">
+                    <span className="font-medium">Amount:</span>{" "}
+                    {entry.harvestAmount} lbs
+                  </div>
+                  <div className="flex gap-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button asChild size="sm" variant="outline">
+                            <Link href={`/harvest/edit/${entry.id}`}>Edit</Link>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Edit this harvest</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="destructive">
+                          Delete
                         </Button>
-                      </form>
-                    </DialogFooter>
-                  </DialogContent>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Delete Harvest</DialogTitle>
+                        </DialogHeader>
+                        <div className="py-2">
+                          Are you sure you want to delete this harvest record?
+                          This action cannot be undone.
+                        </div>
+                        <DialogFooter>
+                          <DialogClose asChild>
+                            <Button variant="outline" type="button">
+                              Cancel
+                            </Button>
+                          </DialogClose>
+                          <form action={async () => handleDelete(entry.id)}>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              type="submit"
+                            >
+                              Confirm Delete
+                            </Button>
+                          </form>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </ScrollArea>
 
-                  <Button size="sm" variant="destructive" asChild>
-                    <DialogTrigger>Delete</DialogTrigger>
-                  </Button>
-                </Dialog>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Separator className="my-10" />
 
-      <div className="flex justify-center mt-8">
+      <div className="flex justify-center">
         <PaginationBar
           page={page}
           totalPages={Math.ceil(total / ITEMS_PER_PAGE)}

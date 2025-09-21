@@ -1,11 +1,11 @@
 import { z } from "zod";
 
 export const inspectionSchema = z.object({
-  id: z.coerce.number().int().optional(),
-  hiveId: z.coerce.number().int().min(1),
+  id: z.number().int().optional(),
+  hiveId: z.number().int().min(1),
   temperament: z.string().min(1),
   hiveStrength: z.number().int().min(0),
-  inspectionDate: z.coerce.date(),
+  inspectionDate: z.date(),
   inspectionImage: z.string().optional(),
   queen: z.boolean().optional(),
   queenCell: z.boolean().optional(),

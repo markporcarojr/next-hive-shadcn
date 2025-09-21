@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/site-header";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "Next Hive - Beekeeping Helper App",
@@ -30,6 +31,7 @@ export default async function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body
+          suppressHydrationWarning
           className={cn(
             "bg-background overscroll-none font-sans antialiased",
             activeThemeValue ? `theme-${activeThemeValue}` : "",
@@ -58,6 +60,7 @@ export default async function RootLayout({
                   <main className="flex-1 flex flex-col overflow-y-auto">
                     {children}
                   </main>
+                  <Toaster />
                 </SidebarInset>
               </SidebarProvider>
             </ActiveThemeProvider>

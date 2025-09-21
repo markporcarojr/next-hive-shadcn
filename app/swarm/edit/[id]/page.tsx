@@ -65,7 +65,7 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
           removedAt: data.removedAt ? new Date(data.removedAt) : undefined,
           notes: data.notes || "",
         });
-      } catch (error) {
+      } catch {
         toast.error("Failed to load swarm trap data");
         router.push("/swarm");
       } finally {
@@ -85,7 +85,9 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
         body: JSON.stringify({
           ...values,
           installedAt: new Date(values.installedAt).toISOString(),
-          removedAt: values.removedAt ? new Date(values.removedAt).toISOString() : null,
+          removedAt: values.removedAt
+            ? new Date(values.removedAt).toISOString()
+            : null,
         }),
       });
 
@@ -161,7 +163,9 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
                           step={0.000001}
                           {...field}
                           value={field.value || ""}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           disabled={submitting}
                         />
                       </FormControl>
@@ -185,7 +189,9 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
                           step={0.000001}
                           {...field}
                           value={field.value || ""}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           disabled={submitting}
                         />
                       </FormControl>

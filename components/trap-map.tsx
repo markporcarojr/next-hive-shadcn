@@ -2,7 +2,6 @@
 "use client";
 
 import { SwarmInput } from "@/lib/schemas/swarmTrap";
-import { Card, Text, Title } from "@mantine/core";
 import { useEffect, useState } from "react";
 import {
   LayerGroup,
@@ -12,14 +11,31 @@ import {
   Popup,
   TileLayer,
   ZoomControl,
+  useMap,
 } from "react-leaflet";
-import { honeyIcon } from "../data/mapIcons";
+import { honeyIcon } from "../Data/mapIcons";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 const { BaseLayer, Overlay } = LayersControl;
 
 interface TrapMapProps {
   zoom?: number;
   height?: string;
+}
+
+// helper to recenter after traps load
+function RecenterOnTraps({ traps }: { traps: SwarmInput[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (traps.length > 0) {
+      const firstTrap = traps[0];
+      map.setView([firstTrap.latitude, firstTrap.longitude]);
+    }
+    // only run when first trap changes
+  }, [map, traps[0]?.latitude, traps[0]?.longitude]);
+
+  return null;
 }
 
 export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
@@ -32,21 +48,19 @@ export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
       .catch((err) => console.error("Error loading traps", err));
   }, []);
 
-  const center: [number, number] =
-    traps.length > 0
-      ? [traps[0].latitude, traps[0].longitude]
-      : [42.78, -83.77];
-
   return (
     <div style={{ width: "100%", height }}>
       <MapContainer
-        center={center}
+        center={[42.78851953037975, -83.77241596723684]} // fallback
         zoom={zoom}
         zoomControl={true}
         scrollWheelZoom={true}
         style={{ height: "100%", width: "100%" }}
       >
         <ZoomControl position="bottomright" />
+
+        {/* Recenter once traps load */}
+        <RecenterOnTraps traps={traps} />
 
         <LayersControl position="topright">
           <BaseLayer checked name="OpenStreetMap">
@@ -58,32 +72,36 @@ export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
 
           <Overlay checked name="Swarm Traps">
             <LayerGroup>
-              {traps &&
-                traps.length > 0 &&
-                traps.map((trap) => (
-                  <Marker
-                    key={trap.id}
-                    position={[trap.latitude, trap.longitude]}
-                    icon={honeyIcon}
-                  >
-                    <Popup>
-                      <Card shadow="xs" padding="sm">
-                        <Title order={5}>{trap.label || "Unnamed Trap"}</Title>
-                        <Text size="sm">
+              {traps.map((trap) => (
+                <Marker
+                  key={trap.id}
+                  position={[trap.latitude, trap.longitude]}
+                  icon={honeyIcon}
+                >
+                  <Popup>
+                    <Card className="w-64">
+                      <CardHeader>
+                        <h5 className="text-base font-semibold">
+                          {trap.label || "Unnamed Trap"}
+                        </h5>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">
                           Trap Set:{" "}
                           {
                             new Date(trap.installedAt)
                               .toISOString()
                               .split("T")[0]
                           }
-                        </Text>
-                        <Text size="sm" c="dimmed">
+                        </p>
+                        <p className="text-sm text-muted-foreground">
                           Label: {trap.label}
-                        </Text>
-                      </Card>
-                    </Popup>
-                  </Marker>
-                ))}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Popup>
+                </Marker>
+              ))}
             </LayerGroup>
           </Overlay>
         </LayersControl>

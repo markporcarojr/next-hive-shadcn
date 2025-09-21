@@ -10,17 +10,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { clerkId },
-  });
-
+  const user = await prisma.user.findUnique({ where: { clerkId } });
   if (!user) {
     return NextResponse.json({ message: "User not found" }, { status: 404 });
   }
 
   try {
     const body = await req.json();
-    const parsed = harvestSchema.safeParse(body);
+    const parsed = harvestSchema.safeParse({
+      ...body,
+      harvestDate: new Date(body.harvestDate), // ✅ ensure it's a Date before Zod
+    });
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -29,13 +29,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const data = parsed.data;
-
     const harvest = await prisma.harvest.create({
       data: {
-        ...data,
-        harvestDate: new Date(data.harvestDate), // Ensure date is a Date object
-        userId: user.id, // 👈 Use the numeric ID from your DB
+        ...parsed.data,
+        userId: user.id,
       },
     });
 
@@ -123,6 +120,7 @@ export async function DELETE(req: NextRequest) {
 }
 
 // PATCH /api/harvest?id=123
+// PATCH /api/harvest?id=123
 export async function PATCH(req: NextRequest) {
   const { userId: clerkId } = await auth();
   if (!clerkId) {
@@ -136,31 +134,37 @@ export async function PATCH(req: NextRequest) {
 
   const url = new URL(req.url);
   const id = url.searchParams.get("id");
-  if (!id) {
+  if (!id || isNaN(Number(id))) {
     return NextResponse.json(
-      { message: "Missing harvest ID" },
+      { message: "Missing or invalid harvest ID" },
       { status: 400 }
     );
   }
-
-  const body = await req.json();
-  const parsed = harvestSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { errors: parsed.error.flatten().fieldErrors },
-      { status: 400 }
-    );
-  }
-
-  const { harvestType, harvestAmount, harvestDate } = parsed.data;
 
   try {
+    const body = await req.json();
+
+    // ✅ Convert harvestDate BEFORE validation
+    const parsed = harvestSchema.safeParse({
+      ...body,
+      harvestDate: new Date(body.harvestDate),
+    });
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { errors: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const { harvestType, harvestAmount, harvestDate } = parsed.data;
+
     const updated = await prisma.harvest.updateMany({
       where: { id: Number(id), userId: user.id },
       data: {
         harvestType,
         harvestAmount,
-        harvestDate: new Date(harvestDate),
+        harvestDate, // already a Date from parsed.data
       },
     });
 

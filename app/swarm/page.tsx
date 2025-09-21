@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 import ClientSwarmList from "../../components/client/SwarmList";
 import { SwarmInput } from "@/lib/schemas/swarmTrap";
+import TrapMap from "@/components/trap-map";
 
 export default async function SwarmPage() {
   const { userId: clerkId } = await auth();
@@ -30,5 +31,10 @@ export default async function SwarmPage() {
     notes: swarm.notes ?? undefined,
   }));
 
-  return <ClientSwarmList swarms={sanitized} />;
+  return (
+    <>
+      <ClientSwarmList swarms={sanitized} />
+      <TrapMap zoom={15} height={"100%"} />
+    </>
+  );
 }
