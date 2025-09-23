@@ -1,9 +1,9 @@
-import { ChartAreaInteractive } from "@/components/chart-area-interactive";
+import { DataTable } from "@/components/data-table";
 import { SectionCards } from "@/components/section-cards";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
-
+import data from "./data.json";
 export default async function Page() {
   const { userId: clerkId } = await auth();
   if (!clerkId) return; // Optional: redirect instead
@@ -41,10 +41,10 @@ export default async function Page() {
     <div className="@container/main flex flex-1 flex-col gap-2">
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
         <SectionCards expenses={expenses} incomes={incomes} />
-        <div className="px-4 lg:px-6">
+        {/* <div className="px-4 lg:px-6">
           <ChartAreaInteractive />
-        </div>
-        {/* <DataTable data={data} /> */}
+        </div> */}
+        <DataTable data={data} />
       </div>
     </div>
   );
