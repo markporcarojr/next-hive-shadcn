@@ -32,15 +32,16 @@ import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function EditHarvestPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const resolvedParams = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -49,7 +50,7 @@ export default function EditHarvestPage({
     defaultValues: {
       harvestAmount: 0,
       harvestType: "",
-      harvestDate: new Date(),
+      harvestDate: new Date().toISOString(), // Use ISO string as default
     },
   });
 
@@ -58,13 +59,13 @@ export default function EditHarvestPage({
       try {
         const res = await fetch("/api/harvest");
         const data = await res.json();
-        const current = data.find((h: Harvest) => h.id === Number(params.id));
+        const current = data.find((h: Harvest) => h.id === Number(resolvedParams.id));
         if (!current) return router.push("/harvest");
 
         form.reset({
           harvestAmount: current.harvestAmount,
           harvestType: current.harvestType,
-          harvestDate: new Date(current.harvestDate),
+          harvestDate: new Date(current.harvestDate).toISOString(), // Convert to ISO string
         });
       } catch {
         toast.error("Failed to load harvest");
@@ -76,16 +77,16 @@ export default function EditHarvestPage({
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
+  }, [resolvedParams.id]);
 
   const handleSubmit = async (values: HarvestInput) => {
     try {
-      const res = await fetch(`/api/harvest?id=${params.id}`, {
+      const res = await fetch(`/api/harvest?id=${resolvedParams.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...values,
-          harvestDate: values.harvestDate.toISOString(),
+          // harvestDate is already an ISO string from the form
         }),
       });
 
@@ -176,7 +177,7 @@ export default function EditHarvestPage({
                             )}
                           >
                             {field.value ? (
-                              format(field.value as Date, "PPP")
+                              format(new Date(field.value), "PPP")
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -187,8 +188,8 @@ export default function EditHarvestPage({
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value as Date | undefined}
-                          onSelect={field.onChange}
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={(date) => field.onChange(date ? date.toISOString() : "")}
                           captionLayout="dropdown"
                         />
                       </PopoverContent>

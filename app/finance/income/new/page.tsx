@@ -26,7 +26,7 @@ export default function NewIncomePage() {
     defaultValues: {
       source: "",
       amount: 0,
-      date: new Date(),
+      date: new Date().toISOString(), // Use ISO string
       notes: "",
     },
   });
@@ -116,13 +116,13 @@ export default function NewIncomePage() {
                       type="date"
                       disabled={loading}
                       value={
-                        new Date(field.value as string | number | Date)
+                        new Date(field.value)
                           .toISOString()
                           .split("T")[0]
                       }
                       onChange={(e) =>
                         field.onChange(
-                          e.target.value ? new Date(e.target.value) : new Date()
+                          e.target.value ? new Date(e.target.value).toISOString() : new Date().toISOString()
                         )
                       }
                     />

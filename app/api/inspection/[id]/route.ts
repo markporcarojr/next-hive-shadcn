@@ -57,7 +57,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const parsedData = inspectionSchema.safeParse(body);
     if (!parsedData.success) {
       return NextResponse.json(
-        { error: parsedData.error.errors },
+        { error: parsedData.error.flatten().fieldErrors },
         { status: 400 }
       );
     }

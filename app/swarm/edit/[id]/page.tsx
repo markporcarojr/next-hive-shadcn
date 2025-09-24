@@ -21,14 +21,15 @@ import {
 import { SwarmInput, swarmTrapSchema } from "@/lib/schemas/swarmTrap";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { CalendarIcon, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function EditSwarmPage({ params }: { params: { id: string } }) {
+export default function EditSwarmPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -48,7 +49,7 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/swarm/${params.id}`);
+        const res = await fetch(`/api/swarm/${resolvedParams.id}`);
         if (!res.ok) throw new Error("Failed to fetch swarm data");
 
         const data = await res.json();
@@ -74,12 +75,12 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
     };
 
     fetchData();
-  }, [params.id, form, router]);
+  }, [resolvedParams.id, form, router]);
 
   const onSubmit = async (values: SwarmInput) => {
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/swarm/${params.id}`, {
+      const res = await fetch(`/api/swarm/${resolvedParams.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

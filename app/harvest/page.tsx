@@ -32,7 +32,7 @@ const ITEMS_PER_PAGE = 4;
 export default async function HarvestPage({
   searchParams,
 }: {
-  searchParams?: { page?: string };
+  searchParams?: Promise<{ page?: string }>;
 }) {
   const { userId: clerkId } = await auth();
   if (!clerkId) return notFound();
@@ -43,7 +43,8 @@ export default async function HarvestPage({
   });
   if (!user) return notFound();
 
-  const page = Number(searchParams?.page) || 1;
+  const resolvedSearchParams = await searchParams;
+  const page = Number(resolvedSearchParams?.page) || 1;
 
   const [harvests, total] = await Promise.all([
     prisma.harvest.findMany({

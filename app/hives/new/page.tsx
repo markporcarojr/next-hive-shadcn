@@ -43,7 +43,7 @@ export default function NewHivePage() {
   const form = useForm<HiveInput>({
     resolver: zodResolver(hiveSchema),
     defaultValues: {
-      hiveDate: "",
+      hiveDate: new Date().toISOString(), // Default to today's date
       hiveNumber: 1,
       hiveSource: "",
       hiveImage: "",
