@@ -45,7 +45,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
     defaultValues: {
       hiveNumber: 0,
       hiveSource: "",
-      hiveDate: new Date(),
+      hiveDate: "",
       queenColor: "",
       broodBoxes: 0,
       superBoxes: 0,
@@ -64,7 +64,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
         form.reset({
           hiveNumber: current.hiveNumber,
           hiveSource: current.hiveSource,
-          hiveDate: new Date(current.hiveDate),
+          hiveDate: current.hiveDate,
           queenColor: current.queenColor || "",
           broodBoxes: current.broodBoxes || 0,
           superBoxes: current.superBoxes || 0,
@@ -89,7 +89,6 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...values,
-          hiveDate: new Date(values.hiveDate).toISOString(),
         }),
       });
 
@@ -138,19 +137,20 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
                 name="hiveDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Hive Date *</FormLabel>
+                    <FormLabel>Hive Date</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"}
+                            variant="outline"
                             className={cn(
                               "w-full pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP")
+                              // display string value as a formatted date
+                              format(new Date(field.value), "PPP")
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -161,12 +161,16 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
+                          selected={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onSelect={(date) =>
+                            field.onChange(date ? date.toISOString() : "")
+                          }
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")
                           }
-                          initialFocus
+                          autoFocus
                         />
                       </PopoverContent>
                     </Popover>

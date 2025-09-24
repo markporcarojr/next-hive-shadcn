@@ -43,7 +43,7 @@ export default function NewHivePage() {
   const form = useForm<HiveInput>({
     resolver: zodResolver(hiveSchema),
     defaultValues: {
-      hiveDate: new Date(),
+      hiveDate: "",
       hiveNumber: 1,
       hiveSource: "",
       hiveImage: "",
@@ -65,7 +65,10 @@ export default function NewHivePage() {
       const res = await fetch("/api/hives", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          hiveDate: values.hiveDate, // serialize cleanly
+        }),
       });
 
       if (!res.ok) {
@@ -92,7 +95,10 @@ export default function NewHivePage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-6"
+            >
               {/* Map Picker for Location */}
               <MapPicker
                 initialLat={form.watch("latitude")}
@@ -114,14 +120,15 @@ export default function NewHivePage() {
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"}
+                            variant="outline"
                             className={cn(
                               "w-full pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP")
+                              // display string value as a formatted date
+                              format(new Date(field.value), "PPP")
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -132,12 +139,16 @@ export default function NewHivePage() {
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
+                          selected={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onSelect={(date) =>
+                            field.onChange(date ? date.toISOString() : "")
+                          }
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")
                           }
-                          initialFocus
+                          autoFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -175,7 +186,10 @@ export default function NewHivePage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Hive Source *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select source" />
@@ -184,7 +198,9 @@ export default function NewHivePage() {
                       <SelectContent>
                         <SelectItem value="Nucleus">Nucleus</SelectItem>
                         <SelectItem value="Package">Package</SelectItem>
-                        <SelectItem value="Capture Swarm">Capture Swarm</SelectItem>
+                        <SelectItem value="Capture Swarm">
+                          Capture Swarm
+                        </SelectItem>
                         <SelectItem value="Split">Split</SelectItem>
                       </SelectContent>
                     </Select>
@@ -226,7 +242,9 @@ export default function NewHivePage() {
                           min={0}
                           {...field}
                           value={field.value || ""}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           disabled={loading}
                         />
                       </FormControl>
@@ -248,7 +266,9 @@ export default function NewHivePage() {
                           min={0}
                           {...field}
                           value={field.value || ""}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           disabled={loading}
                         />
                       </FormControl>
@@ -328,7 +348,10 @@ export default function NewHivePage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Queen Excluder</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select option" />
@@ -351,7 +374,10 @@ export default function NewHivePage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Breed</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select breed" />

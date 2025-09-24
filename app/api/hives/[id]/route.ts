@@ -34,7 +34,11 @@ export async function PATCH(
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const parsed = hiveSchema.safeParse(body);
+  const convertedBody = {
+    ...body,
+    hiveDate: new Date(body.hiveDate),
+  };
+  const parsed = hiveSchema.safeParse(convertedBody);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -48,7 +52,6 @@ export async function PATCH(
       where: { id: Number(params.id) },
       data: {
         ...parsed.data,
-        hiveDate: new Date(parsed.data.hiveDate),
       },
     });
 

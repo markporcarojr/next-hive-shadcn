@@ -5,12 +5,12 @@ export const hiveSchema = z.object({
   breed: z.string().optional(),
   broodBoxes: z.number().int().nonnegative().optional(),
   frames: z.number().int().nonnegative().optional(),
-  hiveDate: z.date(), // ensures a real Date object
+  hiveDate: z.string().min(1, "Hive date is required"), // Change to string for backend
   hiveImage: z.string().optional(),
   hiveNumber: z.number().int().min(1, "Hive number is required"),
   hiveSource: z.string().min(1, "Hive source is required"),
   hiveStrength: z.number().int().min(0).max(100).optional(),
-  id: z.number().int().optional(), // optional for new hives
+  id: z.number().int().optional(),
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
   queenAge: z.string().optional(),

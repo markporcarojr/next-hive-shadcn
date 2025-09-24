@@ -44,7 +44,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const parsed = hiveSchema.safeParse(body);
+    const convertedBody = {
+      ...body,
+      hiveDate: new Date(body.hiveDate), // Convert to Date object for validation
+    };
+    const parsed = hiveSchema.safeParse(convertedBody);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -79,7 +83,6 @@ export async function POST(req: NextRequest) {
     const hive = await prisma.hive.create({
       data: {
         ...data,
-        hiveDate: new Date(data.hiveDate),
         userId: user.id,
       },
     });

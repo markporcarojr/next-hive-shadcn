@@ -149,7 +149,7 @@ const columns: ColumnDef<z.infer<typeof hiveSchema>>[] = [
   },
   {
     id: "actions",
-    cell: () => (
+    cell: ({ row }) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
@@ -157,8 +157,12 @@ const columns: ColumnDef<z.infer<typeof hiveSchema>>[] = [
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Delete</DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <a href={`/hives/edit/${row.original.id}`}>Edit</a>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => console.log("Delete")}>
+            Delete
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     ),
