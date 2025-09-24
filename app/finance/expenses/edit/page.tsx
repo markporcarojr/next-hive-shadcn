@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -13,11 +14,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ExpenseInput, expenseSchema } from "@/lib/schemas/expense";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useParams } from "next/navigation";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@radix-ui/react-popover";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Loader2 } from "lucide-react";
 
 export default function EditExpensePage() {
   const router = useRouter();
@@ -32,7 +40,7 @@ export default function EditExpensePage() {
     defaultValues: {
       item: "",
       amount: 0,
-      date: new Date(),
+      date: "",
       notes: "",
     },
   });
@@ -45,7 +53,6 @@ export default function EditExpensePage() {
         const data = await res.json();
         form.reset({
           ...data,
-          date: data.date ? new Date(data.date).toISOString().slice(0, 10) : "",
         });
       } catch {
         setError("Failed to load expense record.");
@@ -134,18 +141,44 @@ export default function EditExpensePage() {
                 control={form.control}
                 name="date"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Date</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        {...field}
-                        value={
-                          typeof field.value === "string" ? field.value : ""
-                        }
-                        onChange={(e) => field.onChange(e.target.value)}
-                      />
-                    </FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              // display string value as a formatted date
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onSelect={(date) =>
+                            field.onChange(date ? date.toISOString() : "")
+                          }
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          autoFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}

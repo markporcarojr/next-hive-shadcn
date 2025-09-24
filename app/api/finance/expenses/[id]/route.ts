@@ -16,11 +16,15 @@ export async function PATCH(
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    const convertedBody = {
+      ...body,
+      date: new Date(body.date),
+    };
 
-    const parsed = expenseSchema.safeParse(body);
+    const parsed = expenseSchema.safeParse(convertedBody);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid data", details: parsed.error.errors },
+        { error: "Invalid data", details: parsed.error.issues },
         { status: 400 }
       );
     }
