@@ -5,7 +5,7 @@ export const inspectionSchema = z.object({
   hiveId: z.number().int().min(1),
   temperament: z.string().min(1),
   hiveStrength: z.number().int().min(0),
-  inspectionDate: z.date(),
+  inspectionDate: z.string().min(1, "Date is required"),
   inspectionImage: z.string().optional(),
   queen: z.boolean().optional(),
   queenCell: z.boolean().optional(),

@@ -37,7 +37,7 @@ export const invoiceItemSchema = z.object({
 // 5. Full invoice schema
 export const invoiceSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
-  date: z.date(),
+  date: z.string().min(1, "Date is required"),
   email: z.email("Invalid email format").optional(),
   notes: z.string().optional(),
   phone: z

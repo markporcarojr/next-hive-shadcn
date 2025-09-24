@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const expenseSchema = z.object({
   amount: z.number().positive("Amount must be positive"),
-  date: z.date(), // coerces strings -> Date
+  date: z.string().min(1, "Date is required"),
   item: z.string().min(1, "Item is required"),
   notes: z.string().optional(),
 });
