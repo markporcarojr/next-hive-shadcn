@@ -4,10 +4,8 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET: Fetch all inspections for the current user
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId) {
     return new NextResponse("Unauthorized", { status: 401 });
@@ -24,7 +22,7 @@ export async function GET(
 
     const inspection = await prisma.inspection.findUnique({
       where: {
-        id: Number(params.id),
+        id: Number(resolvedParams.id),
         userId: user.id,
       },
       include: {
@@ -44,10 +42,8 @@ export async function GET(
 }
 
 // PATCH: Update an existing inspection
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId) {
     return new NextResponse("Unauthorized", { status: 401 });
@@ -68,7 +64,7 @@ export async function PATCH(
 
     const updatedInspection = await prisma.inspection.update({
       where: {
-        id: Number(params.id),
+        id: Number(resolvedParams.id),
         userId: user.id,
       },
       data: {
@@ -85,10 +81,8 @@ export async function PATCH(
 }
 
 // DELETE: Delete an inspection
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId) {
     return new NextResponse("Unauthorized", { status: 401 });
@@ -100,7 +94,7 @@ export async function DELETE(
 
     const deletedInspection = await prisma.inspection.delete({
       where: {
-        id: Number(params.id),
+        id: Number(resolvedParams.id),
         userId: user.id,
       },
     });

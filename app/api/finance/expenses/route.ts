@@ -41,11 +41,18 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const convertedBody = {
+    
+    // Ensure date is in ISO format for validation
+    const payload = {
       ...body,
-      date: new Date(body.date), // Convert date string to Date object
+      date: body.date instanceof Date 
+        ? body.date.toISOString() 
+        : typeof body.date === 'string' 
+          ? body.date 
+          : new Date(body.date).toISOString()
     };
-    const parsed = expenseSchema.safeParse(convertedBody);
+    
+    const parsed = expenseSchema.safeParse(payload);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -59,6 +66,7 @@ export async function POST(req: NextRequest) {
     const expense = await prisma.expense.create({
       data: {
         ...data,
+        date: new Date(data.date), // Convert ISO string to Date for Prisma
         userId: user.id,
       },
     });

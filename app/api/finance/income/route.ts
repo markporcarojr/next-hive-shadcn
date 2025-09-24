@@ -32,7 +32,18 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const data = incomeSchema.parse(body);
+    
+    // Ensure date is in ISO format for validation
+    const payload = {
+      ...body,
+      date: body.date instanceof Date 
+        ? body.date.toISOString() 
+        : typeof body.date === 'string' 
+          ? body.date 
+          : new Date(body.date).toISOString()
+    };
+    
+    const data = incomeSchema.parse(payload);
 
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user)
@@ -41,6 +52,7 @@ export async function POST(req: NextRequest) {
     const income = await prisma.income.create({
       data: {
         ...data,
+        date: new Date(data.date), // Convert ISO string to Date for Prisma
         userId: user.id,
       },
     });

@@ -44,11 +44,18 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const convertedBody = {
+    
+    // Ensure hiveDate is in ISO format for validation
+    const payload = {
       ...body,
-      hiveDate: new Date(body.hiveDate), // Convert to Date object for validation
+      hiveDate: body.hiveDate instanceof Date 
+        ? body.hiveDate.toISOString() 
+        : typeof body.hiveDate === 'string' 
+          ? body.hiveDate 
+          : new Date(body.hiveDate).toISOString()
     };
-    const parsed = hiveSchema.safeParse(convertedBody);
+    
+    const parsed = hiveSchema.safeParse(payload);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -83,6 +90,7 @@ export async function POST(req: NextRequest) {
     const hive = await prisma.hive.create({
       data: {
         ...data,
+        hiveDate: new Date(data.hiveDate), // Convert ISO string to Date for Prisma
         userId: user.id,
       },
     });

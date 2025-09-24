@@ -17,10 +17,18 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const parsed = harvestSchema.safeParse({
+    
+    // Ensure harvestDate is in ISO format for validation
+    const payload = {
       ...body,
-      harvestDate: new Date(body.harvestDate), // ✅ ensure it's a Date before Zod
-    });
+      harvestDate: body.harvestDate instanceof Date 
+        ? body.harvestDate.toISOString() 
+        : typeof body.harvestDate === 'string' 
+          ? body.harvestDate 
+          : new Date(body.harvestDate).toISOString()
+    };
+    
+    const parsed = harvestSchema.safeParse(payload);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -32,6 +40,7 @@ export async function POST(req: NextRequest) {
     const harvest = await prisma.harvest.create({
       data: {
         ...parsed.data,
+        harvestDate: new Date(parsed.data.harvestDate), // Convert ISO string to Date for Prisma
         userId: user.id,
       },
     });
@@ -144,11 +153,17 @@ export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // ✅ Convert harvestDate BEFORE validation
-    const parsed = harvestSchema.safeParse({
+    // Ensure harvestDate is in ISO format for validation
+    const payload = {
       ...body,
-      harvestDate: new Date(body.harvestDate),
-    });
+      harvestDate: body.harvestDate instanceof Date 
+        ? body.harvestDate.toISOString() 
+        : typeof body.harvestDate === 'string' 
+          ? body.harvestDate 
+          : new Date(body.harvestDate).toISOString()
+    };
+
+    const parsed = harvestSchema.safeParse(payload);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -164,7 +179,7 @@ export async function PATCH(req: NextRequest) {
       data: {
         harvestType,
         harvestAmount,
-        harvestDate, // already a Date from parsed.data
+        harvestDate: new Date(harvestDate), // Convert ISO string to Date for Prisma
       },
     });
 

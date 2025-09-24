@@ -4,11 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
 export async function GET(
-  _: NextRequest,
-  { params }: { params: { id: string } }
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   try {
-    const { id } = params;
+    const { id } = resolvedParams;
 
     // const harvest = await Harvest.findById(id);
     const harvest = { id, mock: true };
@@ -22,8 +23,9 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   try {
     const body = await req.json();
     const { harvestAmount, harvestType, harvestDate } = body;
@@ -35,7 +37,7 @@ export async function PATCH(
       );
     }
 
-    const { id } = params;
+    const { id } = resolvedParams;
     // const result = await Harvest.findByIdAndUpdate(id, body);
     const result = { id, updated: true }; // mock
 

@@ -35,7 +35,25 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const parsed = swarmTrapSchema.safeParse(body);
+  
+  // Ensure dates are in ISO format for validation
+  const payload = {
+    ...body,
+    installedAt: body.installedAt instanceof Date 
+      ? body.installedAt.toISOString() 
+      : typeof body.installedAt === 'string' 
+        ? body.installedAt 
+        : new Date(body.installedAt).toISOString(),
+    removedAt: body.removedAt 
+      ? (body.removedAt instanceof Date 
+          ? body.removedAt.toISOString() 
+          : typeof body.removedAt === 'string' 
+            ? body.removedAt 
+            : new Date(body.removedAt).toISOString())
+      : undefined
+  };
+  
+  const parsed = swarmTrapSchema.safeParse(payload);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -58,8 +76,8 @@ export async function POST(req: NextRequest) {
     const swarmTrap = await prisma.swarmTrap.create({
       data: {
         ...data,
-        installedAt: new Date(data.installedAt),
-        removedAt: data.removedAt ? new Date(data.removedAt) : null,
+        installedAt: new Date(data.installedAt), // Convert ISO string to Date for Prisma
+        removedAt: data.removedAt ? new Date(data.removedAt) : null, // Convert ISO string to Date for Prisma
         userId: user.id,
       },
     });
