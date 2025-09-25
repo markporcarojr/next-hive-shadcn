@@ -27,7 +27,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
-import { InspectionInput, inspectionSchema } from "@/lib/schemas/inspection";
+import {
+  InspectionInput,
+  inspectionFormSchema,
+} from "@/lib/schemas/inspection";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -71,7 +74,7 @@ export default function EditInspectionPage() {
   }, []);
 
   const form = useForm<InspectionInput>({
-    resolver: zodResolver(inspectionSchema),
+    resolver: zodResolver(inspectionFormSchema),
     defaultValues: {
       id: 0,
       temperament: "",

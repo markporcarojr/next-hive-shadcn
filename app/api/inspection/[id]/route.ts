@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { inspectionSchema } from "@/lib/schemas/inspection";
+import { inspectionApiSchema } from "@/lib/schemas/inspection";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -58,7 +58,7 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const body = await req.json();
-    const parsedData = inspectionSchema.safeParse(body);
+    const parsedData = inspectionApiSchema.safeParse(body);
     if (!parsedData.success) {
       return NextResponse.json(
         { error: parsedData.error.errors },

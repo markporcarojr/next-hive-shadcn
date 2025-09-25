@@ -18,8 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { HarvestInput, harvestSchema } from "@/lib/schemas/harvest";
-// Ensure in harvestSchema, harvestDate is defined as z.date()
+import { HarvestInput, harvestFormSchema } from "@/lib/schemas/harvest";
+// Ensure in harvestFormSchema, harvestDate is defined as z.date()
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Harvest } from "@prisma/client";
@@ -45,7 +45,7 @@ export default function EditHarvestPage({
   const [loading, setLoading] = useState(true);
 
   const form = useForm<HarvestInput>({
-    resolver: zodResolver(harvestSchema),
+    resolver: zodResolver(harvestFormSchema),
     defaultValues: {
       harvestAmount: 0,
       harvestType: "",

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { hiveSchema } from "@/lib/schemas/hive";
+import { hiveApiSchema } from "@/lib/schemas/hive";
 
 // GET: /api/hives
 export async function GET(req: NextRequest) {
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       ...body,
       hiveDate: new Date(body.hiveDate), // Convert to Date object for validation
     };
-    const parsed = hiveSchema.safeParse(convertedBody);
+    const parsed = hiveApiSchema.safeParse(convertedBody);
 
     if (!parsed.success) {
       return NextResponse.json(

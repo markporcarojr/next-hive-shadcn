@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { inspectionSchema } from "@/lib/schemas/inspection";
+import { inspectionApiSchema } from "@/lib/schemas/inspection";
 
 // GET: Fetch all inspections for the current user
 export async function GET(req: NextRequest) {
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const parsed = inspectionSchema.safeParse(body);
+    const parsed = inspectionApiSchema.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(

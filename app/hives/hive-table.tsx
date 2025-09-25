@@ -87,7 +87,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { hiveSchema } from "@/lib/schemas/hive";
+import { hiveFormSchema } from "@/lib/schemas/hive";
 import { useState } from "react";
 
 // Create a separate component for the drag handle
@@ -108,7 +108,7 @@ function DragHandle({ id }: { id: UniqueIdentifier }) {
   );
 }
 
-const columns: ColumnDef<z.infer<typeof hiveSchema>>[] = [
+const columns: ColumnDef<z.infer<typeof hiveFormSchema>>[] = [
   {
     id: "drag",
     header: () => null,
@@ -169,8 +169,8 @@ const columns: ColumnDef<z.infer<typeof hiveSchema>>[] = [
   },
 ];
 
-// ✅ Use hiveSchema here instead of the old schema
-function DraggableRow({ row }: { row: Row<z.infer<typeof hiveSchema>> }) {
+// ✅ Use hiveFormSchema here instead of the old schema
+function DraggableRow({ row }: { row: Row<z.infer<typeof hiveFormSchema>> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id?.toString() ?? "",
   });
@@ -198,7 +198,7 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof hiveSchema>> }) {
 export function HiveTable({
   data: initialData,
 }: {
-  data: z.infer<typeof hiveSchema>[];
+  data: z.infer<typeof hiveFormSchema>[];
 }) {
   const [data, setData] = React.useState(() => initialData);
   const [rowSelection, setRowSelection] = React.useState({});
@@ -504,7 +504,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-function TableCellViewer({ item }: { item: z.infer<typeof hiveSchema> }) {
+function TableCellViewer({ item }: { item: z.infer<typeof hiveFormSchema> }) {
   const isMobile = useIsMobile();
 
   return (

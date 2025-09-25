@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { incomeSchema } from "@/lib/schemas/income";
+import { incomeFormSchema } from "@/lib/schemas/income";
 
 export async function GET(req: NextRequest) {
   const { userId: clerkId } = await auth();
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const data = incomeSchema.parse(body);
+    const data = incomeFormSchema.parse(body);
 
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user)

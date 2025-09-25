@@ -27,7 +27,10 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { InspectionInput, inspectionSchema } from "@/lib/schemas/inspection";
+import {
+  InspectionInput,
+  inspectionFormSchema,
+} from "@/lib/schemas/inspection";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Hive } from "@prisma/client";
@@ -69,7 +72,7 @@ export default function CreateInspectionPage() {
   }, []);
 
   const form = useForm<InspectionInput>({
-    resolver: zodResolver(inspectionSchema),
+    resolver: zodResolver(inspectionFormSchema),
     defaultValues: {
       temperament: "",
       hiveStrength: 0,

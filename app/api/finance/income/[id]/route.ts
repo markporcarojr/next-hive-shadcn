@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import { incomeSchema } from "@/lib/schemas/income";
+import { incomeFormSchema } from "@/lib/schemas/income";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
@@ -44,7 +44,7 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const body = await req.json();
-    const data = incomeSchema.partial().parse(body);
+    const data = incomeFormSchema.partial().parse(body);
 
     const updated = await prisma.income.updateMany({
       where: { id: Number(params.id), userId: user.id },

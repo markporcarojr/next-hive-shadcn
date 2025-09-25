@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { HiveInput, hiveSchema } from "@/lib/schemas/hive";
+import { HiveInput, hiveFormSchema } from "@/lib/schemas/hive";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -41,7 +41,7 @@ export default function NewHivePage() {
   const [loading, setLoading] = useState(false);
 
   const form = useForm<HiveInput>({
-    resolver: zodResolver(hiveSchema),
+    resolver: zodResolver(hiveFormSchema),
     defaultValues: {
       hiveDate: "",
       hiveNumber: 1,

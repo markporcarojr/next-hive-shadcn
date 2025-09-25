@@ -25,7 +25,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { HiveInput, hiveSchema } from "@/lib/schemas/hive";
+import { HiveInput, hiveFormSchema } from "@/lib/schemas/hive";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -41,7 +41,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
 
   const form = useForm<HiveInput>({
-    resolver: zodResolver(hiveSchema),
+    resolver: zodResolver(hiveFormSchema),
     defaultValues: {
       hiveNumber: 0,
       hiveSource: "",

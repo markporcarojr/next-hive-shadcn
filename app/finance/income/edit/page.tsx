@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { IncomeInput, incomeSchema } from "@/lib/schemas/income";
+import { IncomeInput, incomeFormSchema } from "@/lib/schemas/income";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -25,7 +25,7 @@ export default function EditIncomePage() {
   const [error, setError] = useState("");
 
   const form = useForm<IncomeInput>({
-    resolver: zodResolver(incomeSchema),
+    resolver: zodResolver(incomeFormSchema),
     defaultValues: {
       source: "",
       amount: 0,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { hiveSchema } from "@/lib/schemas/hive";
+import {} from "@/lib/schemas/hive";
 
 // GET /api/hives/[id]
 export async function GET(
@@ -38,7 +38,7 @@ export async function PATCH(
     ...body,
     hiveDate: new Date(body.hiveDate),
   };
-  const parsed = hiveSchema.safeParse(convertedBody);
+  const parsed = .safeParse(convertedBody);
 
   if (!parsed.success) {
     return NextResponse.json(

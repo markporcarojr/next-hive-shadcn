@@ -24,7 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { HarvestInput, harvestSchema } from "@/lib/schemas/harvest";
+import { HarvestInput, harvestFormSchema } from "@/lib/schemas/harvest";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -39,8 +39,8 @@ export default function CreateHarvestPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof harvestSchema>>({
-    resolver: zodResolver(harvestSchema),
+  const form = useForm<z.infer<typeof harvestFormSchema>>({
+    resolver: zodResolver(harvestFormSchema),
     defaultValues: {
       harvestAmount: 0,
       harvestType: "",
