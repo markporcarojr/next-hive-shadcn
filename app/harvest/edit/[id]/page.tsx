@@ -39,10 +39,18 @@ import { toast } from "sonner";
 export default function EditHarvestPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [paramsResolved, setParamsResolved] = useState<{ id: string } | null>(null);
+
+  // Resolve params Promise
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      setParamsResolved(resolvedParams);
+    });
+  }, [params]);
 
   const form = useForm<HarvestInput>({
     resolver: zodResolver(harvestFormSchema),
@@ -55,10 +63,12 @@ export default function EditHarvestPage({
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!paramsResolved) return;
+      
       try {
         const res = await fetch("/api/harvest");
         const data = await res.json();
-        const current = data.find((h: Harvest) => h.id === Number(params.id));
+        const current = data.find((h: Harvest) => h.id === Number(paramsResolved.id));
         if (!current) return router.push("/harvest");
 
         form.reset({
@@ -76,11 +86,13 @@ export default function EditHarvestPage({
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
+  }, [paramsResolved]);
 
   const handleSubmit = async (values: HarvestInput) => {
+    if (!paramsResolved) return;
+    
     try {
-      const res = await fetch(`/api/harvest?id=${params.id}`, {
+      const res = await fetch(`/api/harvest?id=${paramsResolved.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -102,7 +114,7 @@ export default function EditHarvestPage({
     }
   };
 
-  if (loading) return <p style={{ padding: "2rem" }}>Loading...</p>;
+  if (loading || !paramsResolved) return <p style={{ padding: "2rem" }}>Loading...</p>;
 
   return (
     <div className="flex justify-center mt-12">

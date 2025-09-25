@@ -5,8 +5,9 @@ import { inventorySchema } from "@/lib/schemas/inventory";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -16,7 +17,7 @@ export async function GET(
     return NextResponse.json({ message: "User not found" }, { status: 404 });
 
   const item = await prisma.inventory.findUnique({
-    where: { id: parseInt(params.id), userId: user.id },
+    where: { id: parseInt(resolvedParams.id), userId: user.id },
   });
 
   if (!item) {
@@ -28,8 +29,9 @@ export async function GET(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -39,7 +41,7 @@ export async function DELETE(
     return NextResponse.json({ message: "User not found" }, { status: 404 });
 
   const item = await prisma.inventory.findUnique({
-    where: { id: parseInt(params.id), userId: user.id },
+    where: { id: parseInt(resolvedParams.id), userId: user.id },
   });
 
   if (!item) {
@@ -58,8 +60,9 @@ export async function DELETE(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -79,7 +82,7 @@ export async function PUT(
   }
 
   const item = await prisma.inventory.update({
-    where: { id: parseInt(params.id), userId: user.id },
+    where: { id: parseInt(resolvedParams.id), userId: user.id },
     data: parsed.data,
   });
 
@@ -88,8 +91,9 @@ export async function PUT(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -109,7 +113,7 @@ export async function PATCH(
   }
 
   const item = await prisma.inventory.update({
-    where: { id: parseInt(params.id), userId: user.id },
+    where: { id: parseInt(resolvedParams.id), userId: user.id },
     data: parsed.data,
   });
 

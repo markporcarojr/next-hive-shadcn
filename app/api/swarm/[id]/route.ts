@@ -1,13 +1,14 @@
 import { prisma } from "@/lib/prisma";
-import { swarmTrapSchema } from "@/lib/schemas/swarmTrap";
+import { swarmTrapApiSchema } from "@/lib/schemas/swarmTrap";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET: /api/swarm/[id]
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -18,7 +19,7 @@ export async function GET(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const swarm = await prisma.swarmTrap.findUnique({
-      where: { id: Number(params.id), userId: user.id },
+      where: { id: Number(resolvedParams.id), userId: user.id },
     });
 
     if (!swarm) {
@@ -32,11 +33,12 @@ export async function GET(
   }
 }
 
-// PATCH: /api/swarm?id=123
+// PATCH: /api/swarm/[id]
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -47,7 +49,12 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const body = await req.json();
-    const parsedData = swarmTrapSchema.safeParse(body);
+    const convertedBody = {
+      ...body,
+      installedAt: new Date(body.installedAt), // Convert date string to Date object
+      removedAt: body.removedAt ? new Date(body.removedAt) : undefined,
+    };
+    const parsedData = swarmTrapApiSchema.safeParse(convertedBody);
     if (!parsedData.success) {
       return NextResponse.json(
         { error: parsedData.error.errors },
@@ -56,7 +63,7 @@ export async function PATCH(
     }
 
     const updatedSwarm = await prisma.swarmTrap.update({
-      where: { id: Number(params.id), userId: user.id },
+      where: { id: Number(resolvedParams.id), userId: user.id },
       data: parsedData.data,
     });
 
