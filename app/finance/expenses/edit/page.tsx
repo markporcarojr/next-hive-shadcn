@@ -13,7 +13,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ExpenseInput, expenseSchema } from "@/lib/schemas/expense";
+import {
+  ExpenseFormInput,
+  expenseFormSchema,
+  expenseApiSchema,
+} from "@/lib/schemas/expense";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -21,11 +25,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@radix-ui/react-popover";
+import { format } from "date-fns";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export default function EditExpensePage() {
   const router = useRouter();
@@ -33,14 +38,15 @@ export default function EditExpensePage() {
   const id = params?.id as string;
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  const form = useForm<ExpenseInput>({
-    resolver: zodResolver(expenseSchema),
+  const form = useForm<ExpenseFormInput>({
+    resolver: zodResolver(expenseFormSchema),
     defaultValues: {
       item: "",
       amount: 0,
-      date: "",
+      date: new Date(),
       notes: "",
     },
   });
@@ -49,47 +55,70 @@ export default function EditExpensePage() {
     const fetchExpense = async () => {
       try {
         const res = await fetch(`/api/expense/${id}`);
-        if (!res.ok) throw new Error("Failed to fetch expense");
+        if (!res.ok) {
+          toast.error("Failed to load expense record.");
+          return;
+        }
         const data = await res.json();
+
+        // Ensure date is properly converted to Date object
         form.reset({
           ...data,
+          date: data.date ? new Date(data.date) : new Date(),
+          amount: Number(data.amount) || 0,
         });
-      } catch {
-        setError("Failed to load expense record.");
+      } catch (error) {
+        console.error("[FETCH_EXPENSE_ERROR]", error);
+        toast.error("Failed to load expense record.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchExpense();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+    if (id) {
+      fetchExpense();
+    }
+  }, [id, form]);
 
-  const onSubmit = async (values: ExpenseInput) => {
-    setError("");
+  const onSubmit = async (values: ExpenseFormInput) => {
+    setSubmitting(true);
     try {
+      // Validate and prepare data for API
+      const apiData = expenseApiSchema.parse({
+        ...values,
+        date: values.date.toISOString(),
+      });
+
       const res = await fetch(`/api/expense/${id}`, {
         method: "PATCH",
-        body: JSON.stringify(values),
+        body: JSON.stringify(apiData),
         headers: { "Content-Type": "application/json" },
       });
-      if (!res.ok) throw new Error("Failed to update expense");
+
+      if (!res.ok) {
+        const error = await res.json();
+        toast.error(error.message || "Failed to update expense.");
+        return;
+      }
+
+      toast.success("Expense updated successfully!");
       router.push("/finance");
-    } catch (err) {
-      setError("Something went wrong while saving.");
-      console.error(err);
+    } catch (error) {
+      console.error("[UPDATE_EXPENSE_ERROR]", error);
+      toast.error("Something went wrong while saving.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-40">
         <Loader2 className="animate-spin w-6 h-6" />
         <span className="ml-2">Loading...</span>
       </div>
     );
-  if (error)
-    return <div className="text-destructive text-center mt-8">{error}</div>;
+  }
 
   return (
     <div className="max-w-md mx-auto mt-10">
@@ -107,55 +136,67 @@ export default function EditExpensePage() {
                   <FormItem>
                     <FormLabel>Item</FormLabel>
                     <FormControl>
-                      <Input placeholder="Smoker" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Amount</FormLabel>
-                    <FormControl>
                       <Input
-                        type="number"
-                        step="0.01"
-                        min={0}
+                        placeholder="Item description"
+                        disabled={submitting}
                         {...field}
-                        value={
-                          field.value !== undefined && field.value !== null
-                            ? String(field.value)
-                            : ""
-                        }
-                        onChange={(e) => field.onChange(Number(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Amount ($)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        placeholder="0.00"
+                        disabled={submitting}
+                        {...field}
+                        value={
+                          typeof field.value === "number" && !isNaN(field.value)
+                            ? field.value
+                            : ""
+                        }
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === "" ? "" : Number(e.target.value)
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Date</FormLabel>
-                    <Popover>
+                    <Popover open={open} onOpenChange={setOpen}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
                             variant="outline"
+                            disabled={submitting}
                             className={cn(
                               "w-full pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
                           >
                             {field.value ? (
-                              // display string value as a formatted date
-                              format(new Date(field.value), "PPP")
+                              format(field.value, "PPP")
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -166,12 +207,11 @@ export default function EditExpensePage() {
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={
-                            field.value ? new Date(field.value) : undefined
-                          }
-                          onSelect={(date) =>
-                            field.onChange(date ? date.toISOString() : "")
-                          }
+                          selected={field.value}
+                          onSelect={(date) => {
+                            field.onChange(date ?? new Date());
+                            setOpen(false);
+                          }}
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")
                           }
@@ -183,6 +223,7 @@ export default function EditExpensePage() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="notes"
@@ -190,14 +231,26 @@ export default function EditExpensePage() {
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Optional notes" {...field} />
+                      <Textarea
+                        placeholder="Optional notes"
+                        disabled={submitting}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                Update Expense
+
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update Expense"
+                )}
               </Button>
             </form>
           </Form>

@@ -1,12 +1,22 @@
 // lib/schemas/expense.ts
 import { z } from "zod";
 
-export const expenseSchema = z.object({
+// Schema for form input (what react-hook-form sees)
+export const expenseFormSchema = z.object({
   amount: z.number().positive("Amount must be positive"),
-  date: z.string().min(1, "Date is required"),
+  date: z.date(), // Direct Date type for the form
   item: z.string().min(1, "Item is required"),
   notes: z.string().optional(),
 });
 
-// ✅ Correct type: parsed/output values
-export type ExpenseInput = z.infer<typeof expenseSchema>;
+// Schema for API input (with coercion for server-side validation)
+export const expenseApiSchema = z.object({
+  amount: z.number().positive("Amount must be positive"),
+  date: z.coerce.date(), // Coerce from string/ISO date
+  item: z.string().min(1, "Item is required"),
+  notes: z.string().optional(),
+});
+
+// Types
+export type ExpenseFormInput = z.infer<typeof expenseFormSchema>;
+export type ExpenseApiInput = z.infer<typeof expenseApiSchema>;

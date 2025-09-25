@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { expenseSchema } from "@/lib/schemas/expense";
+import { expenseApiSchema } from "@/lib/schemas/expense";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       ...body,
       date: new Date(body.date), // Convert date string to Date object
     };
-    const parsed = expenseSchema.safeParse(convertedBody);
+    const parsed = expenseApiSchema.safeParse(convertedBody);
 
     if (!parsed.success) {
       return NextResponse.json(

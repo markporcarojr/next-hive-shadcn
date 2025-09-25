@@ -12,7 +12,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ExpenseInput, expenseSchema } from "@/lib/schemas/expense";
+import {
+  expenseApiSchema,
+  ExpenseFormInput,
+  expenseFormSchema,
+} from "@/lib/schemas/expense";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -25,39 +29,48 @@ import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
+import { toast } from "sonner";
 
 export default function NewExpensePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const form = useForm<z.infer<typeof expenseSchema>>({
-    resolver: zodResolver(expenseSchema),
+
+  // Use the form schema for react-hook-form
+  const form = useForm<ExpenseFormInput>({
+    resolver: zodResolver(expenseFormSchema),
     defaultValues: {
       item: "",
       amount: 0,
-      date: "",
+      date: new Date(),
       notes: "",
     },
   });
 
-  const onSubmit = async (values: ExpenseInput) => {
+  const onSubmit = async (values: ExpenseFormInput) => {
     setLoading(true);
     try {
+      // Validate with API schema before sending
+      const apiData = expenseApiSchema.parse({
+        ...values,
+        date: values.date.toISOString(),
+      });
+
       const res = await fetch("/api/finance/expenses", {
         method: "POST",
-        body: JSON.stringify(values),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apiData),
       });
 
       if (res.ok) {
         router.push("/finance/expenses");
       } else {
         const error = await res.json();
-        alert(error.error || "Something went wrong.");
+        toast.error(error?.message || "Failed to add expense.");
       }
     } catch (err) {
       console.error("[EXPENSE_NEW]", err);
-      alert("Unexpected error occurred.");
+      toast.error("Unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -134,7 +147,7 @@ export default function NewExpensePage() {
                             )}
                           >
                             {field.value ? (
-                              format(new Date(field.value), "PPP")
+                              format(field.value, "PPP")
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -152,12 +165,9 @@ export default function NewExpensePage() {
                       >
                         <Calendar
                           mode="single"
-                          selected={
-                            field.value ? new Date(field.value) : undefined
-                          }
+                          selected={field.value}
                           onSelect={(date) => {
-                            // store ISO string in form
-                            field.onChange(date ? date.toISOString() : "");
+                            field.onChange(date ?? new Date());
                             setOpen(false);
                           }}
                           disabled={(date) =>
