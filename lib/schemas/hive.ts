@@ -1,5 +1,4 @@
 // lib/schemas/hive.ts
-import { todo } from "node:test";
 import { z } from "zod";
 
 export const hiveFormSchema = z.object({
@@ -40,3 +39,4 @@ export const hiveApiSchema = z.object({
   todo: z.string().optional(),
 });
 export type HiveInput = z.infer<typeof hiveFormSchema>;
+export type HiveApiInput = z.infer<typeof hiveApiSchema>;

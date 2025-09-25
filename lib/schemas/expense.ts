@@ -20,3 +20,7 @@ export const expenseApiSchema = z.object({
 // Types
 export type ExpenseFormInput = z.infer<typeof expenseFormSchema>;
 export type ExpenseApiInput = z.infer<typeof expenseApiSchema>;
+
+// Legacy alias for backward compatibility
+export const expenseSchema = expenseApiSchema;
+export type ExpenseInput = ExpenseApiInput;

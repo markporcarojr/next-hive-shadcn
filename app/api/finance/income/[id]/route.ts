@@ -1,12 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import { incomeFormSchema } from "@/lib/schemas/income";
+import { incomeApiSchema } from "@/lib/schemas/income";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,7 +18,7 @@ export async function GET(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const income = await prisma.income.findUnique({
-      where: { id: Number(params.id), userId: user.id },
+      where: { id: Number(resolvedParams.id), userId: user.id },
     });
 
     if (!income)
@@ -32,8 +33,9 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -44,11 +46,22 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const body = await req.json();
-    const data = incomeFormSchema.partial().parse(body);
+    const convertedBody = {
+      ...body,
+      date: body.date ? new Date(body.date) : undefined, // Convert date string to Date object
+    };
+    const parsed = incomeApiSchema.partial().safeParse(convertedBody);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { errors: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
 
     const updated = await prisma.income.updateMany({
-      where: { id: Number(params.id), userId: user.id },
-      data,
+      where: { id: Number(resolvedParams.id), userId: user.id },
+      data: parsed.data,
     });
 
     if (updated.count === 0)
@@ -58,7 +71,7 @@ export async function PATCH(
       );
 
     const income = await prisma.income.findUnique({
-      where: { id: Number(params.id) },
+      where: { id: Number(resolvedParams.id) },
     });
     return NextResponse.json(income);
   } catch (error) {
@@ -69,8 +82,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -81,7 +95,7 @@ export async function DELETE(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const deleted = await prisma.income.deleteMany({
-      where: { id: Number(params.id), userId: user.id },
+      where: { id: Number(resolvedParams.id), userId: user.id },
     });
 
     if (deleted.count === 0)

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { incomeFormSchema } from "@/lib/schemas/income";
+import { incomeApiSchema } from "@/lib/schemas/income";
 
 export async function GET(req: NextRequest) {
   const { userId: clerkId } = await auth();
@@ -32,7 +32,18 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const data = incomeFormSchema.parse(body);
+    const convertedBody = {
+      ...body,
+      date: new Date(body.date), // Convert date string to Date object
+    };
+    const parsed = incomeApiSchema.safeParse(convertedBody);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { errors: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
 
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user)
@@ -40,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     const income = await prisma.income.create({
       data: {
-        ...data,
+        ...parsed.data,
         userId: user.id,
       },
     });

@@ -46,7 +46,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const parsed = inspectionApiSchema.safeParse(body);
+    const convertedBody = {
+      ...body,
+      inspectionDate: new Date(body.inspectionDate), // Convert date string to Date object
+    };
+    const parsed = inspectionApiSchema.safeParse(convertedBody);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -60,7 +64,6 @@ export async function POST(req: NextRequest) {
     const inspection = await prisma.inspection.create({
       data: {
         ...data,
-        inspectionDate: new Date(data.inspectionDate),
         userId: user.id,
       },
     });

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { expenseSchema } from "@/lib/schemas/expense";
+import { expenseApiSchema } from "@/lib/schemas/expense";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -21,7 +22,7 @@ export async function PATCH(
       date: new Date(body.date),
     };
 
-    const parsed = expenseSchema.safeParse(convertedBody);
+    const parsed = expenseApiSchema.safeParse(convertedBody);
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid data", details: parsed.error.issues },
@@ -30,7 +31,7 @@ export async function PATCH(
     }
 
     const updated = await prisma.expense.update({
-      where: { id: Number(params.id), userId: user.id },
+      where: { id: Number(resolvedParams.id), userId: user.id },
       data: parsed.data,
     });
 
@@ -45,9 +46,10 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -58,7 +60,7 @@ export async function DELETE(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     await prisma.expense.delete({
-      where: { id: Number(params.id), userId: user.id },
+      where: { id: Number(resolvedParams.id), userId: user.id },
     });
 
     return NextResponse.json({ success: true });

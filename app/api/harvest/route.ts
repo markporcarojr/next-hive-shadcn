@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { harvestFormSchema } from "@/lib/schemas/harvest";
+import { harvestApiSchema } from "@/lib/schemas/harvest";
 
 export async function POST(req: NextRequest) {
   const { userId: clerkId } = await auth();
@@ -17,10 +17,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const parsed = harvestFormSchema.safeParse({
+    const convertedBody = {
       ...body,
-      harvestDate: new Date(body.harvestDate), // ✅ ensure it's a Date before Zod
-    });
+      harvestDate: new Date(body.harvestDate), // Convert date string to Date object
+    };
+    const parsed = harvestApiSchema.safeParse(convertedBody);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -144,11 +145,12 @@ export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // ✅ Convert harvestDate BEFORE validation
-    const parsed = harvestFormSchema.safeParse({
+    // Convert harvestDate BEFORE validation
+    const convertedBody = {
       ...body,
       harvestDate: new Date(body.harvestDate),
-    });
+    };
+    const parsed = harvestApiSchema.safeParse(convertedBody);
 
     if (!parsed.success) {
       return NextResponse.json(

@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import {} from "@/lib/schemas/hive";
+import { hiveApiSchema } from "@/lib/schemas/hive";
 
 // GET /api/hives/[id]
 export async function GET(
-  _: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const resolvedParams = await params;
   try {
     const hive = await prisma.hive.findUnique({
-      where: { id: Number(params.id) },
+      where: { id: Number(resolvedParams.id) },
     });
 
     if (!hive) {
@@ -27,8 +28,9 @@ export async function GET(
 // PATCH /api/hives/[id]
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -38,7 +40,7 @@ export async function PATCH(
     ...body,
     hiveDate: new Date(body.hiveDate),
   };
-  const parsed = .safeParse(convertedBody);
+  const parsed = hiveApiSchema.safeParse(convertedBody);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -49,7 +51,7 @@ export async function PATCH(
 
   try {
     const hive = await prisma.hive.update({
-      where: { id: Number(params.id) },
+      where: { id: Number(resolvedParams.id) },
       data: {
         ...parsed.data,
       },

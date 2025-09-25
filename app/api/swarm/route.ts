@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { swarmTrapSchema } from "@/lib/schemas/swarmTrap";
+import { swarmTrapApiSchema } from "@/lib/schemas/swarmTrap";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -35,7 +35,12 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const parsed = swarmTrapSchema.safeParse(body);
+  const convertedBody = {
+    ...body,
+    installedAt: new Date(body.installedAt), // Convert date string to Date object
+    removedAt: body.removedAt ? new Date(body.removedAt) : undefined,
+  };
+  const parsed = swarmTrapApiSchema.safeParse(convertedBody);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -58,8 +63,6 @@ export async function POST(req: NextRequest) {
     const swarmTrap = await prisma.swarmTrap.create({
       data: {
         ...data,
-        installedAt: new Date(data.installedAt),
-        removedAt: data.removedAt ? new Date(data.removedAt) : null,
         userId: user.id,
       },
     });
