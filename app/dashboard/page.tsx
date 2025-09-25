@@ -20,7 +20,7 @@ export default async function Page() {
     orderBy: { date: "desc" },
   });
 
-  const expenses = expensesRaw.map((expense) => ({
+  const expenses = expensesRaw.map((expense: (typeof expensesRaw)[0]) => ({
     ...expense,
     amount: Number(expense.amount),
     notes: expense.notes ?? undefined,
@@ -31,7 +31,7 @@ export default async function Page() {
     orderBy: { date: "desc" },
   });
 
-  const incomes = incomesRaw.map((income) => ({
+  const incomes = incomesRaw.map((income: (typeof incomesRaw)[0]) => ({
     ...income,
     amount: Number(income.amount),
     notes: income.notes ?? undefined,

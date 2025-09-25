@@ -18,7 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { SwarmInput, swarmTrapSchema } from "@/lib/schemas/swarmTrap";
+import { SwarmTrapFormInput, swarmTrapFormSchema } from "@/lib/schemas/swarmTrap";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -28,13 +28,21 @@ import { format } from "date-fns";
 import { CalendarIcon, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function EditSwarmPage({ params }: { params: { id: string } }) {
+export default function EditSwarmPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [paramsResolved, setParamsResolved] = useState<{ id: string } | null>(null);
 
-  const form = useForm<SwarmInput>({
-    resolver: zodResolver(swarmTrapSchema),
+  // Resolve params Promise
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      setParamsResolved(resolvedParams);
+    });
+  }, [params]);
+
+  const form = useForm<SwarmTrapFormInput>({
+    resolver: zodResolver(swarmTrapFormSchema),
     defaultValues: {
       label: "",
       latitude: 42.78,
@@ -47,8 +55,10 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!paramsResolved) return;
+      
       try {
-        const res = await fetch(`/api/swarm/${params.id}`);
+        const res = await fetch(`/api/swarm/${paramsResolved.id}`);
         if (!res.ok) throw new Error("Failed to fetch swarm data");
 
         const data = await res.json();
@@ -74,21 +84,17 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
     };
 
     fetchData();
-  }, [params.id, form, router]);
+  }, [paramsResolved, form, router]);
 
-  const onSubmit = async (values: SwarmInput) => {
+  const onSubmit = async (values: SwarmTrapFormInput) => {
+    if (!paramsResolved) return;
+    
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/swarm/${params.id}`, {
+      const res = await fetch(`/api/swarm/${paramsResolved.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...values,
-          installedAt: new Date(values.installedAt).toISOString(),
-          removedAt: values.removedAt
-            ? new Date(values.removedAt).toISOString()
-            : null,
-        }),
+        body: JSON.stringify(values),
       });
 
       if (!res.ok) {
@@ -107,7 +113,7 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
     }
   };
 
-  if (loading) {
+  if (loading || !paramsResolved) {
     return (
       <main className="p-8 max-w-2xl mx-auto">
         <Card>

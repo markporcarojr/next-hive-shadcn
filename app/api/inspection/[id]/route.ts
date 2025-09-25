@@ -67,7 +67,7 @@ export async function PATCH(
     const parsedData = inspectionApiSchema.safeParse(convertedBody);
     if (!parsedData.success) {
       return NextResponse.json(
-        { error: parsedData.error.errors },
+        { error: parsedData.error.issues },
         { status: 400 }
       );
     }

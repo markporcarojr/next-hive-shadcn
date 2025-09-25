@@ -36,9 +36,17 @@ import { CalendarIcon, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Hive } from "@prisma/client";
 
-export default function EditHivesPage({ params }: { params: { id: string } }) {
+export default function EditHivesPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [paramsResolved, setParamsResolved] = useState<{ id: string } | null>(null);
+
+  // Resolve params Promise
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      setParamsResolved(resolvedParams);
+    });
+  }, [params]);
 
   const form = useForm<HiveInput>({
     resolver: zodResolver(hiveFormSchema),
@@ -55,10 +63,12 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!paramsResolved) return;
+      
       try {
         const res = await fetch("/api/hives");
         const data = await res.json();
-        const current = data.find((h: Hive) => h.id === Number(params.id));
+        const current = data.find((h: Hive) => h.id === Number(paramsResolved.id));
         if (!current) return router.push("/hives");
 
         form.reset({
@@ -79,12 +89,14 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
     };
 
     fetchData();
-  }, [params.id, form, router]);
+  }, [paramsResolved, form, router]);
 
   const handleSubmit = async (values: HiveInput) => {
+    if (!paramsResolved) return;
+    
     setLoading(true);
     try {
-      const res = await fetch(`/api/hives/${params.id}`, {
+      const res = await fetch(`/api/hives/${paramsResolved.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -107,7 +119,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
     }
   };
 
-  if (loading) {
+  if (loading || !paramsResolved) {
     return (
       <main className="p-8 max-w-2xl mx-auto">
         <Card>
