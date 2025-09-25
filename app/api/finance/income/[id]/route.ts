@@ -46,28 +46,11 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const body = await req.json();
-    
-    // Ensure date is in ISO format for validation if present
-    const payload = body.date ? {
-      ...body,
-      date: body.date instanceof Date 
-        ? body.date.toISOString() 
-        : typeof body.date === 'string' 
-          ? body.date 
-          : new Date(body.date).toISOString()
-    } : body;
-    
-    const data = incomeSchema.partial().parse(payload);
-    
-    // Convert date back to Date object for Prisma if present
-    const prismaData = data.date ? {
-      ...data,
-      date: new Date(data.date)
-    } : data;
+    const data = incomeSchema.partial().parse(body);
 
     const updated = await prisma.income.updateMany({
       where: { id: Number(resolvedParams.id), userId: user.id },
-      data: prismaData,
+      data,
     });
 
     if (updated.count === 0)

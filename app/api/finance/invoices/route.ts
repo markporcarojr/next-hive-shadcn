@@ -13,18 +13,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-
-    // Ensure date is in ISO format for validation
-    const payload = {
-      ...body,
-      date: body.date instanceof Date 
-        ? body.date.toISOString() 
-        : typeof body.date === 'string' 
-          ? body.date 
-          : new Date(body.date).toISOString()
-    };
-
-    const parse = invoiceSchema.safeParse(payload);
+    const parse = invoiceSchema.safeParse(body);
     if (!parse.success) {
       return NextResponse.json(
         { error: "Validation failed", issues: parse.error.format() },
@@ -37,7 +26,7 @@ export async function POST(req: Request) {
     const invoice = await prisma.invoice.create({
       data: {
         customerName: data.customerName,
-        date: new Date(data.date), // Convert ISO string to Date for Prisma
+        date: data.date,
         email: data.email,
         phone: data.phone,
         notes: data.notes,

@@ -46,18 +46,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    
-    // Ensure inspectionDate is in ISO format for validation
-    const payload = {
-      ...body,
-      inspectionDate: body.inspectionDate instanceof Date 
-        ? body.inspectionDate.toISOString() 
-        : typeof body.inspectionDate === 'string' 
-          ? body.inspectionDate 
-          : new Date(body.inspectionDate).toISOString()
-    };
-    
-    const parsed = inspectionSchema.safeParse(payload);
+    const parsed = inspectionSchema.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -71,7 +60,6 @@ export async function POST(req: NextRequest) {
     const inspection = await prisma.inspection.create({
       data: {
         ...data,
-        inspectionDate: new Date(data.inspectionDate), // Convert ISO string to Date for Prisma
         userId: user.id,
       },
     });

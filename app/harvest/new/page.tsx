@@ -44,7 +44,7 @@ export default function CreateHarvestPage() {
     defaultValues: {
       harvestAmount: 0,
       harvestType: "",
-      harvestDate: new Date().toISOString(), // Use ISO string
+      harvestDate: new Date(), // Use Date object
     },
   });
 
@@ -162,20 +162,16 @@ export default function CreateHarvestPage() {
                         >
                           <IconCalendar className="mr-2 h-4 w-4" />
                           {field.value 
-                            ? format(new Date(field.value), "MM-dd-yyyy")
+                            ? format(field.value, "MM-dd-yyyy")
                             : "Pick a date"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
                         <Calendar
                           mode="single"
-                          selected={
-                            field.value 
-                              ? new Date(field.value)
-                              : new Date()
-                          }
+                          selected={field.value || new Date()}
                           onSelect={(d) => {
-                            if (d) field.onChange(d.toISOString()); // Convert to ISO string
+                            if (d) field.onChange(d); // Pass Date object directly
                           }}
                           autoFocus
                         />

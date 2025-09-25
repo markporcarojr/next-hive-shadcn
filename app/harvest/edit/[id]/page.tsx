@@ -50,7 +50,7 @@ export default function EditHarvestPage({
     defaultValues: {
       harvestAmount: 0,
       harvestType: "",
-      harvestDate: new Date().toISOString(), // Use ISO string as default
+      harvestDate: new Date(), // Use Date object
     },
   });
 
@@ -65,7 +65,7 @@ export default function EditHarvestPage({
         form.reset({
           harvestAmount: current.harvestAmount,
           harvestType: current.harvestType,
-          harvestDate: new Date(current.harvestDate).toISOString(), // Convert to ISO string
+          harvestDate: new Date(current.harvestDate), // Convert to Date object
         });
       } catch {
         toast.error("Failed to load harvest");
@@ -86,7 +86,7 @@ export default function EditHarvestPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...values,
-          // harvestDate is already an ISO string from the form
+          // harvestDate is already a Date object
         }),
       });
 
@@ -177,7 +177,7 @@ export default function EditHarvestPage({
                             )}
                           >
                             {field.value ? (
-                              format(new Date(field.value), "PPP")
+                              format(field.value, "PPP")
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -188,8 +188,8 @@ export default function EditHarvestPage({
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value ? new Date(field.value) : undefined}
-                          onSelect={(date) => field.onChange(date ? date.toISOString() : "")}
+                          selected={field.value}
+                          onSelect={field.onChange}
                           captionLayout="dropdown"
                         />
                       </PopoverContent>
