@@ -35,9 +35,22 @@ export const invoiceItemSchema = z.object({
 });
 
 // 5. Full invoice schema
-export const invoiceSchema = z.object({
+export const invoiceFormSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
-  date: z.string().min(1, "Date is required"),
+  date: z.date(),
+  email: z.email("Invalid email format").optional(),
+  notes: z.string().optional(),
+  phone: z
+    .string()
+    .regex(/^\d{10}$/)
+    .optional(),
+  items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
+  total: z.number().nonnegative(),
+});
+
+export const invoiceApiSchema = z.object({
+  customerName: z.string().min(1, "Customer name is required"),
+  date: z.coerce.date(),
   email: z.email("Invalid email format").optional(),
   notes: z.string().optional(),
   phone: z
@@ -49,5 +62,6 @@ export const invoiceSchema = z.object({
 });
 
 // 6. Types
-export type InvoiceInput = z.infer<typeof invoiceSchema>;
+export type InvoiceInput = z.infer<typeof invoiceFormSchema>;
+export type InvoiceApiInput = z.infer<typeof invoiceApiSchema>;
 export type InvoiceItemInput = z.infer<typeof invoiceItemSchema>;
