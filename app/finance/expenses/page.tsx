@@ -56,10 +56,18 @@ export default async function ExpensePage() {
           </TableHeader>
           <TableBody>
             {expenses.map((expense) => (
-              <TableRow key={expense.id}>
-                <TableCell>{expense.item}</TableCell>
-                <TableCell>${expense.amount.toFixed(2)}</TableCell>
-                <TableCell>{formatDate(expense.date.toISOString())}</TableCell>
+              <TableRow key={expense.id} className="cursor-pointer">
+                <Link
+                  href={`/finance/expenses/edit/${expense.id}`}
+                  className="contents"
+                  tabIndex={-1}
+                >
+                  <TableCell>{expense.item}</TableCell>
+                  <TableCell>${expense.amount.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {formatDate(expense.date.toISOString())}
+                  </TableCell>
+                </Link>
               </TableRow>
             ))}
           </TableBody>

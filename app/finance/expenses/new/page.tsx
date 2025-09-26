@@ -63,6 +63,7 @@ export default function NewExpensePage() {
       });
 
       if (res.ok) {
+        toast.success("Expense added successfully!");
         router.push("/finance/expenses");
       } else {
         const error = await res.json();

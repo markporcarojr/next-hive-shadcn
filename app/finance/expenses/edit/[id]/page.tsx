@@ -54,19 +54,26 @@ export default function EditExpensePage() {
   useEffect(() => {
     const fetchExpense = async () => {
       try {
-        const res = await fetch(`/api/expense/${id}`);
+        const res = await fetch(`/api/finance/expenses/${id}`);
         if (!res.ok) {
           toast.error("Failed to load expense record.");
           return;
         }
         const data = await res.json();
 
-        // Ensure date is properly converted to Date object
-        form.reset({
-          ...data,
-          date: data.date ? new Date(data.date) : new Date(),
+        console.log("Fetched data:", data); // Debug log
+
+        // Ensure all fields are properly formatted
+        const formData = {
+          item: data.item || "",
           amount: Number(data.amount) || 0,
-        });
+          date: data.date ? new Date(data.date) : new Date(),
+          notes: data.notes || "",
+        };
+
+        console.log("Form data:", formData); // Debug log
+
+        form.reset(formData);
       } catch (error) {
         console.error("[FETCH_EXPENSE_ERROR]", error);
         toast.error("Failed to load expense record.");
@@ -78,7 +85,7 @@ export default function EditExpensePage() {
     if (id) {
       fetchExpense();
     }
-  }, [id, form]);
+  }, [id, form.reset]); // Only depend on form.reset, not the entire form object
 
   const onSubmit = async (values: ExpenseFormInput) => {
     setSubmitting(true);
@@ -89,7 +96,7 @@ export default function EditExpensePage() {
         date: values.date.toISOString(),
       });
 
-      const res = await fetch(`/api/expense/${id}`, {
+      const res = await fetch(`/api/finance/expenses/${id}`, {
         method: "PATCH",
         body: JSON.stringify(apiData),
         headers: { "Content-Type": "application/json" },
@@ -102,7 +109,7 @@ export default function EditExpensePage() {
       }
 
       toast.success("Expense updated successfully!");
-      router.push("/finance");
+      router.push("/finance/expenses");
     } catch (error) {
       console.error("[UPDATE_EXPENSE_ERROR]", error);
       toast.error("Something went wrong while saving.");
