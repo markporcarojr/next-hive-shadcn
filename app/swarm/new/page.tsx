@@ -19,7 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import MapPicker from "@/components/map-picker";
-import { SwarmInput, swarmTrapSchema } from "@/lib/schemas/swarmTrap";
+import { SwarmInput, swarmTrapFormSchema } from "@/lib/schemas/swarmTrap";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -34,7 +34,7 @@ export default function NewSwarmPage() {
   const [loading, setLoading] = useState(false);
 
   const form = useForm<SwarmInput>({
-    resolver: zodResolver(swarmTrapSchema),
+    resolver: zodResolver(swarmTrapFormSchema),
     defaultValues: {
       label: "",
       latitude: 42.78,

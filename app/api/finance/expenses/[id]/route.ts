@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { expenseSchema } from "@/lib/schemas/expense";
+import { expenseApiSchema } from "@/lib/schemas/expense";
 
 export async function PATCH(
   req: NextRequest,
@@ -21,7 +21,7 @@ export async function PATCH(
       date: new Date(body.date),
     };
 
-    const parsed = expenseSchema.safeParse(convertedBody);
+    const parsed = expenseApiSchema.safeParse(convertedBody);
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid data", details: parsed.error.issues },

@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { InvoiceInput, invoiceSchema } from "@/lib/schemas/invoice";
+import { InvoiceInput, invoiceFormSchema } from "@/lib/schemas/invoice";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -27,7 +27,7 @@ export default function EditInvoicePage() {
   const [error, setError] = useState("");
 
   const form = useForm<InvoiceInput>({
-    resolver: zodResolver(invoiceSchema), // Temporary cast to bypass type error if schema is not fixed
+    resolver: zodResolver(invoiceFormSchema), // Temporary cast to bypass type error if schema is not fixed
     defaultValues: {
       customerName: "",
       total: 0,

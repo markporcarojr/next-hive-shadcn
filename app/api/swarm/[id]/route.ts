@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { swarmTrapSchema } from "@/lib/schemas/swarmTrap";
+import { swarmTrapApiSchema } from "@/lib/schemas/swarmTrap";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -47,7 +47,7 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const body = await req.json();
-    const parsedData = swarmTrapSchema.safeParse(body);
+    const parsedData = swarmTrapApiSchema.safeParse(body);
     if (!parsedData.success) {
       return NextResponse.json(
         { error: parsedData.error.errors },

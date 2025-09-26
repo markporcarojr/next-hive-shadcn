@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { invoiceSchema } from "@/lib/schemas/invoice";
+import { invoiceApiSchema } from "@/lib/schemas/invoice";
 import { sendInvoiceEmail } from "@/lib/sendInvoiceEmail";
 import { auth } from "@clerk/nextjs/server";
 import { Decimal } from "@prisma/client/runtime/library";
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
-    const parse = invoiceSchema.safeParse(body);
+    const parse = invoiceApiSchema.safeParse(body);
     if (!parse.success) {
       return NextResponse.json(
         { error: "Validation failed", issues: parse.error.format() },
@@ -69,6 +69,7 @@ export async function POST(req: Request) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(req: NextRequest) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
