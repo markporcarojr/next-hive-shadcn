@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { incomeApiSchema } from "@/lib/schemas/income";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(req: NextRequest) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
@@ -30,17 +31,29 @@ export async function POST(req: NextRequest) {
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const user = await prisma.user.findUnique({ where: { clerkId } });
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
   try {
     const body = await req.json();
-    const data = incomeApiSchema.parse(body);
+    const convertedBody = {
+      ...body,
+      date: new Date(body.date), // Convert date string to Date object
+    };
+    const parsed = incomeApiSchema.safeParse(convertedBody);
 
-    const user = await prisma.user.findUnique({ where: { clerkId } });
-    if (!user)
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid data", details: parsed.error.issues },
+        { status: 400 }
+      );
+    }
 
     const income = await prisma.income.create({
       data: {
-        ...data,
+        ...parsed.data,
         userId: user.id,
       },
     });

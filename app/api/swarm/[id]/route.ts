@@ -6,8 +6,9 @@ import { NextRequest, NextResponse } from "next/server";
 // GET: /api/swarm/[id]
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -18,7 +19,7 @@ export async function GET(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const swarm = await prisma.swarmTrap.findUnique({
-      where: { id: Number(params.id), userId: user.id },
+      where: { id: Number(resolvedParams.id), userId: user.id },
     });
 
     if (!swarm) {
@@ -35,8 +36,9 @@ export async function GET(
 // PATCH: /api/swarm?id=123
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -56,7 +58,7 @@ export async function PATCH(
     }
 
     const updatedSwarm = await prisma.swarmTrap.update({
-      where: { id: Number(params.id), userId: user.id },
+      where: { id: Number(resolvedParams.id), userId: user.id },
       data: parsedData.data,
     });
 

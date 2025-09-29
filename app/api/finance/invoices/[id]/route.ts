@@ -7,8 +7,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -35,7 +36,7 @@ export async function PATCH(
     // First, verify the invoice belongs to the user
     const existingInvoice = await prisma.invoice.findFirst({
       where: {
-        id: Number(params.id),
+        id: Number(resolvedParams.id),
         userId: user.id,
       },
       include: { items: true },
@@ -49,12 +50,12 @@ export async function PATCH(
     const updated = await prisma.$transaction(async (tx) => {
       // Delete existing items
       await tx.invoiceItem.deleteMany({
-        where: { invoiceId: Number(params.id) },
+        where: { invoiceId: Number(resolvedParams.id) },
       });
 
       // Update invoice with new data
       const updatedInvoice = await tx.invoice.update({
-        where: { id: Number(params.id) },
+        where: { id: Number(resolvedParams.id) },
         data: {
           customerName: data.customerName,
           date: new Date(data.date),
@@ -103,8 +104,9 @@ export async function PATCH(
 
 export async function DELETE(
   _: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -115,7 +117,7 @@ export async function DELETE(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     await prisma.invoice.delete({
-      where: { id: Number(params.id), userId: user.id },
+      where: { id: Number(resolvedParams.id), userId: user.id },
       include: { items: true },
     });
 
