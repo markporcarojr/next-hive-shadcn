@@ -54,7 +54,7 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
     );
 
   return (
-    <Card className="max-w-2xl mx-auto mt-8 p-8">
+    <Card className="max-w-2xl mx-auto mb-8 p-8">
       <h3 className="text-2xl font-semibold mb-6">Invoice</h3>
 
       <div className="space-y-4">

@@ -1,9 +1,9 @@
 import { DataTable } from "@/components/data-table";
 import { SectionCards } from "@/components/section-cards";
 import { prisma } from "@/lib/prisma";
+import { HiveInput } from "@/lib/schemas/hive";
 import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
-import data from "./data.json";
 export default async function Page() {
   const { userId: clerkId } = await auth();
   if (!clerkId) return; // Optional: redirect instead
@@ -37,6 +37,30 @@ export default async function Page() {
     notes: income.notes ?? undefined,
   }));
 
+  const hives = await prisma.hive.findMany({
+    where: { userId: user.id },
+    orderBy: { hiveNumber: "asc" },
+  });
+
+  const sanitized: HiveInput[] = hives.map((hive) => ({
+    id: hive.id,
+    hiveDate: hive.hiveDate,
+    hiveNumber: hive.hiveNumber,
+    hiveSource: hive.hiveSource,
+    breed: hive.breed ?? undefined,
+    broodBoxes: hive.broodBoxes ?? undefined,
+    frames: hive.frames ?? undefined,
+    hiveImage: hive.hiveImage ?? undefined,
+    hiveStrength: hive.hiveStrength ?? undefined,
+    latitude: hive.latitude ?? undefined,
+    longitude: hive.longitude ?? undefined,
+    queenAge: hive.queenAge ?? undefined,
+    queenColor: hive.queenColor ?? undefined,
+    queenExcluder: hive.queenExcluder ?? undefined,
+    superBoxes: hive.superBoxes ?? undefined,
+    todo: hive.todo ?? undefined,
+  }));
+
   return (
     <div className="@container/main flex flex-1 flex-col gap-2">
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -44,7 +68,7 @@ export default async function Page() {
         {/* <div className="px-4 lg:px-6">
           <ChartAreaInteractive />
         </div> */}
-        <DataTable data={data} />
+        <DataTable data={sanitized} />
       </div>
     </div>
   );

@@ -80,7 +80,6 @@ export default function ClientSwarmList({ swarms }: SwarmListProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>Label</TableHead>
-                <TableHead>Location</TableHead>
                 <TableHead>Installed At</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Notes</TableHead>
@@ -91,9 +90,7 @@ export default function ClientSwarmList({ swarms }: SwarmListProps) {
               {swarms.map((swarm) => (
                 <TableRow key={swarm.id}>
                   <TableCell className="font-medium">{swarm.label}</TableCell>
-                  <TableCell>
-                    {swarm.latitude?.toFixed(4)}, {swarm.longitude?.toFixed(4)}
-                  </TableCell>
+
                   <TableCell>
                     {format(new Date(swarm.installedAt), "MMM dd, yyyy")}
                   </TableCell>
