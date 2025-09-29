@@ -65,3 +65,6 @@ export const invoiceApiSchema = z.object({
 export type InvoiceInput = z.infer<typeof invoiceFormSchema>;
 export type InvoiceApiInput = z.infer<typeof invoiceApiSchema>;
 export type InvoiceItemInput = z.infer<typeof invoiceItemSchema>;
+
+// Legacy export for backward compatibility
+export const invoiceSchema = invoiceFormSchema;

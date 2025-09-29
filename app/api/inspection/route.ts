@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { inspectionApiSchema } from "@/lib/schemas/inspection";
 
 // GET: Fetch all inspections for the current user
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(req: NextRequest) {
   const { userId: clerkId } = await auth();
 

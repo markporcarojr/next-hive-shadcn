@@ -28,7 +28,7 @@ import {
 import { HiveInput, hiveFormSchema } from "@/lib/schemas/hive";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -36,7 +36,8 @@ import { CalendarIcon, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Hive } from "@prisma/client";
 
-export default function EditHivesPage({ params }: { params: { id: string } }) {
+export default function EditHivesPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -58,7 +59,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
       try {
         const res = await fetch("/api/hives");
         const data = await res.json();
-        const current = data.find((h: Hive) => h.id === Number(params.id));
+        const current = data.find((h: Hive) => h.id === Number(resolvedParams.id));
         if (!current) return router.push("/hives");
 
         form.reset({
@@ -79,12 +80,12 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
     };
 
     fetchData();
-  }, [params.id, form, router]);
+  }, [resolvedParams.id, form, router]);
 
   const handleSubmit = async (values: HiveInput) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/hives/${params.id}`, {
+      const res = await fetch(`/api/hives/${resolvedParams.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

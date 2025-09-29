@@ -55,7 +55,8 @@ export default async function ExpensePage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {expenses.map((expense) => (
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {expenses.map((expense: any) => (
               <TableRow key={expense.id} className="cursor-pointer">
                 <Link
                   href={`/finance/expenses/edit/${expense.id}`}

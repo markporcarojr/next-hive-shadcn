@@ -49,7 +49,8 @@ export default async function IncomePage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {incomes.map((income) => (
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {incomes.map((income: any) => (
                 <TableRow key={income.id}>
                   <TableCell>{income.source}</TableCell>
                   <TableCell>${income.amount.toFixed(2)}</TableCell>

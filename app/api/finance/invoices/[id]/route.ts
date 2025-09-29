@@ -47,7 +47,8 @@ export async function PATCH(
     }
 
     // Update the invoice with transaction to handle items
-    const updated = await prisma.$transaction(async (tx) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updated = await prisma.$transaction(async (tx: any) => {
       // Delete existing items
       await tx.invoiceItem.deleteMany({
         where: { invoiceId: Number(resolvedParams.id) },

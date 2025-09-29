@@ -20,7 +20,8 @@ export default async function Page() {
     orderBy: { date: "desc" },
   });
 
-  const expenses = expensesRaw.map((expense) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const expenses = expensesRaw.map((expense: any) => ({
     ...expense,
     amount: Number(expense.amount),
     notes: expense.notes ?? undefined,
@@ -31,7 +32,8 @@ export default async function Page() {
     orderBy: { date: "desc" },
   });
 
-  const incomes = incomesRaw.map((income) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const incomes = incomesRaw.map((income: any) => ({
     ...income,
     amount: Number(income.amount),
     notes: income.notes ?? undefined,
