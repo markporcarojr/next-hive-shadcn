@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -12,43 +11,38 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import {
   InvoiceInput,
-  invoiceApiSchema,
+  InvoiceItemInput,
   invoiceFormSchema,
+  invoiceApiSchema,
+  PRODUCT_TYPES,
 } from "@/lib/schemas/invoice";
-import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 export default function EditInvoicePage() {
   const router = useRouter();
-  const params = useParams();
-  const id = params?.id as string;
+  const { id } = useParams<{ id: string }>();
 
   const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<InvoiceItemInput[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  const [open, setOpen] = useState(false);
-
-  const form = useForm<InvoiceInput>({
-    resolver: zodResolver(invoiceFormSchema), // Temporary cast to bypass type error if schema is not fixed
+  const form = useForm<Omit<InvoiceInput, "items" | "total">>({
+    resolver: zodResolver(invoiceFormSchema.omit({ items: true, total: true })),
     defaultValues: {
       customerName: "",
-      total: 0,
       date: new Date(),
       notes: "",
+      email: "",
+      phone: "",
     },
   });
 
@@ -56,39 +50,70 @@ export default function EditInvoicePage() {
     const fetchInvoice = async () => {
       try {
         const res = await fetch(`/api/finance/invoices/${id}`);
-        if (!res.ok) {
-          throw new Error("Failed to fetch invoice");
-        }
-        const data = await res.json();
-        const formData = {
-          customerName: data.customerName || "",
-          total: Number(data.total) || 0,
-          date: data.date ? new Date(data.date) : new Date(),
-          notes: data.notes || "",
-        };
+        if (!res.ok) throw new Error("Failed to fetch invoice");
 
-        form.reset(formData);
-      } catch (error) {
-        console.error("[FETCH_INVOICE_ERROR]", error);
-        toast.error("Something went wrong while fetching the invoice.");
+        const data = await res.json();
+        setItems(
+          (data.items || []).map((i: InvoiceItemInput) => ({
+            ...i,
+            quantity: Number(i.quantity),
+            unitPrice: Number(i.unitPrice), // ✅ convert from string → number
+          }))
+        );
+
+        form.reset({
+          customerName: data.customerName,
+          email: data.email ?? "",
+          phone: data.phone ?? "",
+          notes: data.notes ?? "",
+          date: new Date(data.date),
+        });
+      } catch (err) {
+        console.error("[FETCH_INVOICE_ERROR]", err);
+        toast.error("Could not load invoice.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) {
-      fetchInvoice();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+    if (id) fetchInvoice();
+  }, [id, form]);
 
-  const onSubmit = async (values: InvoiceInput) => {
+  const calculateTotal = (items: InvoiceItemInput[]) =>
+    items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
+
+  const updateItem = (index: number, updated: Partial<InvoiceItemInput>) => {
+    setItems((prev) => {
+      const copy = [...prev];
+      // Ensure quantity and unitPrice are numbers
+      const updatedWithNumbers = {
+        ...updated,
+        ...(updated.quantity !== undefined && {
+          quantity: Number(updated.quantity),
+        }),
+        ...(updated.unitPrice !== undefined && {
+          unitPrice: Number(updated.unitPrice),
+        }),
+      };
+      copy[index] = { ...copy[index], ...updatedWithNumbers };
+      return copy;
+    });
+  };
+
+  const onSubmit = async (values: Omit<InvoiceInput, "items" | "total">) => {
+    const fullData: InvoiceInput = {
+      ...values,
+      items,
+      total: calculateTotal(items),
+    };
+
     setSubmitting(true);
     try {
       const apiData = invoiceApiSchema.parse({
-        ...values,
-        date: values.date.toISOString(),
+        ...fullData,
+        date: fullData.date.toISOString(),
       });
+
       const res = await fetch(`/api/finance/invoices/${id}`, {
         method: "PATCH",
         body: JSON.stringify(apiData),
@@ -97,16 +122,14 @@ export default function EditInvoicePage() {
 
       if (!res.ok) {
         const error = await res.json();
-        toast.error(
-          error.message || "Something went wrong while saving the invoice."
-        );
+        toast.error(error.message || "Failed to update invoice.");
         return;
       }
-      toast.success("Invoice updated successfully!");
-      router.push("/finance");
+      toast.success("Invoice updated!");
+      router.push("/finance/invoices");
     } catch (err) {
-      toast.error("Something went wrong while saving the invoice.");
-      console.error(err);
+      console.error("[EDIT_INVOICE_SUBMIT]", err);
+      toast.error("Unexpected error.");
     } finally {
       setSubmitting(false);
     }
@@ -115,13 +138,13 @@ export default function EditInvoicePage() {
   if (loading) return <div className="text-muted-foreground">Loading...</div>;
 
   return (
-    <Card className="max-w-md mx-auto mt-8">
+    <Card className="max-w-2xl mx-auto mt-8">
       <CardHeader>
         <CardTitle>Edit Invoice</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="customerName"
@@ -129,80 +152,67 @@ export default function EditInvoicePage() {
                 <FormItem>
                   <FormLabel>Customer Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Jane Doe" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
-              name="total"
+              name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Total</FormLabel>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* DATE FIELD - THIS WAS MISSING! */}
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Invoice Date</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      {...field}
+                      type="date"
                       value={
-                        field.value !== undefined && field.value !== null
-                          ? Number(field.value)
-                          : ""
+                        field.value ? format(field.value, "yyyy-MM-dd") : ""
                       }
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      onChange={(e) => {
+                        const date = e.target.value
+                          ? new Date(e.target.value)
+                          : new Date();
+                        field.onChange(date);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Date</FormLabel>
-                  <Popover open={open} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={(date) => {
-                          field.onChange(date ?? new Date());
-                          setOpen(false);
-                        }}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("1900-01-01")
-                        }
-                        autoFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
             <FormField
               control={form.control}
               name="notes"
@@ -216,8 +226,60 @@ export default function EditInvoicePage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full mt-2">
-              Save Changes
+
+            {/* Items editing */}
+            <Separator className="my-4" />
+            <div className="font-semibold mb-2">Products</div>
+            {items.map((item, idx) => (
+              <div key={idx} className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormLabel>Product</FormLabel>
+                  <Input
+                    value={item.product}
+                    onChange={(e) =>
+                      updateItem(idx, { product: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="w-24">
+                  <FormLabel>Qty</FormLabel>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={item.quantity}
+                    onChange={(e) =>
+                      updateItem(idx, { quantity: Number(e.target.value) || 1 })
+                    }
+                  />
+                </div>
+                <div className="w-32">
+                  <FormLabel>Unit Price</FormLabel>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.unitPrice} // ✅ keep as number
+                    onChange={(e) =>
+                      updateItem(idx, {
+                        unitPrice:
+                          e.target.value === "" ? 0 : Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            ))}
+
+            <div>
+              <FormLabel>Total</FormLabel>
+              <Input
+                readOnly
+                value={`$${calculateTotal(items).toFixed(2)}`}
+                className="font-bold"
+              />
+            </div>
+
+            <Button type="submit" disabled={submitting} className="w-full">
+              {submitting ? "Saving..." : "Save Changes"}
             </Button>
           </form>
         </Form>
