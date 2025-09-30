@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+
 import {
   Form,
   FormControl,
@@ -11,10 +13,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { IncomeInput, incomeFormSchema } from "@/lib/schemas/income";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@radix-ui/react-popover";
+import { CalendarIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export default function EditIncomePage() {
   const router = useRouter();
@@ -22,7 +33,8 @@ export default function EditIncomePage() {
   const id = params?.id as string;
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [open, setOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<IncomeInput>({
     resolver: zodResolver(incomeFormSchema),
@@ -37,28 +49,32 @@ export default function EditIncomePage() {
     const fetchIncome = async () => {
       try {
         const res = await fetch(`/api/finance/income/${id}`);
-        if (!res.ok) throw new Error("Failed to fetch income");
+        if (!res.ok) {
+          toast.error("Failed to load income record.");
+          return;
+        }
         const data = await res.json();
-        // Convert date to yyyy-mm-dd string if needed
-        form.reset({
-          ...data,
-          date:
-            typeof data.date === "string"
-              ? data.date.slice(0, 10)
-              : data.date instanceof Date
-                ? data.date.toISOString().slice(0, 10)
-                : "",
-        });
+
+        const formData = {
+          source: data.source || "",
+          amount: Number(data.amount) || 0,
+          date: data.date ? new Date(data.date) : new Date(),
+        };
+
+        form.reset(formData);
       } catch {
-        setError("Failed to load income record.");
+        console.error("[INCOME_EDIT] Failed to fetch income");
+        toast.error("Unexpected error occurred.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchIncome();
+    if (id) {
+      fetchIncome();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, form.reset]);
 
   const onSubmit = async (values: IncomeInput) => {
     try {
@@ -68,16 +84,15 @@ export default function EditIncomePage() {
         headers: { "Content-Type": "application/json" },
       });
 
-      if (!res.ok) throw new Error("Failed to update income");
+      if (!res.ok) toast.error("Failed to update income record.");
       router.push("/finance/income");
     } catch (err) {
-      setError("Something went wrong while saving.");
+      toast.error("An unexpected error occurred.");
       console.error(err);
     }
   };
 
   if (loading) return <p>Loading...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
 
   return (
     <div className="max-w-md mx-auto p-6">
@@ -125,20 +140,43 @@ export default function EditIncomePage() {
             control={form.control}
             name="date"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel>Date</FormLabel>
-                <FormControl>
-                  <Input
-                    type="date"
-                    {...field}
-                    value={
-                      field.value !== undefined && field.value !== null
-                        ? String(field.value)
-                        : ""
-                    }
-                    onChange={(e) => field.onChange(e.target.value)}
-                  />
-                </FormControl>
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        disabled={submitting}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={(date) => {
+                        field.onChange(date ?? new Date());
+                        setOpen(false);
+                      }}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1900-01-01")
+                      }
+                      autoFocus
+                    />
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}

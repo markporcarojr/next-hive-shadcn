@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export default function NewIncomePage() {
   const router = useRouter();
@@ -40,14 +41,15 @@ export default function NewIncomePage() {
       });
 
       if (res.ok) {
+        toast.success("Income added successfully!");
         router.push("/finance/income");
       } else {
         const error = await res.json();
-        alert(error.error || "Something went wrong.");
+        toast.error(error.error || "Something went wrong.");
       }
     } catch (err) {
       console.error("[INCOME_NEW]", err);
-      alert("Unexpected error occurred.");
+      toast.error("Unexpected error occurred.");
     } finally {
       setLoading(false);
     }

@@ -14,9 +14,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  expenseApiSchema,
   ExpenseFormInput,
   expenseFormSchema,
-  expenseApiSchema,
 } from "@/lib/schemas/expense";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -61,9 +61,6 @@ export default function EditExpensePage() {
         }
         const data = await res.json();
 
-        console.log("Fetched data:", data); // Debug log
-
-        // Ensure all fields are properly formatted
         const formData = {
           item: data.item || "",
           amount: Number(data.amount) || 0,
@@ -85,6 +82,7 @@ export default function EditExpensePage() {
     if (id) {
       fetchExpense();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, form.reset]); // Only depend on form.reset, not the entire form object
 
   const onSubmit = async (values: ExpenseFormInput) => {

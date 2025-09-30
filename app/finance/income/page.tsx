@@ -51,7 +51,15 @@ export default async function IncomePage() {
             <TableBody>
               {incomes.map((income) => (
                 <TableRow key={income.id}>
-                  <TableCell>{income.source}</TableCell>
+                  <TableCell>
+                    <Link
+                      href={`/finance/income/edit/${income.id}`}
+                      className="contents"
+                      tabIndex={-1}
+                    >
+                      {income.source}
+                    </Link>
+                  </TableCell>
                   <TableCell>${income.amount.toFixed(2)}</TableCell>
                   <TableCell>{formatDate(income.date.toISOString())}</TableCell>
                 </TableRow>
