@@ -12,6 +12,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import {
   expenseApiSchema,
@@ -20,11 +25,6 @@ import {
 } from "@/lib/schemas/expense";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@radix-ui/react-popover";
 import { format } from "date-fns";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -67,8 +67,6 @@ export default function EditExpensePage() {
           date: data.date ? new Date(data.date) : new Date(),
           notes: data.notes || "",
         };
-
-        console.log("Form data:", formData); // Debug log
 
         form.reset(formData);
       } catch (error) {

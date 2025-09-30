@@ -1,9 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -12,19 +20,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import {
   InvoiceInput,
   InvoiceItemInput,
   PRODUCT_TYPES,
   PRODUCT_TYPE_VALUES,
-  invoiceSchema,
+  invoiceFormSchema,
 } from "@/lib/schemas/invoice";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 const PRICE_MAP: Record<(typeof PRODUCT_TYPE_VALUES)[number], number> = {
   honey: 8,
@@ -46,8 +53,8 @@ export default function NewInvoicePage() {
     { product: "honey", quantity: 1, unitPrice: PRICE_MAP["honey"] },
   ]);
 
-  const form = useForm<InvoiceInput>({
-    resolver: zodResolver(invoiceSchema),
+  const form = useForm<Omit<InvoiceInput, "items" | "total">>({
+    resolver: zodResolver(invoiceFormSchema.omit({ items: true, total: true })),
     defaultValues: {
       customerName: "",
       email: "",
@@ -56,6 +63,7 @@ export default function NewInvoicePage() {
       notes: "",
     },
   });
+
   const calculateTotal = (items: InvoiceItemInput[]) =>
     items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
@@ -93,171 +101,231 @@ export default function NewInvoicePage() {
       });
 
       if (res.ok) {
+        toast.success("Invoice created successfully!");
         router.push("/finance/invoices");
       } else {
         const error = await res.json();
-        alert(error.error || "Failed to create invoice");
+        toast.error(error.error || "Failed to create invoice");
       }
     } catch (err) {
       console.error("[INVOICE_NEW]", err);
-      alert("Unexpected error occurred.");
+      toast.error("Unexpected error occurred.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Card className="max-w-2xl mx-auto mt-8 p-8">
-      <h3 className="text-2xl font-semibold mb-6">New Invoice</h3>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="space-y-4">
-          {/* Customer Info */}
-          <div>
-            <Label className="mb-3" htmlFor="customerName">
-              Customer Name
-            </Label>
-            <Input
-              id="customerName"
-              placeholder="e.g. John Appleseed"
-              {...form.register("customerName")}
+    <Card className="max-w-2xl mx-auto mt-8">
+      <CardHeader>
+        <CardTitle>Create New Invoice</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Customer Info */}
+            <FormField
+              control={form.control}
+              name="customerName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Customer Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g. John Appleseed"
+                      {...field}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div>
-            <Label className="mb-3" htmlFor="email">
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="e.g. john@example.com"
-              {...form.register("email")}
-            />
-          </div>
-          <div>
-            <Label className="mb-3" htmlFor="phone">
-              Phone
-            </Label>
-            <Input
-              id="phone"
-              placeholder="e.g. 5551234567"
-              {...form.register("phone")}
-            />
-          </div>
-          <div>
-            <Label className="mb-3" htmlFor="date">
-              Invoice Date
-            </Label>
-            <Input
-              id="date"
-              type="date"
-              {...form.register("date", {
-                setValueAs: (v) => (v ? new Date(v) : new Date()),
-              })}
-              defaultValue={format(new Date(), "yyyy-MM-dd")}
-            />
-          </div>
-          <div>
-            <Label className="mb-3" htmlFor="notes">
-              Notes
-            </Label>
-            <Textarea
-              id="notes"
-              placeholder="Optional notes"
-              {...form.register("notes")}
-              rows={2}
-            />
-          </div>
 
-          {/* Products */}
-          <Separator className="my-4" />
-          <div className="font-semibold mb-2">Products</div>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="e.g. john@example.com"
+                      {...field}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {items.map((item, index) => (
-            <div key={index} className="flex gap-2 items-end">
-              <div className="flex-1">
-                <Label className="mb-3">Product</Label>
-                <Select
-                  value={item.product}
-                  onValueChange={(value) => {
-                    const price =
-                      PRICE_MAP[value as InvoiceItemInput["product"]] ?? 0;
-                    updateItem(index, {
-                      product: value as InvoiceItemInput["product"],
-                      unitPrice: price,
-                    });
-                  }}
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g. 5551234567"
+                      {...field}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Invoice Date</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      disabled={loading}
+                      value={
+                        new Date(field.value as string | number | Date)
+                          .toISOString()
+                          .split("T")[0]
+                      }
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value ? new Date(e.target.value) : new Date()
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Optional notes"
+                      {...field}
+                      disabled={loading}
+                      rows={2}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Products */}
+            <Separator className="my-4" />
+            <div className="font-semibold mb-2">Products</div>
+
+            {items.map((item, index) => (
+              <div key={index} className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormLabel>Product</FormLabel>
+                  <Select
+                    value={item.product}
+                    onValueChange={(value) => {
+                      const price =
+                        PRICE_MAP[value as InvoiceItemInput["product"]] ?? 0;
+                      updateItem(index, {
+                        product: value as InvoiceItemInput["product"],
+                        unitPrice: price,
+                      });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRODUCT_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="w-24">
+                  <FormLabel>Qty</FormLabel>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={Number(item.quantity)}
+                    onChange={(e) =>
+                      updateItem(index, {
+                        quantity: Number(e.target.value) || 1,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="w-32">
+                  <FormLabel>Unit Price</FormLabel>
+                  <Input
+                    type="number"
+                    value={Number(item.unitPrice)}
+                    onChange={(e) =>
+                      updateItem(index, {
+                        unitPrice: Number(e.target.value) || 0,
+                      })
+                    }
+                  />
+                </div>
+
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => removeItem(index)}
+                  className="h-10"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select product" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRODUCT_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  Remove
+                </Button>
               </div>
-              <div className="w-24">
-                <Label className="mb-3">Qty</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={Number(item.quantity)}
-                  onChange={(e) =>
-                    updateItem(index, {
-                      quantity: Number(e.target.value) || 1,
-                    })
-                  }
-                />
-              </div>
-              <div className="w-32">
-                <Label className="mb-3">Unit Price</Label>
-                <Input
-                  type="number"
-                  value={Number(item.unitPrice)}
-                  onChange={(e) =>
-                    updateItem(index, {
-                      unitPrice: Number(e.target.value) || 0,
-                    })
-                  }
-                />
-              </div>
+            ))}
+
+            <Button type="button" variant="outline" onClick={addItem}>
+              + Add Item
+            </Button>
+
+            {/* Total */}
+            <Separator className="my-4" />
+            <div>
+              <FormLabel>Total</FormLabel>
+              <Input
+                readOnly
+                value={`$${calculateTotal(items).toFixed(2)}`}
+                className="font-bold"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2 mt-4">
+              <Button type="submit" disabled={loading}>
+                {loading ? "Saving..." : "Save Invoice"}
+              </Button>
               <Button
                 type="button"
-                variant="destructive"
-                onClick={() => removeItem(index)}
-                className="h-10"
+                variant="outline"
+                onClick={() => router.push("/finance/invoices")}
               >
-                Remove
+                Cancel
               </Button>
             </div>
-          ))}
-
-          <Button type="button" variant="outline" onClick={addItem}>
-            + Add Item
-          </Button>
-
-          {/* Total */}
-          <Separator className="my-4" />
-          <div>
-            <Label className="mb-3">Total</Label>
-            <Input
-              readOnly
-              value={`$${calculateTotal(items).toFixed(2)}`}
-              className="font-bold"
-            />
-          </div>
-
-          {/* Submit */}
-          <div className="flex justify-end mt-4">
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save Invoice"}
-            </Button>
-          </div>
-        </div>
-      </form>
+          </form>
+        </Form>
+      </CardContent>
     </Card>
   );
 }

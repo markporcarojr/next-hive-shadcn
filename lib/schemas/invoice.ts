@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// 1. Literal tuple for enum values
+// 1. Product enum
 export const PRODUCT_TYPE_VALUES = [
   "honey",
   "honey bulk",
@@ -13,10 +13,9 @@ export const PRODUCT_TYPE_VALUES = [
   "misc",
 ] as const;
 
-// 2. Create the Zod enum using the tuple
 export const ProductTypeEnum = z.enum(PRODUCT_TYPE_VALUES);
 
-// 3. Create label/value pair list for dropdowns
+// 2. Product types list for dropdowns
 export const PRODUCT_TYPES = PRODUCT_TYPE_VALUES.map((value) => ({
   value,
   label: value
@@ -27,18 +26,18 @@ export const PRODUCT_TYPES = PRODUCT_TYPE_VALUES.map((value) => ({
     .join(" "),
 }));
 
-// 4. Invoice item schema using the enum
+// 3. Invoice item schema
 export const invoiceItemSchema = z.object({
   product: ProductTypeEnum,
   quantity: z.number().positive(),
   unitPrice: z.number().nonnegative(),
 });
 
-// 5. Full invoice schema
+// 4. Invoice form schema (frontend)
 export const invoiceFormSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
   date: z.date(),
-  email: z.email("Invalid email format").optional(),
+  email: z.string().email("Invalid email format").optional(),
   notes: z.string().optional(),
   phone: z
     .string()
@@ -48,10 +47,11 @@ export const invoiceFormSchema = z.object({
   total: z.number().nonnegative(),
 });
 
+// 5. Invoice API schema (backend)
 export const invoiceApiSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
-  date: z.coerce.date(),
-  email: z.email("Invalid email format").optional(),
+  date: z.coerce.date(), // 🔧 accepts ISO strings
+  email: z.string().email("Invalid email format").optional(),
   notes: z.string().optional(),
   phone: z
     .string()

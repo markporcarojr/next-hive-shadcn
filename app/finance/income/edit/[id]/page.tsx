@@ -84,7 +84,11 @@ export default function EditIncomePage() {
         headers: { "Content-Type": "application/json" },
       });
 
-      if (!res.ok) toast.error("Failed to update income record.");
+      if (!res.ok) {
+        toast.error("Failed to update income record.");
+        return;
+      }
+      toast.success("Income record updated successfully.");
       router.push("/finance/income");
     } catch (err) {
       toast.error("An unexpected error occurred.");

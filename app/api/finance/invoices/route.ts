@@ -7,13 +7,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const { userId: clerkId } = await auth(); // 🔧 no await
+    if (!clerkId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // parse body
     const body = await req.json();
-
     const parse = invoiceApiSchema.safeParse(body);
     if (!parse.success) {
       return NextResponse.json(
@@ -21,9 +21,15 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
     const data = parse.data;
 
+    // find user by clerkId
+    const user = await prisma.user.findUnique({ where: { clerkId } });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // create invoice
     const invoice = await prisma.invoice.create({
       data: {
         customerName: data.customerName,
@@ -32,12 +38,7 @@ export async function POST(req: Request) {
         phone: data.phone,
         notes: data.notes,
         total: new Decimal(data.total),
-        user: {
-          connect: {
-            // assumes you're using your own User table and linking via Clerk ID
-            clerkId: userId,
-          },
-        },
+        userId: user.id, // 🔧 correct relation
         items: {
           create: data.items.map((item) => ({
             product: item.product,
@@ -46,20 +47,27 @@ export async function POST(req: Request) {
           })),
         },
       },
+      include: { items: true },
     });
 
+    // send email safely
     if (invoice.email) {
-      await sendInvoiceEmail({
-        to: invoice.email,
-        customerName: invoice.customerName,
-        total: invoice.total.toNumber(),
-        date: invoice.date.toISOString().slice(0, 10),
-        description: invoice.notes ?? undefined,
-        items: data.items.map(
-          (item) =>
-            `${item.quantity}x ${item.product} @ $${item.unitPrice.toFixed(2)}`
-        ),
-      });
+      try {
+        await sendInvoiceEmail({
+          to: invoice.email,
+          customerName: invoice.customerName,
+          total: invoice.total.toNumber(),
+          date: invoice.date.toISOString().slice(0, 10),
+          description: invoice.notes ?? undefined,
+          items: data.items.map(
+            (item) =>
+              `${item.quantity}x ${item.product} @ $${item.unitPrice.toFixed(2)}`
+          ),
+        });
+      } catch (err) {
+        console.error("[EMAIL_ERROR]", err);
+        // don’t fail invoice creation if email send fails
+      }
     }
 
     return NextResponse.json(invoice, { status: 201 });
@@ -69,19 +77,21 @@ export async function POST(req: Request) {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(req: NextRequest) {
   const { userId: clerkId } = await auth();
-  if (!clerkId)
+  if (!clerkId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const user = await prisma.user.findUnique({ where: { clerkId } });
-    if (!user)
+    if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
     const invoices = await prisma.invoice.findMany({
       where: { userId: user.id },
+      include: { items: true },
       orderBy: { date: "desc" },
     });
 
