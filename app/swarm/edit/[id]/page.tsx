@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { CalendarIcon, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
+import MapPicker from "@/components/map-picker";
 
 export default function EditSwarmPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -40,7 +41,6 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
       latitude: 42.78,
       longitude: -83.77,
       installedAt: new Date(),
-      removedAt: undefined,
       notes: "",
     },
   });
@@ -62,7 +62,6 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
           latitude: data.latitude,
           longitude: data.longitude,
           installedAt: new Date(data.installedAt),
-          removedAt: data.removedAt ? new Date(data.removedAt) : undefined,
           notes: data.notes || "",
         });
       } catch {
@@ -147,59 +146,14 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
-                {/* Latitude */}
-                <FormField
-                  control={form.control}
-                  name="latitude"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Latitude *</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={-90}
-                          max={90}
-                          step={0.000001}
-                          {...field}
-                          value={field.value || ""}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
-                          disabled={submitting}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Longitude */}
-                <FormField
-                  control={form.control}
-                  name="longitude"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Longitude *</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={-180}
-                          max={180}
-                          step={0.000001}
-                          {...field}
-                          value={field.value || ""}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
-                          disabled={submitting}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <MapPicker
+                initialLat={form.watch("latitude")}
+                initialLng={form.watch("longitude")}
+                onSelect={(lat, lng) => {
+                  form.setValue("latitude", lat);
+                  form.setValue("longitude", lng);
+                }}
+              />
 
               {/* Installed At Date */}
               <FormField
@@ -245,7 +199,7 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
               />
 
               {/* Removed At Date (Optional) */}
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="removedAt"
                 render={({ field }) => (
@@ -278,14 +232,14 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")
                           }
-                          initialFocus
+                          autoFocus
                         />
                       </PopoverContent>
                     </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
 
               {/* Notes */}
               <FormField

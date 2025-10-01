@@ -1,13 +1,11 @@
-// components/MapPicker.tsx
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Search, Target } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Target } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useRef, useState } from "react";
 import {
   MapContainer,
   Marker,
@@ -20,14 +18,14 @@ import { honeyIcon } from "../Data/mapIcons";
 type MapPickerProps = {
   initialLat?: number;
   initialLng?: number;
-  onSelect: (lat: number, lng: number) => void;
+  onSelect: (lat: number, lng: number, address?: string) => void;
 };
 
 function LocationMarker({
   onSelect,
   selectedPosition,
 }: {
-  onSelect: (lat: number, lng: number) => void;
+  onSelect: (lat: number, lng: number, address?: string) => void;
   selectedPosition: L.LatLng | null;
 }) {
   useMapEvents({
@@ -41,11 +39,8 @@ function LocationMarker({
   return (
     <Marker position={selectedPosition} icon={honeyIcon}>
       <Popup>
-        <div className="font-medium">Selected Location</div>
-        <div className="text-sm text-gray-600">
-          Lat: {selectedPosition.lat.toFixed(4)}, Lng:{" "}
-          {selectedPosition.lng.toFixed(4)}
-        </div>
+        Lat: {selectedPosition.lat.toFixed(4)}, Lng:{" "}
+        {selectedPosition.lng.toFixed(4)}
       </Popup>
     </Marker>
   );
@@ -59,29 +54,46 @@ export default function MapPicker({
   const [position, setPosition] = useState<L.LatLng | null>(
     new L.LatLng(initialLat, initialLng)
   );
-  const [searchQuery, setSearchQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   const mapRef = useRef<L.Map>(null);
 
-  const handleGeocode = async () => {
-    if (!searchQuery) return;
+  useEffect(() => {
+    const initAutocomplete = () => {
+      if (!inputRef.current || !window.google) return;
 
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-      searchQuery
-    )}&format=json&limit=1`;
+      const autocomplete = new google.maps.places.Autocomplete(
+        inputRef.current,
+        {
+          fields: ["geometry", "formatted_address"],
+          types: ["geocode"], // only addresses
+        }
+      );
 
-    const res = await fetch(url);
-    const data = await res.json();
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (!place.geometry) return;
 
-    if (data && data[0]) {
-      const { lat, lon } = data[0];
-      const newPos = new L.LatLng(parseFloat(lat), parseFloat(lon));
-      setPosition(newPos);
-      onSelect(newPos.lat, newPos.lng);
-      mapRef.current?.setView(newPos, 15);
+        const lat = place.geometry.location?.lat();
+        const lng = place.geometry.location?.lng();
+        if (lat && lng) {
+          const newPos = new L.LatLng(lat, lng);
+          setPosition(newPos);
+          onSelect(lat, lng, place.formatted_address);
+          mapRef.current?.setView(newPos, 15);
+        }
+      });
+    };
+
+    // Google script already in <head> via layout.tsx
+    if (typeof window !== "undefined" && window.google) {
+      initAutocomplete();
     } else {
-      alert("Location not found");
+      // If script might load late, listen for it
+      const handleLoad = () => initAutocomplete();
+      window.addEventListener("google-maps-loaded", handleLoad);
+      return () => window.removeEventListener("google-maps-loaded", handleLoad);
     }
-  };
+  }, [onSelect]);
 
   const handleUseCurrentLocation = () => {
     navigator.geolocation.getCurrentPosition(
@@ -89,68 +101,41 @@ export default function MapPicker({
         const coords = pos.coords;
         const newPos = new L.LatLng(coords.latitude, coords.longitude);
         setPosition(newPos);
-        onSelect(newPos.lat, newPos.lng);
+        onSelect(newPos.lat, newPos.lng, "Current Location");
         mapRef.current?.setView(newPos, 15);
       },
-      () => {
-        alert("Could not access location");
-      }
+      () => alert("Could not access location")
     );
   };
 
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search for address"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-        </div>
-        <Button onClick={handleGeocode}>Search</Button>
-        <Button
-          variant="outline"
-          onClick={handleUseCurrentLocation}
-        >
+        <Input
+          ref={inputRef}
+          placeholder="Search for address"
+          className="flex-1"
+        />
+        <Button variant="outline" onClick={handleUseCurrentLocation}>
           <Target className="h-4 w-4 mr-2" />
-          Current Location
+          Current
         </Button>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <div
-            style={{
-              border: "2px solid #f4b400",
-              borderRadius: "12px",
-              overflow: "hidden",
-              boxShadow: "0 0 10px rgba(244, 180, 0, 0.5)",
-            }}
-          >
-            <MapContainer
-              center={[initialLat, initialLng]}
-              zoom={13}
-              style={{ height: "400px", width: "100%" }}
-              ref={(ref) => {
-                if (ref && !mapRef.current) {
-                  mapRef.current = ref;
-                }
-              }}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution="© OpenStreetMap contributors"
-              />
-              <LocationMarker onSelect={onSelect} selectedPosition={position} />
-            </MapContainer>
-          </div>
-        </CardContent>
-      </Card>
+      <MapContainer
+        center={[initialLat, initialLng]}
+        zoom={13}
+        style={{ height: "400px", width: "100%" }}
+        ref={(ref) => {
+          if (ref && !mapRef.current) mapRef.current = ref;
+        }}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution="© OpenStreetMap contributors"
+        />
+        <LocationMarker onSelect={onSelect} selectedPosition={position} />
+      </MapContainer>
     </div>
   );
 }

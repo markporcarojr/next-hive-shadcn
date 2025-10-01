@@ -1,5 +1,16 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -10,28 +21,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { SwarmInput } from "@/lib/schemas/swarmTrap";
+import { format } from "date-fns";
+import { Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Edit, Trash2 } from "lucide-react";
-import { format } from "date-fns";
+import { useRouter } from "next/navigation";
 
 interface SwarmListProps {
   swarms: SwarmInput[];
 }
 
 export default function ClientSwarmList({ swarms }: SwarmListProps) {
+  const router = useRouter();
   const [swarmToDelete, setSwarmToDelete] = useState<number | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -48,7 +51,7 @@ export default function ClientSwarmList({ swarms }: SwarmListProps) {
       if (res.ok) {
         toast.success("Swarm trap deleted successfully");
         // Reload the page to reflect changes
-        window.location.reload();
+        router.refresh();
       } else {
         toast.error("Failed to delete swarm trap");
       }
@@ -81,7 +84,6 @@ export default function ClientSwarmList({ swarms }: SwarmListProps) {
               <TableRow>
                 <TableHead>Label</TableHead>
                 <TableHead>Installed At</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Notes</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -94,13 +96,7 @@ export default function ClientSwarmList({ swarms }: SwarmListProps) {
                   <TableCell>
                     {format(new Date(swarm.installedAt), "MMM dd, yyyy")}
                   </TableCell>
-                  <TableCell>
-                    {swarm.removedAt ? (
-                      <Badge variant="secondary">Removed</Badge>
-                    ) : (
-                      <Badge>Active</Badge>
-                    )}
-                  </TableCell>
+
                   <TableCell className="max-w-xs truncate">
                     {swarm.notes || "No notes"}
                   </TableCell>
@@ -111,50 +107,46 @@ export default function ClientSwarmList({ swarms }: SwarmListProps) {
                           <Edit className="h-4 w-4" />
                         </Link>
                       </Button>
-                      <Dialog
-                        open={isDeleteDialogOpen && swarmToDelete === swarm.id}
-                        onOpenChange={(open) => {
-                          setIsDeleteDialogOpen(open);
-                          if (!open) setSwarmToDelete(null);
-                        }}
+                      <AlertDialog
+                        open={isDeleteDialogOpen}
+                        onOpenChange={setIsDeleteDialogOpen}
                       >
-                        <DialogTrigger asChild>
+                        <AlertDialogTrigger asChild>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setSwarmToDelete(swarm.id!)}
+                            onClick={() => {
+                              setSwarmToDelete(swarm.id!);
+                              setIsDeleteDialogOpen(true); // <-- manually open dialog
+                            }}
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Confirm Deletion</DialogTitle>
-                            <DialogDescription>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="z-[9999]">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Confirm Deletion
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
                               Are you sure you want to delete &quot;
                               {swarm.label}&quot;? This action cannot be undone.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <DialogFooter>
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setIsDeleteDialogOpen(false);
-                                setSwarmToDelete(null);
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              onClick={handleDelete}
-                              disabled={loading}
-                            >
-                              {loading ? "Deleting..." : "Delete"}
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction asChild>
+                              <Button
+                                variant="destructive"
+                                onClick={handleDelete}
+                                disabled={loading}
+                              >
+                                {loading ? "Deleting..." : "Delete"}
+                              </Button>
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </TableCell>
                 </TableRow>

@@ -33,6 +33,7 @@ function RecenterOnTraps({ traps }: { traps: SwarmInput[] }) {
       map.setView([firstTrap.latitude, firstTrap.longitude]);
     }
     // only run when first trap changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, traps[0]?.latitude, traps[0]?.longitude]);
 
   return null;

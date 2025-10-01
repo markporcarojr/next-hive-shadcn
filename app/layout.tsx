@@ -16,6 +16,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
 import { checkUser } from "@/lib/auth/checkUser";
+import Script from "next/script";
+import GoogleMapsScript from "@/components/client/MapScript";
 
 export const metadata: Metadata = {
   title: "Next Hive - Beekeeping Helper App",
@@ -73,6 +75,7 @@ export default async function RootLayout({
               </SidebarProvider>
             </ActiveThemeProvider>
           </ThemeProvider>
+          <GoogleMapsScript />
         </body>
       </html>
     </ClerkProvider>
