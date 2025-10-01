@@ -45,7 +45,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
     defaultValues: {
       hiveNumber: 0,
       hiveSource: "",
-      hiveDate: "",
+      hiveDate: new Date(),
       queenColor: "",
       broodBoxes: 0,
       superBoxes: 0,
@@ -64,7 +64,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
         form.reset({
           hiveNumber: current.hiveNumber,
           hiveSource: current.hiveSource,
-          hiveDate: current.hiveDate,
+          hiveDate: new Date(current.hiveDate),
           queenColor: current.queenColor || "",
           broodBoxes: current.broodBoxes || 0,
           superBoxes: current.superBoxes || 0,
@@ -235,13 +235,20 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Queen Color</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g., Red, Blue"
-                        {...field}
-                        disabled={loading}
-                      />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select queen color" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="white">White</SelectItem>
+                        <SelectItem value="yellow">Yellow</SelectItem>
+                        <SelectItem value="red">Red</SelectItem>
+                        <SelectItem value="green">Green</SelectItem>
+                        <SelectItem value="blue">Blue</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -43,7 +43,7 @@ export default function NewHivePage() {
   const form = useForm<HiveInput>({
     resolver: zodResolver(hiveFormSchema),
     defaultValues: {
-      hiveDate: "",
+      hiveDate: new Date(),
       hiveNumber: 1,
       hiveSource: "",
       hiveImage: "",
@@ -308,13 +308,23 @@ export default function NewHivePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Queen Color</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g., Red, Blue"
-                          {...field}
-                          disabled={loading}
-                        />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select queen color" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="white">White</SelectItem>
+                          <SelectItem value="yellow">Yellow</SelectItem>
+                          <SelectItem value="red">Red</SelectItem>
+                          <SelectItem value="green">Green</SelectItem>
+                          <SelectItem value="blue">Blue</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

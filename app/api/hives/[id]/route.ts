@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import {} from "@/lib/schemas/hive";
+import { hiveApiSchema } from "@/lib/schemas/hive";
 
 // GET /api/hives/[id]
 export async function GET(
@@ -34,11 +34,8 @@ export async function PATCH(
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const convertedBody = {
-    ...body,
-    hiveDate: new Date(body.hiveDate),
-  };
-  const parsed = .safeParse(convertedBody);
+
+  const parsed = hiveApiSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(

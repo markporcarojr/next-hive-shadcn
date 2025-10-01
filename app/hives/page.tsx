@@ -1,8 +1,8 @@
+import { DataTable } from "@/components/data-table";
 import { prisma } from "@/lib/prisma";
 import { HiveInput } from "@/lib/schemas/hive";
 import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
-import { HiveTable } from "./hive-table";
 
 export default async function HivePage() {
   const { userId: clerkId } = await auth();
@@ -41,7 +41,7 @@ export default async function HivePage() {
 
   return (
     <>
-      <HiveTable data={sanitized} />
+      <DataTable data={sanitized} />
     </>
   );
 }

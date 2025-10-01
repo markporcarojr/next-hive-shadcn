@@ -130,8 +130,31 @@ const columns: ColumnDef<z.infer<typeof hiveFormSchema>>[] = [
   {
     accessorKey: "queenColor",
     header: "Queen Color",
-    cell: ({ row }) => <span>{row.original.queenColor ?? "N/A"}</span>,
+    cell: ({ row }) => {
+      const color = row.original.queenColor?.toLowerCase();
+
+      const colorMap: Record<string, string> = {
+        yellow: "bg-yellow-500 text-black",
+        red: "bg-red-500 text-white",
+        blue: "bg-blue-500 text-white",
+        green: "bg-green-500 text-white",
+        white: "bg-white text-black border",
+      };
+
+      return (
+        <Badge
+          className={
+            color
+              ? (colorMap[color] ?? "bg-gray-300 text-black")
+              : "bg-gray-300 text-black"
+          }
+        >
+          {row.original.queenColor ?? "N/A"}
+        </Badge>
+      );
+    },
   },
+
   {
     accessorKey: "broodBoxes",
     header: "Brood Boxes",

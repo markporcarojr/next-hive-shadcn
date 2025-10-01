@@ -87,26 +87,48 @@ export default function NewInvoicePage() {
   };
 
   const onSubmit = async (data: Omit<InvoiceInput, "items" | "total">) => {
+    const total = calculateTotal(items);
     const values: InvoiceInput = {
       ...data,
       items,
-      total: calculateTotal(items),
+      total,
     };
 
     setLoading(true);
     try {
-      const res = await fetch("/api/finance/invoices", {
+      // Create the invoice
+      const invoiceRes = await fetch("/api/finance/invoices", {
         method: "POST",
         body: JSON.stringify(values),
       });
 
-      if (res.ok) {
-        toast.success("Invoice created successfully!");
-        router.push("/finance/invoices");
-      } else {
-        const error = await res.json();
+      if (!invoiceRes.ok) {
+        const error = await invoiceRes.json();
         toast.error(error.error || "Failed to create invoice");
+        setLoading(false);
+        return;
       }
+
+      // Create the corresponding income record
+      const incomeRes = await fetch("/api/finance/income", {
+        method: "POST",
+        body: JSON.stringify({
+          source: `Invoice - ${data.customerName}`,
+          amount: total,
+          date: data.date,
+          notes: `Auto-generated from invoice. ${data.notes || ""}`.trim(),
+        }),
+      });
+
+      if (!incomeRes.ok) {
+        // Invoice was created but income failed
+        console.error("Failed to create income record");
+        toast.warning("Invoice created, but income record failed");
+      } else {
+        toast.success("Invoice and income record created successfully!");
+      }
+
+      router.push("/finance/invoices");
     } catch (err) {
       console.error("[INVOICE_NEW]", err);
       toast.error("Unexpected error occurred.");

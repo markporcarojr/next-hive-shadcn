@@ -5,6 +5,7 @@ export const incomeFormSchema = z.object({
   amount: z.number().positive("Amount must be positive"),
   date: z.date(),
   notes: z.string().optional(),
+  invoiceId: z.string().optional(),
 });
 
 export const incomeApiSchema = z.object({
@@ -12,6 +13,7 @@ export const incomeApiSchema = z.object({
   amount: z.number().positive("Amount must be positive"),
   date: z.coerce.date(),
   notes: z.string().optional(),
+  invoiceId: z.string().optional(),
 });
 
 export type IncomeInput = z.infer<typeof incomeFormSchema>;

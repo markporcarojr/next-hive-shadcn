@@ -4,17 +4,18 @@ import { cookies } from "next/headers";
 
 import "./globals.css";
 
-import { cn } from "@/lib/utils";
 import { ActiveThemeProvider } from "@/components/active-theme";
-import { ThemeProvider } from "@/components/theme-provider";
 import { AppSidebar } from "@/components/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { ThemeProvider } from "@/components/theme-provider";
 import {
-  SidebarProvider,
   SidebarInset,
+  SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { SiteHeader } from "@/components/site-header";
+import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
+import { checkUser } from "@/lib/auth/checkUser";
 
 export const metadata: Metadata = {
   title: "Next Hive - Beekeeping Helper App",
@@ -27,6 +28,8 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  await checkUser();
+
   const cookieStore = await cookies();
   const activeThemeValue = cookieStore.get("active_theme")?.value;
   const isScaled = activeThemeValue?.endsWith("-scaled");
