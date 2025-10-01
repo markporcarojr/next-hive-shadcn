@@ -56,7 +56,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("/api/hives");
+        const res = await fetch(`/api/hives/${params.id}`);
         const data = await res.json();
         const current = data.find((h: Hive) => h.id === Number(params.id));
         if (!current) return router.push("/hives");

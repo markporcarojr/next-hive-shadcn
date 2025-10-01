@@ -99,31 +99,29 @@ export default function EditInspectionPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("/api/inspection");
-        const data = await res.json();
-        const current = data.find(
-          (h: Inspection) => h.id === Number(params.id)
-        );
-        if (!current) return router.push("/inspection");
+        const res = await fetch(`/api/inspection/${params.id}`);
+        const current = await res.json();
 
         form.reset({
-          id: current.id,
-          temperament: current.temperament,
-          hiveStrength: current.hiveStrength,
-          hiveId: current.hiveId,
-          inspectionDate: new Date(current.inspectionDate),
-          inspectionImage: current.inspectionImage,
-          queen: current.queen,
-          queenCell: current.queenCell,
-          brood: current.brood,
-          disease: current.disease,
-          eggs: current.eggs,
-          pests: current.pests,
-          feeding: current.feeding,
-          treatments: current.treatments,
-          inspectionNote: current.inspectionNote,
-          weatherCondition: current.weatherCondition,
-          weatherTemp: current.weatherTemp,
+          id: current.id ?? 0,
+          temperament: current.temperament || "",
+          hiveStrength: current.hiveStrength ?? 0,
+          hiveId: current.hiveId ?? 0,
+          inspectionDate: current.inspectionDate
+            ? new Date(current.inspectionDate)
+            : new Date(),
+          inspectionImage: current.inspectionImage || "",
+          queen: current.queen ?? false,
+          queenCell: current.queenCell ?? false,
+          brood: current.brood ?? false,
+          disease: current.disease ?? false,
+          eggs: current.eggs ?? false,
+          pests: current.pests || "",
+          feeding: current.feeding || "",
+          treatments: current.treatments || "",
+          inspectionNote: current.inspectionNote || "",
+          weatherCondition: current.weatherCondition || "",
+          weatherTemp: current.weatherTemp || "",
         });
       } catch {
         toast.error("Failed to load data");

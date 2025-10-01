@@ -1,8 +1,8 @@
-import { DataTable } from "@/components/data-table";
 import { prisma } from "@/lib/prisma";
 import { HiveInput } from "@/lib/schemas/hive";
 import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
+import { HiveTable } from "./hive-table";
 
 export default async function HivePage() {
   const { userId: clerkId } = await auth();
@@ -20,28 +20,26 @@ export default async function HivePage() {
     orderBy: { hiveNumber: "asc" },
   });
 
-  const sanitized: HiveInput[] = hives.map((hive) => ({
-    id: hive.id,
-    hiveDate: hive.hiveDate,
-    hiveNumber: hive.hiveNumber,
-    hiveSource: hive.hiveSource,
-    breed: hive.breed ?? undefined,
-    broodBoxes: hive.broodBoxes ?? undefined,
-    frames: hive.frames ?? undefined,
-    hiveImage: hive.hiveImage ?? undefined,
-    hiveStrength: hive.hiveStrength ?? undefined,
-    latitude: hive.latitude ?? undefined,
-    longitude: hive.longitude ?? undefined,
-    queenAge: hive.queenAge ?? undefined,
-    queenColor: hive.queenColor ?? undefined,
-    queenExcluder: hive.queenExcluder ?? undefined,
-    superBoxes: hive.superBoxes ?? undefined,
-    todo: hive.todo ?? undefined,
-  }));
+  const sanitized: HiveInput[] = hives
+    .filter((hive) => hive.id !== undefined)
+    .map((hive) => ({
+      id: hive.id as number,
+      hiveDate: hive.hiveDate,
+      hiveNumber: hive.hiveNumber,
+      hiveSource: hive.hiveSource,
+      breed: hive.breed ?? undefined,
+      broodBoxes: hive.broodBoxes ?? undefined,
+      frames: hive.frames ?? undefined,
+      hiveImage: hive.hiveImage ?? undefined,
+      hiveStrength: hive.hiveStrength ?? undefined,
+      latitude: hive.latitude ?? undefined,
+      longitude: hive.longitude ?? undefined,
+      queenAge: hive.queenAge ?? undefined,
+      queenColor: hive.queenColor ?? undefined,
+      queenExcluder: hive.queenExcluder ?? undefined,
+      superBoxes: hive.superBoxes ?? undefined,
+      todo: hive.todo ?? undefined,
+    }));
 
-  return (
-    <>
-      <DataTable data={sanitized} />
-    </>
-  );
+  return <HiveTable data={sanitized} />;
 }

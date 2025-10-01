@@ -31,7 +31,7 @@ import {
   InspectionInput,
   inspectionFormSchema,
 } from "@/lib/schemas/inspection";
-import { cn } from "@/lib/utils";
+import { cn, fetchWeather } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Hive } from "@prisma/client";
 import { format } from "date-fns";
@@ -55,7 +55,9 @@ function getColor(value: number) {
 
 export default function CreateInspectionPage() {
   const router = useRouter();
-  const [hives, setHives] = useState<{ value: string; label: string }[]>([]);
+  const [hives, setHives] = useState<
+    { value: string; label: string; lat: number; lon: number }[]
+  >([]);
 
   useEffect(() => {
     const fetchHives = async () => {
@@ -64,10 +66,12 @@ export default function CreateInspectionPage() {
       const simplified = data.map((h: Hive) => ({
         value: String(h.id),
         label: `Hive #${h.hiveNumber}`,
+        lat: h.latitude,
+        lon: h.longitude,
       }));
+
       setHives(simplified);
     };
-
     fetchHives();
   }, []);
 
@@ -120,6 +124,7 @@ export default function CreateInspectionPage() {
       toast.error("Could not create inspection.");
     }
   };
+
   return (
     <main className="p-8 max-w-2xl mx-auto">
       <Card>
@@ -183,7 +188,28 @@ export default function CreateInspectionPage() {
                   <FormItem>
                     <FormLabel>Select Hive *</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(Number(value))}
+                      onValueChange={async (value) => {
+                        field.onChange(Number(value));
+
+                        const hive = hives.find((h) => h.value === value);
+                        if (hive && hive.lat && hive.lon) {
+                          try {
+                            const weather = await fetchWeather(
+                              hive.lat,
+                              hive.lon
+                            );
+                            form.setValue(
+                              "weatherCondition",
+                              weather.condition
+                            );
+                            form.setValue("weatherTemp", weather.temperature);
+                            toast.success("Weather info added automatically");
+                          } catch (err) {
+                            console.error(err);
+                            toast.error("Could not fetch weather");
+                          }
+                        }
+                      }}
                       value={field.value ? String(field.value) : ""}
                     >
                       <FormControl>

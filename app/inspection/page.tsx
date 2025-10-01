@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 import ClientInspectionList from "../../components/client/InspectionList";
 import { InspectionWithHive } from "@/lib/schemas/inspection";
+import InspectionTable from "./inspection-table";
 
 export default async function InspectionPage() {
   const { userId: clerkId } = await auth();
@@ -48,5 +49,5 @@ export default async function InspectionPage() {
     },
   }));
 
-  return <ClientInspectionList inspections={sanitized} />;
+  return <InspectionTable inspections={sanitized} />;
 }
