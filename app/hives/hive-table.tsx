@@ -50,17 +50,7 @@ import { z } from "zod";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChartConfig } from "@/components/ui/chart";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+// import { ChartConfig } from "@/components/ui/chart";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -86,7 +76,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { hiveFormSchema } from "@/lib/schemas/hive";
 import { useState } from "react";
 
@@ -516,52 +505,52 @@ export function HiveTable({
   );
 }
 
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--primary)",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig;
+// const chartConfig = {
+//   desktop: {
+//     label: "Desktop",
+//     color: "var(--primary)",
+//   },
+//   mobile: {
+//     label: "Mobile",
+//     color: "var(--primary)",
+//   },
+// } satisfies ChartConfig;
 
-function TableCellViewer({ item }: { item: z.infer<typeof hiveFormSchema> }) {
-  const isMobile = useIsMobile();
+// function TableCellViewer({ item }: { item: z.infer<typeof hiveFormSchema> }) {
+//   const isMobile = useIsMobile();
 
-  return (
-    <Drawer direction={isMobile ? "bottom" : "right"}>
-      <DrawerTrigger asChild>
-        <Button variant="link" className="px-0">
-          Hive #{item.hiveNumber}
-        </Button>
-      </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>Hive #{item.hiveNumber}</DrawerTitle>
-          <DrawerDescription>
-            Source: {item.hiveSource} | Queen: {item.queenColor ?? "Unknown"}
-          </DrawerDescription>
-        </DrawerHeader>
-        <div className="px-4 py-2 space-y-2">
-          <p>
-            <strong>Brood Boxes:</strong> {item.broodBoxes ?? "-"}
-          </p>
-          <p>
-            <strong>Supers:</strong> {item.superBoxes ?? "-"}
-          </p>
-          <p>
-            <strong>Todo:</strong> {item.todo ?? "—"}
-          </p>
-        </div>
-        <DrawerFooter>
-          <Button>Edit</Button>
-          <DrawerClose asChild>
-            <Button variant="outline">Close</Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
-  );
-}
+//   return (
+//     <Drawer direction={isMobile ? "bottom" : "right"}>
+//       <DrawerTrigger asChild>
+//         <Button variant="link" className="px-0">
+//           Hive #{item.hiveNumber}
+//         </Button>
+//       </DrawerTrigger>
+//       <DrawerContent>
+//         <DrawerHeader>
+//           <DrawerTitle>Hive #{item.hiveNumber}</DrawerTitle>
+//           <DrawerDescription>
+//             Source: {item.hiveSource} | Queen: {item.queenColor ?? "Unknown"}
+//           </DrawerDescription>
+//         </DrawerHeader>
+//         <div className="px-4 py-2 space-y-2">
+//           <p>
+//             <strong>Brood Boxes:</strong> {item.broodBoxes ?? "-"}
+//           </p>
+//           <p>
+//             <strong>Supers:</strong> {item.superBoxes ?? "-"}
+//           </p>
+//           <p>
+//             <strong>Todo:</strong> {item.todo ?? "—"}
+//           </p>
+//         </div>
+//         <DrawerFooter>
+//           <Button>Edit</Button>
+//           <DrawerClose asChild>
+//             <Button variant="outline">Close</Button>
+//           </DrawerClose>
+//         </DrawerFooter>
+//       </DrawerContent>
+//     </Drawer>
+//   );
+// }

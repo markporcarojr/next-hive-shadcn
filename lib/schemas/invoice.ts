@@ -59,6 +59,7 @@ export const invoiceApiSchema = z.object({
     .optional(),
   items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
   total: z.number().nonnegative(),
+  id: z.string().optional(), // for updates
 });
 
 // 6. Types

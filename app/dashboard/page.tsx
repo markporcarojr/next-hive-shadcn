@@ -1,9 +1,9 @@
-import { DataTable } from "@/components/data-table";
 import { SectionCards } from "@/components/section-cards";
 import { prisma } from "@/lib/prisma";
 import { HiveInput } from "@/lib/schemas/hive";
 import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
+import { HiveTable } from "../hives/hive-table";
 export default async function Page() {
   const { userId: clerkId } = await auth();
   if (!clerkId) return; // Optional: redirect instead
@@ -68,7 +68,7 @@ export default async function Page() {
         {/* <div className="px-4 lg:px-6">
           <ChartAreaInteractive />
         </div> */}
-        <DataTable data={sanitized} />
+        <HiveTable data={sanitized} />
       </div>
     </div>
   );

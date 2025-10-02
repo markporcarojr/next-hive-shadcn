@@ -7,6 +7,7 @@ export const expenseFormSchema = z.object({
   date: z.date(), // Direct Date type for the form
   item: z.string().min(1, "Item is required"),
   notes: z.string().optional(),
+  id: z.number().optional(), // id is optional for creation
 });
 
 // Schema for API input (with coercion for server-side validation)
@@ -15,6 +16,7 @@ export const expenseApiSchema = z.object({
   date: z.coerce.date(), // Coerce from string/ISO date
   item: z.string().min(1, "Item is required"),
   notes: z.string().optional(),
+  id: z.number().optional(), // id is optional for creation
 });
 
 // Types

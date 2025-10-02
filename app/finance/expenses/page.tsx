@@ -1,18 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { formatDate } from "@/lib/formatDate";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import ExpenseTable from "./expense-table";
 
 export default async function ExpensePage() {
   const { userId: clerkId } = await auth();
@@ -22,57 +11,26 @@ export default async function ExpensePage() {
     where: { clerkId },
     select: { id: true },
   });
-
   if (!user) return notFound();
 
-  // No manual normalization needed — prisma.$extends handles it
   const expenses = await prisma.expense.findMany({
     where: { userId: user.id },
     orderBy: { date: "desc" },
     select: {
       id: true,
       item: true,
-      amount: true, // already a number
-      date: true, // still a Date
+      amount: true,
+      date: true,
     },
   });
 
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Expenses</CardTitle>
-        <Button asChild>
-          <Link href="/finance/expenses/new">Add Expense</Link>
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Item</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Date</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {expenses.map((expense) => (
-              <TableRow key={expense.id} className="cursor-pointer">
-                <Link
-                  href={`/finance/expenses/edit/${expense.id}`}
-                  className="contents"
-                  tabIndex={-1}
-                >
-                  <TableCell>{expense.item}</TableCell>
-                  <TableCell>${expense.amount.toFixed(2)}</TableCell>
-                  <TableCell>
-                    {formatDate(expense.date.toISOString())}
-                  </TableCell>
-                </Link>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
+  // Pass original expenses with date as Date object
+  const formattedExpenses = expenses.map((e) => ({
+    id: e.id,
+    item: e.item,
+    amount: Number(e.amount), // Decimal -> number
+    date: e.date, // Keep as Date object
+  }));
+
+  return <ExpenseTable expenses={formattedExpenses} />;
 }
