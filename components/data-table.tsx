@@ -95,7 +95,7 @@ export function DataTable<TData>({
   });
 
   return (
-    <div className="w-full max-w-6xl mx-auto flex flex-col gap-6 p-6 bg-background rounded-xl shadow-lg border">
+    <div className="w-full flex flex-col gap-4">
       <div className="flex items-center justify-between">
         {/* Search Input */}
         {searchKey && (

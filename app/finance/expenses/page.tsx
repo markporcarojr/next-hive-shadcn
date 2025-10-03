@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 import ExpenseTable from "./expense-table";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default async function ExpensePage() {
   const { userId: clerkId } = await auth();
@@ -32,5 +34,15 @@ export default async function ExpensePage() {
     date: e.date, // Keep as Date object
   }));
 
-  return <ExpenseTable expenses={formattedExpenses} />;
+  return (
+    <main className="w-full max-w-6xl mx-auto flex flex-col gap-6 p-6 bg-background rounded-xl shadow-lg border">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-3xl font-bold tracking-tight">Your Expenses</h2>
+        <Button asChild>
+          <Link href="/finance/expenses/new">Add Expense</Link>
+        </Button>
+      </div>
+      <ExpenseTable expenses={formattedExpenses} />
+    </main>
+  );
 }
