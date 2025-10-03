@@ -121,7 +121,10 @@ export default function ExpenseReadOnlyPage({
 
               {/* Actions */}
               <div className="flex gap-2 mt-4">
-                <Button onClick={() => router.push("/finance/expenses")}>
+                <Button
+                  type="button"
+                  onClick={() => router.push("/finance/expenses")}
+                >
                   Back
                 </Button>
               </div>
