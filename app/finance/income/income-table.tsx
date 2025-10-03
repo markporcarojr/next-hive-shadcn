@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { IconDotsVertical } from "@tabler/icons-react";
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -72,9 +73,14 @@ export default function IncomeTable({ data }: { data: Income[] }) {
           : `/finance/income/${income.id}`;
 
         return (
-          <a href={href} className="text-blue-600 hover:underline">
-            {income.source}
-          </a>
+          <Link href={href}>
+            <Button
+              variant="ghost"
+              className="w-full justify-start px-2 h-auto font-normal cursor-pointer"
+            >
+              {income.source}
+            </Button>
+          </Link>
         );
       },
     },

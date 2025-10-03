@@ -21,6 +21,7 @@ import {
 import { ExpenseFormInput } from "@/lib/schemas/expense";
 import { IconDotsVertical } from "@tabler/icons-react";
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -62,6 +63,16 @@ export default function ExpenseTable({
     {
       accessorKey: "item",
       header: "Item",
+      cell: ({ row }) => (
+        <Link href={`/finance/expenses/${row.original.id}`}>
+          <Button
+            variant="ghost"
+            className="w-full justify-start px-2 h-auto font-normal cursor-pointer"
+          >
+            {row.original.item}
+          </Button>
+        </Link>
+      ),
     },
     {
       accessorKey: "amount",
