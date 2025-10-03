@@ -1,184 +1,155 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { format } from "date-fns";
-import { toast } from "sonner";
-import { Edit, Trash2 } from "lucide-react";
-
-import { InspectionWithHive } from "@/lib/schemas/inspection";
-
+import { DataTable } from "@/components/data-table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { InspectionWithHive } from "@/lib/schemas/inspection";
+import { IconDotsVertical } from "@tabler/icons-react";
+import { ColumnDef } from "@tanstack/react-table";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-interface InspectionTableProps {
+export default function InspectionTable({
+  inspections,
+}: {
   inspections: InspectionWithHive[];
-}
-
-export default function InspectionTable({ inspections }: InspectionTableProps) {
-  const [inspectionToDelete, setInspectionToDelete] = useState<number | null>(
-    null
-  );
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+}) {
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const handleDelete = async () => {
-    if (!inspectionToDelete) return;
+    if (!deleteId) return;
 
-    setLoading(true);
+    setIsDeleting(true);
     try {
-      const res = await fetch(`/api/inspection/${inspectionToDelete}`, {
+      const res = await fetch(`/api/inspections/${deleteId}`, {
         method: "DELETE",
       });
 
       if (res.ok) {
-        toast.success("Inspection deleted successfully");
-        // refresh page state instead of reload (optional)
-        window.location.reload();
+        console.log("Deleted inspection", deleteId);
+        setDeleteId(null);
+        router.refresh();
       } else {
-        toast.error("Failed to delete inspection");
+        console.error("Failed to delete inspection", deleteId);
+        alert("Failed to delete inspection");
       }
     } catch (error) {
-      console.error("Delete error:", error);
-      toast.error("Failed to delete inspection");
+      console.error("Error deleting inspection", error);
+      alert("Error deleting inspection");
     } finally {
-      setLoading(false);
-      setIsDeleteDialogOpen(false);
-      setInspectionToDelete(null);
+      setIsDeleting(false);
     }
   };
 
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <CardTitle className="text-lg">Inspection Log</CardTitle>
-        <Button asChild>
-          <Link href="/inspection/new">Add Inspection</Link>
-        </Button>
-      </CardHeader>
-      <CardContent>
-        {inspections.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            No inspections found. Create your first inspection!
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Hive</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Temperament</TableHead>
-                <TableHead>Strength</TableHead>
-                <TableHead>Queen</TableHead>
-                <TableHead>Notes</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {inspections.map((inspection) => (
-                <TableRow key={inspection.id}>
-                  <TableCell className="font-medium">
-                    <Link href={`/inspection/edit/${inspection.id}`}>
-                      Hive #{inspection.hive.hiveNumber}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    {format(
-                      new Date(inspection.inspectionDate),
-                      "MMM dd, yyyy"
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{inspection.temperament}</Badge>
-                  </TableCell>
-                  <TableCell>{inspection.hiveStrength}</TableCell>
-                  <TableCell>{inspection.queen ? "✓" : "✗"}</TableCell>
-                  <TableCell className="max-w-xs truncate">
-                    {inspection.inspectionNote || "No notes"}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/inspection/edit/${inspection.id}`}>
-                          <Edit className="h-4 w-4" />
-                        </Link>
-                      </Button>
+  const columns: ColumnDef<InspectionWithHive>[] = [
+    {
+      accessorKey: "hive.hiveNumber",
+      header: "Hive",
+      cell: ({ row }) => <span>Hive {row.original.hive.hiveNumber}</span>,
+    },
+    {
+      accessorKey: "inspectionDate",
+      header: "Date",
+      cell: ({ row }) => (
+        <span>
+          {new Date(row.original.inspectionDate).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "temperament",
+      header: "Temperament",
+    },
+    {
+      accessorKey: "hiveStrength",
+      header: "Strength",
+    },
+    {
+      accessorKey: "queen",
+      header: "Queen",
+      cell: ({ row }) => <span>{row.original.queen ? "Yes" : "No"}</span>,
+    },
+    {
+      accessorKey: "brood",
+      header: "Brood",
+      cell: ({ row }) => <span>{row.original.brood ? "Yes" : "No"}</span>,
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <IconDotsVertical />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem asChild>
+              <a href={`/inspections/edit/${row.original.id}`}>Edit</a>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setDeleteId(row.original.id ?? null)}
+              className="text-destructive"
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
 
-                      <Dialog
-                        open={
-                          isDeleteDialogOpen &&
-                          inspectionToDelete === inspection.id
-                        }
-                        onOpenChange={(open) => {
-                          setIsDeleteDialogOpen(open);
-                          if (!open) setInspectionToDelete(null);
-                        }}
-                      >
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              setInspectionToDelete(inspection.id!)
-                            }
-                          >
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Confirm Deletion</DialogTitle>
-                            <DialogDescription>
-                              Are you sure you want to delete this inspection
-                              record? This action cannot be undone.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <DialogFooter>
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setIsDeleteDialogOpen(false);
-                                setInspectionToDelete(null);
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              onClick={handleDelete}
-                              disabled={loading}
-                            >
-                              {loading ? "Deleting..." : "Delete"}
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
+  return (
+    <>
+      <DataTable
+        data={inspections}
+        columns={columns}
+        searchKey="hive.hiveNumber"
+        searchPlaceholder="Search inspections..."
+      />
+
+      <AlertDialog
+        open={deleteId !== null}
+        onOpenChange={() => setDeleteId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this
+              inspection from your records.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { InspectionWithHive } from "@/lib/schemas/inspection";
 import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
-import ClientInspectionList from "../../components/client/InspectionList";
-import { InspectionWithHive } from "@/lib/schemas/inspection";
 import InspectionTable from "./inspection-table";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default async function InspectionPage() {
   const { userId: clerkId } = await auth();
@@ -49,5 +50,15 @@ export default async function InspectionPage() {
     },
   }));
 
-  return <InspectionTable inspections={sanitized} />;
+  return (
+    <main className="w-full max-w-6xl mx-auto flex flex-col gap-6 p-6 bg-background rounded-xl shadow-lg border">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-3xl font-bold tracking-tight">Your Inspections</h2>
+        <Button asChild>
+          <Link href="/finance/inspections/new">Add Inspection</Link>
+        </Button>
+      </div>
+      <InspectionTable inspections={sanitized} />
+    </main>
+  );
 }
