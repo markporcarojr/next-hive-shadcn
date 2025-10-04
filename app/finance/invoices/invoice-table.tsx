@@ -11,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -24,15 +25,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-type Income = {
+type Invoice = {
   id: number;
-  source: string;
-  amount: number;
-  date: string; // ISO string
-  invoiceId?: number | null;
+  customerName: string;
+  email: string | null;
+  phone: string | null;
+  total: number;
+  date: Date;
 };
 
-export default function IncomeTable({ data }: { data: Income[] }) {
+export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -42,56 +44,73 @@ export default function IncomeTable({ data }: { data: Income[] }) {
 
     setIsDeleting(true);
     try {
-      const res = await fetch(`/api/finance/income/${deleteId}`, {
+      const res = await fetch(`/api/finance/invoices/${deleteId}`, {
         method: "DELETE",
       });
 
       if (res.ok) {
-        console.log("Deleted income", deleteId);
+        console.log("Deleted invoice", deleteId);
         setDeleteId(null);
         router.refresh();
       } else {
-        console.error("Failed to delete income", deleteId);
-        alert("Failed to delete income");
+        console.error("Failed to delete invoice", deleteId);
+        alert("Failed to delete invoice");
       }
     } catch (error) {
-      console.error("Error deleting income", error);
-      alert("Error deleting income");
+      console.error("Error deleting invoice", error);
+      alert("Error deleting invoice");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const columns: ColumnDef<Income>[] = [
+  const columns: ColumnDef<Invoice>[] = [
     {
-      accessorKey: "source",
+      accessorKey: "customerName",
       header: ({ column }) => (
-        <DataTableSortableHeader column={column} title="Source" />
+        <DataTableSortableHeader column={column} title="Customer" />
       ),
-      cell: ({ row }) => {
-        const income = row.original;
-        const href = income.invoiceId
-          ? `/finance/invoices/${income.invoiceId}`
-          : `/finance/income/${income.id}`;
-
-        return (
-          <Link href={href}>
-            <Button
-              variant="ghost"
-              className="w-full justify-start px-2 h-auto font-normal cursor-pointer"
-            >
-              {income.source}
-            </Button>
-          </Link>
-        );
-      },
+      cell: ({ row }) => (
+        <Link href={`/finance/invoices/${row.original.id}`}>
+          <Button
+            variant="ghost"
+            className="w-full justify-start px-2 h-auto font-normal cursor-pointer"
+          >
+            {row.original.customerName}
+          </Button>
+        </Link>
+      ),
     },
     {
-      accessorKey: "amount",
+      accessorKey: "email",
       header: ({ column }) => (
-        <DataTableSortableHeader column={column} title="Amount" />
+        <DataTableSortableHeader column={column} title="Email" />
       ),
-      cell: ({ row }) => <span>${row.original.amount.toFixed(2)}</span>,
+      cell: ({ row }) =>
+        row.original.email ? (
+          <span>{row.original.email}</span>
+        ) : (
+          <Badge variant="secondary">N/A</Badge>
+        ),
+    },
+    {
+      accessorKey: "phone",
+      header: ({ column }) => (
+        <DataTableSortableHeader column={column} title="Phone" />
+      ),
+      cell: ({ row }) =>
+        row.original.phone ? (
+          <span>{row.original.phone}</span>
+        ) : (
+          <Badge variant="secondary">N/A</Badge>
+        ),
+    },
+    {
+      accessorKey: "total",
+      header: ({ column }) => (
+        <DataTableSortableHeader column={column} title="Total" />
+      ),
+      cell: ({ row }) => <span>${row.original.total.toFixed(2)}</span>,
     },
     {
       accessorKey: "date",
@@ -114,10 +133,12 @@ export default function IncomeTable({ data }: { data: Income[] }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem asChild>
-              <a href={`/finance/income/edit/${row.original.id}`}>Edit</a>
+              <Link href={`/finance/invoices/edit/${row.original.id}`}>
+                Edit
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => setDeleteId(row.original.id)}
+              onClick={() => setDeleteId(row.original.id ?? null)}
               className="text-destructive"
             >
               Delete
@@ -131,11 +152,12 @@ export default function IncomeTable({ data }: { data: Income[] }) {
   return (
     <>
       <DataTable
-        data={data}
+        data={invoices}
         columns={columns}
-        searchKey="source"
-        searchPlaceholder="Search income..."
+        searchKey="customerName"
+        searchPlaceholder="Search invoices..."
       />
+
       <AlertDialog
         open={deleteId !== null}
         onOpenChange={() => setDeleteId(null)}
@@ -145,7 +167,7 @@ export default function IncomeTable({ data }: { data: Income[] }) {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete this
-              income record from your records.
+              invoice from your records.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

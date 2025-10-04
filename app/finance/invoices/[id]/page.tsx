@@ -1,57 +1,79 @@
 // app/finance/invoices/[id]/page.tsx
 
+"use client";
+
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { prisma } from "@/lib/prisma";
-import { PRODUCT_TYPES } from "@/lib/schemas/invoice";
-import { auth } from "@clerk/nextjs/server";
+import { InvoiceInput, PRODUCT_TYPES } from "@/lib/schemas/invoice";
 import { format } from "date-fns";
-import { notFound } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-interface InvoicePageProps {
-  params: Promise<{ id: string }>;
+async function fetchInvoice(id: string): Promise<InvoiceInput> {
+  const res = await fetch(`/api/finance/invoices/${id}`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch invoice");
+  }
+  return res.json();
 }
 
-export default async function InvoicePage({ params }: InvoicePageProps) {
-  const { id } = await params; // ✅ must await
+export default function InvoicePage() {
+  const params = useParams();
+  const router = useRouter();
+  const [invoice, setInvoice] = useState<InvoiceInput | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return notFound();
+  useEffect(() => {
+    async function loadInvoice() {
+      if (!params.id || typeof params.id !== "string") return;
 
-  const user = await prisma.user.findUnique({
-    where: { clerkId },
-    select: { id: true },
-  });
-  if (!user) return notFound();
-
-  const invoice = await prisma.invoice.findFirst({
-    where: { id: Number(id), userId: user.id },
-    include: { items: true },
-  });
-  if (!invoice) return notFound();
-
-  // Ensure numbers are plain JS numbers
-  const safeInvoice = {
-    ...invoice,
-    total:
-      typeof invoice.total === "number" ? invoice.total : Number(invoice.total),
-    items: invoice.items.map((item) => ({
-      ...item,
-      unitPrice:
-        typeof item.unitPrice === "number"
-          ? item.unitPrice
-          : Number(item.unitPrice),
-    })),
-  };
+      try {
+        setLoading(true);
+        const data = await fetchInvoice(params.id);
+        setInvoice(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error loading invoice:", err);
+        setError("Failed to load invoice");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadInvoice();
+  }, [params.id]);
 
   const calculateTotal = () =>
-    safeInvoice.items.reduce(
+    invoice?.items.reduce(
       (sum, item) => sum + item.quantity * item.unitPrice,
       0
+    ) ?? 0;
+
+  if (loading) {
+    return (
+      <Card className="max-w-2xl mx-auto mb-8 p-8">
+        <p>Loading invoice...</p>
+      </Card>
     );
+  }
+
+  if (error || !invoice) {
+    return (
+      <Card className="max-w-2xl mx-auto mb-8 p-8">
+        <p className="text-destructive">{error || "Invoice not found"}</p>
+        <Button
+          onClick={() => router.push("/finance/invoices")}
+          className="mt-4"
+        >
+          Back to Invoices
+        </Button>
+      </Card>
+    );
+  }
 
   return (
     <Card className="max-w-2xl mx-auto mb-8 p-8">
@@ -61,33 +83,35 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
         {/* Customer Info */}
         <div>
           <Label>Customer Name</Label>
-          <Input readOnly value={safeInvoice.customerName} />
+          <Input readOnly value={invoice.customerName} />
         </div>
         <div>
           <Label>Email</Label>
-          <Input readOnly value={safeInvoice.email ?? ""} />
+          <Input readOnly value={invoice.email ?? ""} />
         </div>
         <div>
           <Label>Phone</Label>
-          <Input readOnly value={safeInvoice.phone ?? ""} />
+          <Input readOnly value={invoice.phone ?? ""} />
         </div>
         <div>
           <Label>Invoice Date</Label>
           <Input
             readOnly
-            value={format(new Date(safeInvoice.date), "yyyy-MM-dd")}
+            value={
+              invoice.date ? format(new Date(invoice.date), "yyyy-MM-dd") : ""
+            }
           />
         </div>
         <div>
           <Label>Notes</Label>
-          <Textarea readOnly value={safeInvoice.notes || ""} rows={2} />
+          <Textarea readOnly value={invoice.notes || ""} rows={2} />
         </div>
 
         {/* Products */}
         <Separator className="my-4" />
         <div className="font-semibold mb-2">Products</div>
 
-        {safeInvoice.items.map((item, index) => {
+        {invoice.items.map((item, index) => {
           const label =
             PRODUCT_TYPES.find((t) => t.value === item.product)?.label ||
             item.product;
@@ -103,7 +127,10 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
               </div>
               <div className="w-32">
                 <Label>Unit Price</Label>
-                <Input readOnly value={`$${item.unitPrice.toFixed(2)}`} />
+                <Input
+                  readOnly
+                  value={`$${Number(item.unitPrice).toFixed(2)}`}
+                />
               </div>
             </div>
           );
@@ -118,6 +145,9 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
             value={`$${calculateTotal().toFixed(2)}`}
             className="font-bold"
           />
+        </div>
+        <div className="flex gap-2 mt-4">
+          <Button onClick={() => router.push("/finance/invoices")}>Back</Button>
         </div>
       </div>
     </Card>

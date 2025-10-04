@@ -31,6 +31,9 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
   IconLayoutColumns,
+  IconArrowUp,
+  IconArrowDown,
+  IconSelector,
 } from "@tabler/icons-react";
 import {
   ColumnDef,
@@ -43,6 +46,7 @@ import {
   SortingState,
   useReactTable,
   VisibilityState,
+  Column,
 } from "@tanstack/react-table";
 import * as React from "react";
 
@@ -53,6 +57,32 @@ type DataTableProps<TData> = {
   searchKey?: string;
   searchPlaceholder?: string;
 };
+
+// Reusable sortable header component
+export function DataTableSortableHeader<TData>({
+  column,
+  title,
+}: {
+  column: Column<TData, unknown>;
+  title: string;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      className="h-8 px-2"
+    >
+      {title}
+      {column.getIsSorted() === "asc" ? (
+        <IconArrowUp className="ml-2 h-4 w-4" />
+      ) : column.getIsSorted() === "desc" ? (
+        <IconArrowDown className="ml-2 h-4 w-4" />
+      ) : (
+        <IconSelector className="ml-2 h-4 w-4" />
+      )}
+    </Button>
+  );
+}
 
 export function DataTable<TData>({
   data,

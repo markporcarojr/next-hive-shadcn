@@ -1,6 +1,6 @@
 "use client";
 
-import { DataTable } from "@/components/data-table";
+import { DataTable, DataTableSortableHeader } from "@/components/data-table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,7 +62,9 @@ export default function ExpenseTable({
   const columns: ColumnDef<ExpenseFormInput>[] = [
     {
       accessorKey: "item",
-      header: "Item",
+      header: ({ column }) => (
+        <DataTableSortableHeader column={column} title="Item" />
+      ),
       cell: ({ row }) => (
         <Link href={`/finance/expenses/${row.original.id}`}>
           <Button
@@ -76,12 +78,16 @@ export default function ExpenseTable({
     },
     {
       accessorKey: "amount",
-      header: "Amount",
+      header: ({ column }) => (
+        <DataTableSortableHeader column={column} title="Amount" />
+      ),
       cell: ({ row }) => <span>${row.original.amount.toFixed(2)}</span>,
     },
     {
       accessorKey: "date",
-      header: "Date",
+      header: ({ column }) => (
+        <DataTableSortableHeader column={column} title="Date" />
+      ),
       cell: ({ row }) => (
         <span>{new Date(row.original.date).toLocaleDateString()}</span>
       ),
