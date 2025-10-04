@@ -11,6 +11,8 @@ import {
 import { IconDotsVertical } from "@tabler/icons-react";
 import { DataTable } from "@/components/data-table";
 import { formatDate } from "@/lib/formatDate";
+import { DataTableSortableHeader } from "@/components/data-table";
+import Link from "next/link";
 
 type Harvest = {
   id: number;
@@ -22,19 +24,32 @@ type Harvest = {
 const columns: ColumnDef<Harvest>[] = [
   {
     accessorKey: "harvestType",
-    header: "Type",
+    header: ({ column }) => (
+      <DataTableSortableHeader column={column} title="Type" />
+    ),
     cell: ({ row }) => (
-      <span className="font-medium">{row.original.harvestType}</span>
+      <Link href={`/harvest/${row.original.id}`}>
+        <Button
+          variant="ghost"
+          className="w-full justify-start px-2 h-auto font-normal cursor-pointer"
+        >
+          {row.original.harvestType}
+        </Button>
+      </Link>
     ),
   },
   {
     accessorKey: "harvestAmount",
-    header: "Amount (lbs)",
+    header: ({ column }) => (
+      <DataTableSortableHeader column={column} title="Amount (lbs)" />
+    ),
     cell: ({ row }) => <span>{row.original.harvestAmount}</span>,
   },
   {
     accessorKey: "harvestDate",
-    header: "Date",
+    header: ({ column }) => (
+      <DataTableSortableHeader column={column} title="Date" />
+    ),
     cell: ({ row }) => (
       <span>
         {formatDate(new Date(row.original.harvestDate).toISOString())}
