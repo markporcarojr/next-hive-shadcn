@@ -512,10 +512,13 @@ export default function CreateInspectionPage() {
                 />
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-between">
                 <Button type="submit">
                   <Plus className="mr-2 h-4 w-4" />
                   Add Inspection
+                </Button>
+                <Button variant="outline" onClick={() => router.back()}>
+                  Cancel
                 </Button>
               </div>
             </form>

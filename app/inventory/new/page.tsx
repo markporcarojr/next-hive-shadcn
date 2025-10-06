@@ -72,7 +72,10 @@ export default function NewInventoryPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-6"
+            >
               {/* Item Name */}
               <FormField
                 control={form.control}
@@ -121,7 +124,10 @@ export default function NewInventoryPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Location *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Choose a location" />
@@ -140,10 +146,17 @@ export default function NewInventoryPage() {
                 )}
               />
 
-              <div className="flex justify-end">
+              <div className="flex justify-between">
                 <Button type="submit" disabled={loading}>
                   <Plus className="mr-2 h-4 w-4" />
                   {loading ? "Saving..." : "Save Item"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.back()}
+                  disabled={loading}
+                >
+                  Cancel
                 </Button>
               </div>
             </form>

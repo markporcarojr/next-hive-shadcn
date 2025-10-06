@@ -4,6 +4,8 @@ import { HiveInput } from "@/lib/schemas/hive";
 import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 import { HiveTable } from "../hives/hive-table";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 export default async function Page() {
   const { userId: clerkId } = await auth();
   if (!clerkId) return; // Optional: redirect instead
@@ -62,14 +64,20 @@ export default async function Page() {
   }));
 
   return (
-    <div className="@container/main flex flex-1 flex-col gap-2">
+    <main className="w-full max-w-6xl mx-auto flex flex-col gap-6 p-6 bg-background rounded-xl shadow-lg ">
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <div className="flex justify-between">
+          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          <Button asChild>
+            <Link href="/hives/new">Add Hive</Link>
+          </Button>
+        </div>
         <HiveTable data={sanitized} />
         <SectionCards expenses={expenses} incomes={incomes} />
         {/* <div className="px-4 lg:px-6">
           <ChartAreaInteractive />
         </div> */}
       </div>
-    </div>
+    </main>
   );
 }

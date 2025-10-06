@@ -187,10 +187,15 @@ export default function CreateHarvestPage() {
               )}
             />
 
-            <Button type="submit" disabled={loading}>
-              <IconPlus className="mr-2 h-4 w-4" />
-              {loading ? "Adding..." : "Add Harvest"}
-            </Button>
+            <div className="flex justify-between">
+              <Button type="submit" disabled={loading}>
+                <IconPlus className="mr-2 h-4 w-4" />
+                {loading ? "Adding..." : "Add Harvest"}
+              </Button>
+              <Button variant="outline" onClick={() => router.back()}>
+                Cancel
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

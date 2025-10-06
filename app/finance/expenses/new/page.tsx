@@ -198,9 +198,14 @@ export default function NewExpensePage() {
               )}
             />
 
-            <Button type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Expense"}
-            </Button>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={loading}>
+                {loading ? "Adding..." : "Add Expense"}
+              </Button>
+              <Button variant="outline" onClick={() => router.back()}>
+                Cancel
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

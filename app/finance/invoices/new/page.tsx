@@ -333,7 +333,7 @@ export default function NewInvoicePage() {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2 mt-4">
+            <div className="flex justify-between">
               <Button type="submit" disabled={loading}>
                 {loading ? "Saving..." : "Save Invoice"}
               </Button>

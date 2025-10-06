@@ -325,12 +325,6 @@ export function HiveTable({
                 ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm" asChild>
-            <a href="/hives/new">
-              <IconPlus />
-              <span className="hidden lg:inline">Add Hive</span>
-            </a>
-          </Button>
         </div>
       </div>
 

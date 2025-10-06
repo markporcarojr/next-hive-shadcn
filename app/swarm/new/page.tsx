@@ -169,10 +169,17 @@ export default function NewSwarmPage() {
                 )}
               />
 
-              <div className="flex justify-end">
+              <div className="flex justify-between">
                 <Button type="submit" disabled={loading}>
                   <Plus className="mr-2 h-4 w-4" />
                   {loading ? "Adding..." : "Add Trap"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.back()}
+                  disabled={loading}
+                >
+                  Cancel
                 </Button>
               </div>
             </form>

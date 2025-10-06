@@ -447,9 +447,12 @@ export default function NewHivePage() {
                 )}
               />
 
-              <div className="flex justify-end">
+              <div className="flex justify-between">
                 <Button type="submit" disabled={loading}>
                   {loading ? "Saving..." : "Save Hive"}
+                </Button>
+                <Button variant="outline" onClick={() => router.back()}>
+                  Cancel
                 </Button>
               </div>
             </form>
