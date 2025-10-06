@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -12,6 +13,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -19,22 +25,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { HiveInput, hiveFormSchema } from "@/lib/schemas/hive";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { CalendarIcon, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { CalendarIcon, Edit } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Hive } from "@prisma/client";
 
 export default function EditHivesPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -58,21 +57,20 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
       try {
         const res = await fetch(`/api/hives/${params.id}`);
         const data = await res.json();
-        const current = data.find((h: Hive) => h.id === Number(params.id));
-        if (!current) return router.push("/hives");
+        if (!res.ok) throw new Error(data.message || "Failed to fetch data");
 
         form.reset({
-          hiveNumber: current.hiveNumber,
-          hiveSource: current.hiveSource,
-          hiveDate: new Date(current.hiveDate),
-          queenColor: current.queenColor || "",
-          broodBoxes: current.broodBoxes || 0,
-          superBoxes: current.superBoxes || 0,
-          todo: current.todo || "",
+          hiveNumber: data.hiveNumber,
+          hiveSource: data.hiveSource,
+          hiveDate: new Date(data.hiveDate),
+          queenColor: data.queenColor || "",
+          broodBoxes: data.broodBoxes || 0,
+          superBoxes: data.superBoxes || 0,
+          todo: data.todo || "",
         });
       } catch {
         toast.error("Failed to load data");
-        router.push("/hives");
+        router.back();
       } finally {
         setLoading(false);
       }
@@ -323,10 +321,17 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
                 )}
               />
 
-              <div className="flex justify-end">
+              <div className="flex justify-between">
                 <Button type="submit" disabled={loading}>
                   <Edit className="mr-2 h-4 w-4" />
                   {loading ? "Updating..." : "Update Hive"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.back()}
+                  disabled={loading}
+                >
+                  Cancel
                 </Button>
               </div>
             </form>

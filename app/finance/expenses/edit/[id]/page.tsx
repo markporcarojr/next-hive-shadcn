@@ -245,16 +245,25 @@ export default function EditExpensePage() {
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={submitting}>
-                {submitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  "Update Expense"
-                )}
-              </Button>
+              <div className="flex justify-between">
+                <Button type="submit" className="w-full" disabled={submitting}>
+                  {submitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Expense"
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.back()}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>

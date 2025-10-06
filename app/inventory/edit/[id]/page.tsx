@@ -113,7 +113,10 @@ export default function EditInventoryPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-6"
+            >
               {/* Item Name */}
               <FormField
                 control={form.control}
@@ -181,10 +184,17 @@ export default function EditInventoryPage() {
                 )}
               />
 
-              <div className="flex justify-end">
+              <div className="flex justify-between">
                 <Button type="submit" disabled={submitting}>
                   <Edit className="mr-2 h-4 w-4" />
                   {submitting ? "Updating..." : "Update Item"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.back()}
+                  disabled={loading}
+                >
+                  Cancel
                 </Button>
               </div>
             </form>

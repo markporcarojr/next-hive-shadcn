@@ -260,10 +260,17 @@ export default function EditSwarmPage({ params }: { params: { id: string } }) {
                 )}
               />
 
-              <div className="flex justify-end">
+              <div className="flex justify-between">
                 <Button type="submit" disabled={submitting}>
                   <Edit className="mr-2 h-4 w-4" />
                   {submitting ? "Updating..." : "Update Trap"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.back()}
+                  disabled={loading}
+                >
+                  Cancel
                 </Button>
               </div>
             </form>

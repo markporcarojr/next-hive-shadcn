@@ -277,10 +277,18 @@ export default function EditInvoicePage() {
                 className="font-bold"
               />
             </div>
-
-            <Button type="submit" disabled={submitting} className="w-full">
-              {submitting ? "Saving..." : "Save Changes"}
-            </Button>
+            <div className="flex justify-between">
+              <Button type="submit" disabled={submitting} className="w-full">
+                {submitting ? "Saving..." : "Save Changes"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.back()}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

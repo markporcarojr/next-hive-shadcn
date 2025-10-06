@@ -185,13 +185,22 @@ export default function EditIncomePage() {
               </FormItem>
             )}
           />
-          <Button
-            type="submit"
-            className="w-full mt-2"
-            disabled={form.formState.isSubmitting}
-          >
-            Update Income
-          </Button>
+          <div className="flex justify-between">
+            <Button
+              type="submit"
+              className="w-full mt-2"
+              disabled={form.formState.isSubmitting}
+            >
+              Update Income
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+          </div>
         </form>
       </Form>
     </div>
