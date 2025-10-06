@@ -1,11 +1,11 @@
 import { SectionCards } from "@/components/section-cards";
+import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { HiveInput } from "@/lib/schemas/hive";
 import { auth } from "@clerk/nextjs/server";
-import { notFound } from "next/navigation";
-import { HiveTable } from "../hives/hive-table";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { HiveTableWrapper } from "./hive-table-wrapper";
 export default async function Page() {
   const { userId: clerkId } = await auth();
   if (!clerkId) return; // Optional: redirect instead
@@ -72,7 +72,7 @@ export default async function Page() {
             <Link href="/hives/new">Add Hive</Link>
           </Button>
         </div>
-        <HiveTable data={sanitized} />
+        <HiveTableWrapper data={sanitized} />
         <SectionCards expenses={expenses} incomes={incomes} />
         {/* <div className="px-4 lg:px-6">
           <ChartAreaInteractive />

@@ -27,7 +27,6 @@ import {
   IconChevronsRight,
   IconDotsVertical,
   IconLayoutColumns,
-  IconPlus,
 } from "@tabler/icons-react";
 import {
   ColumnDef,

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import ExpenseTable from "./expense-table";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import ExpenseTableWrapper from "./ExpenseTableWrapper";
 
 export default async function ExpensePage() {
   const { userId: clerkId } = await auth();
@@ -42,7 +43,7 @@ export default async function ExpensePage() {
           <Link href="/finance/expenses/new">Add Expense</Link>
         </Button>
       </div>
-      <ExpenseTable expenses={formattedExpenses} />
+      <ExpenseTableWrapper expenses={formattedExpenses} />
     </main>
   );
 }
