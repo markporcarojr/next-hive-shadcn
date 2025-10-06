@@ -10,8 +10,16 @@ export async function GET(
   try {
     const { id } = params;
 
-    // const harvest = await Harvest.findById(id);
-    const harvest = { id, mock: true };
+    const harvest = await prisma.harvest.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!harvest) {
+      return NextResponse.json(
+        { message: "Harvest not found" },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json(harvest, { status: 200 });
   } catch (error) {

@@ -23,6 +23,8 @@ import { IconDotsVertical } from "@tabler/icons-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { DataTableSortableHeader } from "@/components/data-table";
+import Link from "next/link";
 
 export default function InspectionTable({
   inspections,
@@ -61,12 +63,25 @@ export default function InspectionTable({
   const columns: ColumnDef<InspectionWithHive>[] = [
     {
       accessorKey: "hive.hiveNumber",
-      header: "Hive",
-      cell: ({ row }) => <span>Hive {row.original.hive.hiveNumber}</span>,
+      header: ({ column }) => (
+        <DataTableSortableHeader column={column} title="Hive" />
+      ),
+      cell: ({ row }) => (
+        <Link href={`/inspection/${row.original.id}`}>
+          <Button
+            variant="ghost"
+            className="w-full justify-start px-2 h-auto font-normal cursor-pointer"
+          >
+            {row.original.hive.hiveNumber}
+          </Button>
+        </Link>
+      ),
     },
     {
       accessorKey: "inspectionDate",
-      header: "Date",
+      header: ({ column }) => (
+        <DataTableSortableHeader column={column} title="Date" />
+      ),
       cell: ({ row }) => (
         <span>
           {new Date(row.original.inspectionDate).toLocaleDateString()}
@@ -75,25 +90,32 @@ export default function InspectionTable({
     },
     {
       accessorKey: "temperament",
-      header: "Temperament",
+      header: ({ column }) => (
+        <DataTableSortableHeader column={column} title="Temperament" />
+      ),
     },
     {
       accessorKey: "hiveStrength",
-      header: "Strength",
+      header: ({ column }) => (
+        <DataTableSortableHeader column={column} title="Strength" />
+      ),
     },
     {
       accessorKey: "queen",
-      header: "Queen",
+      header: ({ column }) => (
+        <DataTableSortableHeader column={column} title="Queen" />
+      ),
       cell: ({ row }) => <span>{row.original.queen ? "Yes" : "No"}</span>,
     },
     {
       accessorKey: "brood",
-      header: "Brood",
+      header: ({ column }) => (
+        <DataTableSortableHeader column={column} title="Brood" />
+      ),
       cell: ({ row }) => <span>{row.original.brood ? "Yes" : "No"}</span>,
     },
     {
       id: "actions",
-      header: "Actions",
       cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

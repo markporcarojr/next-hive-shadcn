@@ -2,100 +2,122 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRouter, useParams } from "next/navigation";
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
-import { IconArrowLeft, IconCalendar } from "@tabler/icons-react";
-import { toast } from "sonner";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { HarvestInput, harvestFormSchema } from "@/lib/schemas/harvest";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 
-interface HarvestData {
-  id: number;
-  harvestAmount: number;
-  harvestType: string;
-  harvestDate: string;
+async function fetchHarvest(id: string): Promise<HarvestInput> {
+  const res = await fetch(`/api/harvest/${id}`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch harvest");
+  }
+  return res.json();
 }
 
-export default function HarvestDetailsPage() {
+export default function HarvestReadOnlyPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const router = useRouter();
-  const params = useParams();
-  const [loading, setLoading] = useState(true);
-  const [harvest, setHarvest] = useState<HarvestData | null>(null);
+
+  const form = useForm<HarvestInput>({
+    resolver: zodResolver(harvestFormSchema),
+    defaultValues: {
+      harvestType: "",
+      harvestAmount: 0,
+      harvestDate: new Date(),
+    },
+  });
 
   useEffect(() => {
-    const fetchHarvest = async () => {
-      try {
-        const res = await fetch(`/api/harvest/${params.id}`);
-
-        if (res.ok) {
-          const data = await res.json();
-          setHarvest(data);
-        } else {
-          toast.error("Failed to load harvest details");
-          router.push("/harvest");
-        }
-      } catch {
-        toast.error("Something went wrong");
-        router.push("/harvest");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (params.id) {
-      fetchHarvest();
+    async function loadHarvest() {
+      const data = await fetchHarvest(params.id);
+      form.reset(data);
     }
-  }, [params.id, router]);
-
-  if (loading) {
-    return (
-      <Card className="max-w-md mx-auto mt-8">
-        <CardContent className="pt-6">
-          <p className="text-center text-muted-foreground">Loading...</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!harvest) {
-    return null;
-  }
+    loadHarvest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.id]);
 
   return (
-    <Card className="max-w-md mx-auto mt-8">
-      <CardHeader>
-        <CardTitle>Harvest Details</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Harvest Amount */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Harvest Amount</label>
-          <div className="text-lg">{harvest.harvestAmount} lbs</div>
-        </div>
+    <div className="container mx-auto py-8">
+      <Card className="max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle>Harvest Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form className="space-y-6">
+              {/* Harvest Type */}
+              <FormField
+                control={form.control}
+                name="harvestType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Harvest Type</FormLabel>
+                    <Input {...field} disabled />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        {/* Harvest Type */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Harvest Type</label>
-          <div className="text-lg">{harvest.harvestType}</div>
-        </div>
+              {/* Harvest Amount */}
+              <FormField
+                control={form.control}
+                name="harvestAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Harvest Amount (lbs)</FormLabel>
+                    <Input type="number" {...field} disabled />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        {/* Harvest Date */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Harvest Date</label>
-          <div className="flex items-center text-lg">
-            <IconCalendar className="mr-2 h-4 w-4 text-muted-foreground" />
-            {format(new Date(harvest.harvestDate), "MM-dd-yyyy")}
-          </div>
-        </div>
+              {/* Harvest Date */}
+              <FormField
+                control={form.control}
+                name="harvestDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date</FormLabel>
+                    <Input
+                      type="date"
+                      value={
+                        field.value
+                          ? new Date(field.value as string | number | Date)
+                              .toISOString()
+                              .split("T")[0]
+                          : ""
+                      }
+                      disabled
+                      onChange={() => {}}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <Button
-          variant="outline"
-          onClick={() => router.push("/harvest")}
-          className="w-full"
-        >
-          <IconArrowLeft className="mr-2 h-4 w-4" />
-          Back to Harvests
-        </Button>
-      </CardContent>
-    </Card>
+              {/* Actions */}
+              <div className="flex gap-2 mt-4">
+                <Button type="button" onClick={() => router.push("/harvest")}>
+                  Back
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -104,7 +104,6 @@ export default function IncomeTable({ data }: { data: Income[] }) {
     },
     {
       id: "actions",
-      header: "Actions",
       cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

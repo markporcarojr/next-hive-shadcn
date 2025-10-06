@@ -58,7 +58,6 @@ const columns: ColumnDef<Harvest>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
     cell: ({ row }) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

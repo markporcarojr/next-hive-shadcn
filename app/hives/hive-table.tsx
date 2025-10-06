@@ -26,7 +26,6 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
   IconDotsVertical,
-  IconGripVertical,
   IconLayoutColumns,
   IconPlus,
 } from "@tabler/icons-react";
@@ -51,6 +50,7 @@ import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 // import { ChartConfig } from "@/components/ui/chart";
+import { DataTableSortableHeader } from "@/components/data-table";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -79,46 +79,26 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { hiveFormSchema } from "@/lib/schemas/hive";
 import { useState } from "react";
 
-// Create a separate component for the drag handle
-function DragHandle({ id }: { id: UniqueIdentifier }) {
-  const { attributes, listeners } = useSortable({ id });
-
-  return (
-    <Button
-      {...attributes}
-      {...listeners}
-      variant="ghost"
-      size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent"
-    >
-      <IconGripVertical className="text-muted-foreground size-3" />
-      <span className="sr-only">Drag to reorder</span>
-    </Button>
-  );
-}
-
 const columns: ColumnDef<z.infer<typeof hiveFormSchema>>[] = [
   {
-    id: "drag",
-    header: () => null,
-    cell: ({ row }) =>
-      row.original.id !== undefined ? (
-        <DragHandle id={row.original.id as UniqueIdentifier} />
-      ) : null,
-  },
-  {
     accessorKey: "hiveNumber",
-    header: "Hive #",
+    header: ({ column }) => (
+      <DataTableSortableHeader column={column} title="Hive #" />
+    ),
     cell: ({ row }) => <span>{row.original.hiveNumber}</span>,
   },
   {
     accessorKey: "hiveSource",
-    header: "Source",
+    header: ({ column }) => (
+      <DataTableSortableHeader column={column} title="Source" />
+    ),
     cell: ({ row }) => <Badge>{row.original.hiveSource}</Badge>,
   },
   {
     accessorKey: "queenColor",
-    header: "Queen Color",
+    header: ({ column }) => (
+      <DataTableSortableHeader column={column} title="Queen Color" />
+    ),
     cell: ({ row }) => {
       const color = row.original.queenColor?.toLowerCase();
 
@@ -143,20 +123,25 @@ const columns: ColumnDef<z.infer<typeof hiveFormSchema>>[] = [
       );
     },
   },
-
   {
     accessorKey: "broodBoxes",
-    header: "Brood Boxes",
+    header: ({ column }) => (
+      <DataTableSortableHeader column={column} title="Brood Boxes" />
+    ),
     cell: ({ row }) => <span>{row.original.broodBoxes ?? "-"}</span>,
   },
   {
     accessorKey: "superBoxes",
-    header: "Supers",
+    header: ({ column }) => (
+      <DataTableSortableHeader column={column} title="Supers" />
+    ),
     cell: ({ row }) => <span>{row.original.superBoxes ?? "-"}</span>,
   },
   {
     accessorKey: "todo",
-    header: "Todo",
+    header: ({ column }) => (
+      <DataTableSortableHeader column={column} title="Todo" />
+    ),
     cell: ({ row }) => <span>{row.original.todo ?? "—"}</span>,
   },
   {
@@ -291,12 +276,9 @@ export function HiveTable({
   };
 
   return (
-    <Tabs
-      defaultValue="outline"
-      className="w-full flex-col justify-start gap-6"
-    >
-      <div className="flex items-center justify-between px-4 lg:px-6">
-        {/* Hive Search */}
+    <Tabs defaultValue="outline" className="w-full flex flex-col gap-4">
+      {/* Search + Controls */}
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 w-full max-w-sm">
           <Label htmlFor="hive-search" className="sr-only">
             Search Hives
@@ -329,20 +311,18 @@ export function HiveTable({
                     typeof column.accessorFn !== "undefined" &&
                     column.getCanHide()
                 )
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
+                .map((column) => (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {column.id}
+                  </DropdownMenuCheckboxItem>
+                ))}
             </DropdownMenuContent>
           </DropdownMenu>
           <Button variant="outline" size="sm" asChild>
@@ -353,9 +333,11 @@ export function HiveTable({
           </Button>
         </div>
       </div>
+
+      {/* Table */}
       <TabsContent
         value="outline"
-        className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
+        className="relative flex flex-col gap-4 overflow-auto p-0"
       >
         <div className="overflow-hidden rounded-lg border">
           <DndContext
@@ -369,22 +351,20 @@ export function HiveTable({
               <TableHeader className="bg-muted sticky top-0 z-10">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id} colSpan={header.colSpan}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      );
-                    })}
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id} colSpan={header.colSpan}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    ))}
                   </TableRow>
                 ))}
               </TableHeader>
-              <TableBody className="**:data-[slot=table-cell]:first:w-8">
+              <TableBody>
                 {table.getRowModel().rows?.length ? (
                   <SortableContext
                     items={dataIds}
@@ -408,7 +388,9 @@ export function HiveTable({
             </Table>
           </DndContext>
         </div>
-        <div className="flex items-center justify-between px-4">
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between">
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
             {table.getFilteredSelectedRowModel().rows.length} of{" "}
             {table.getFilteredRowModel().rows.length} row(s) selected.
@@ -420,9 +402,7 @@ export function HiveTable({
               </Label>
               <Select
                 value={`${table.getState().pagination.pageSize}`}
-                onValueChange={(value) => {
-                  table.setPageSize(Number(value));
-                }}
+                onValueChange={(value) => table.setPageSize(Number(value))}
               >
                 <SelectTrigger size="sm" className="w-20" id="rows-per-page">
                   <SelectValue
@@ -449,7 +429,6 @@ export function HiveTable({
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}
               >
-                <span className="sr-only">Go to first page</span>
                 <IconChevronsLeft />
               </Button>
               <Button
@@ -459,7 +438,6 @@ export function HiveTable({
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
               >
-                <span className="sr-only">Go to previous page</span>
                 <IconChevronLeft />
               </Button>
               <Button
@@ -469,7 +447,6 @@ export function HiveTable({
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >
-                <span className="sr-only">Go to next page</span>
                 <IconChevronRight />
               </Button>
               <Button
@@ -479,78 +456,12 @@ export function HiveTable({
                 onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                 disabled={!table.getCanNextPage()}
               >
-                <span className="sr-only">Go to last page</span>
                 <IconChevronsRight />
               </Button>
             </div>
           </div>
         </div>
       </TabsContent>
-      <TabsContent
-        value="past-performance"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
-      <TabsContent value="key-personnel" className="flex flex-col px-4 lg:px-6">
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
-      <TabsContent
-        value="focus-documents"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
     </Tabs>
   );
 }
-
-// const chartConfig = {
-//   desktop: {
-//     label: "Desktop",
-//     color: "var(--primary)",
-//   },
-//   mobile: {
-//     label: "Mobile",
-//     color: "var(--primary)",
-//   },
-// } satisfies ChartConfig;
-
-// function TableCellViewer({ item }: { item: z.infer<typeof hiveFormSchema> }) {
-//   const isMobile = useIsMobile();
-
-//   return (
-//     <Drawer direction={isMobile ? "bottom" : "right"}>
-//       <DrawerTrigger asChild>
-//         <Button variant="link" className="px-0">
-//           Hive #{item.hiveNumber}
-//         </Button>
-//       </DrawerTrigger>
-//       <DrawerContent>
-//         <DrawerHeader>
-//           <DrawerTitle>Hive #{item.hiveNumber}</DrawerTitle>
-//           <DrawerDescription>
-//             Source: {item.hiveSource} | Queen: {item.queenColor ?? "Unknown"}
-//           </DrawerDescription>
-//         </DrawerHeader>
-//         <div className="px-4 py-2 space-y-2">
-//           <p>
-//             <strong>Brood Boxes:</strong> {item.broodBoxes ?? "-"}
-//           </p>
-//           <p>
-//             <strong>Supers:</strong> {item.superBoxes ?? "-"}
-//           </p>
-//           <p>
-//             <strong>Todo:</strong> {item.todo ?? "—"}
-//           </p>
-//         </div>
-//         <DrawerFooter>
-//           <Button>Edit</Button>
-//           <DrawerClose asChild>
-//             <Button variant="outline">Close</Button>
-//           </DrawerClose>
-//         </DrawerFooter>
-//       </DrawerContent>
-//     </Drawer>
-//   );
-// }

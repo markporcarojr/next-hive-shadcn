@@ -94,7 +94,6 @@ export default function ExpenseTable({
     },
     {
       id: "actions",
-      header: "Actions",
       cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

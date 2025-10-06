@@ -55,7 +55,7 @@ export default async function InspectionPage() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-3xl font-bold tracking-tight">Your Inspections</h2>
         <Button asChild>
-          <Link href="/finance/inspections/new">Add Inspection</Link>
+          <Link href="/inspections/new">Add Inspection</Link>
         </Button>
       </div>
       <InspectionTable inspections={sanitized} />

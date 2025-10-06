@@ -37,9 +37,10 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { CalendarIcon, Edit } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { HiveInput } from "@/lib/schemas/hive";
+import { Hive } from "@prisma/client";
+import Image from "next/image";
 
 function getStrengthLabel(value: number) {
   if (value < 35) return "Weak";
@@ -53,25 +54,11 @@ function getColor(value: number) {
   return "green";
 }
 
-export default function EditInspectionPage() {
+export default function ReadOnlyInspectionPage() {
   const params = useParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [hives, setHives] = useState<{ value: string; label: string }[]>([]);
-
-  useEffect(() => {
-    const fetchHives = async () => {
-      const res = await fetch("/api/hives");
-      const data = await res.json();
-      const simplified = data.map((h: HiveInput) => ({
-        value: String(h.id),
-        label: `Hive #${h.hiveNumber}`,
-      }));
-      setHives(simplified);
-    };
-
-    fetchHives();
-  }, []);
 
   const form = useForm<InspectionInput>({
     resolver: zodResolver(inspectionFormSchema),
@@ -95,6 +82,20 @@ export default function EditInspectionPage() {
       weatherTemp: "",
     },
   });
+
+  useEffect(() => {
+    const fetchHives = async () => {
+      const res = await fetch("/api/hives");
+      const data = await res.json();
+      const simplified = data.map((h: Hive) => ({
+        value: String(h.id),
+        label: `Hive #${h.hiveNumber}`,
+      }));
+      setHives(simplified);
+    };
+
+    fetchHives();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -134,34 +135,6 @@ export default function EditInspectionPage() {
     fetchData();
   }, [params.id, form, router]);
 
-  const handleSubmit = async (values: InspectionInput) => {
-    const parsed = {
-      ...values,
-      hiveId: Number(values.hiveId), // 👈 convert string to number
-    };
-
-    try {
-      const res = await fetch(`/api/inspection/${params.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...parsed,
-        }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        toast.error(errorData.message || "Failed to update inspection");
-        return;
-      }
-
-      toast.success("Successfully updated inspection");
-      router.push("/inspection");
-    } catch (error) {
-      console.error(error);
-      toast.error("Could not update inspection.");
-    }
-  };
   if (loading) {
     return (
       <main className="p-8 max-w-2xl mx-auto">
@@ -178,53 +151,41 @@ export default function EditInspectionPage() {
     <main className="p-8 max-w-2xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle>Edit Inspection</CardTitle>
+          <CardTitle>Inspection Details</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleSubmit)}
-              className="space-y-6"
-            >
+            <form className="space-y-6">
               {/* Inspection Date */}
               <FormField
                 control={form.control}
                 name="inspectionDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Inspection Date *</FormLabel>
+                    <FormLabel>Inspection Date</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
                             variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
+                            disabled
+                            className="w-full pl-3 text-left font-normal"
                           >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
+                            {field.value
+                              ? format(field.value, "PPP")
+                              : "Pick a date"}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
-                          mode="single"
                           selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                          }
-                          initialFocus
+                          mode="single"
+                          disabled
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -235,9 +196,9 @@ export default function EditInspectionPage() {
                 name="hiveId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Select Hive *</FormLabel>
+                    <FormLabel>Select Hive</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(Number(value))}
+                      disabled
                       value={field.value ? String(field.value) : ""}
                     >
                       <FormControl>
@@ -253,7 +214,6 @@ export default function EditInspectionPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -274,9 +234,7 @@ export default function EditInspectionPage() {
                       <div className="px-3">
                         <Slider
                           value={[field.value]}
-                          onValueChange={(values: number[]) =>
-                            field.onChange(values[0])
-                          }
+                          disabled
                           max={100}
                           min={0}
                           step={1}
@@ -289,92 +247,31 @@ export default function EditInspectionPage() {
                         </div>
                       </div>
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
 
               {/* Checkboxes */}
               <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="queen"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal">Queen</FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="queenCell"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal">Queen Cell</FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="brood"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal">Brood</FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="disease"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal">Disease</FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="eggs"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal">Eggs</FormLabel>
-                    </FormItem>
-                  )}
-                />
+                {["queen", "queenCell", "brood", "disease", "eggs"].map(
+                  (name) => (
+                    <FormField
+                      key={name}
+                      control={form.control}
+                      name={name as keyof InspectionInput}
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox checked={field.value} disabled />
+                          </FormControl>
+                          <FormLabel className="font-normal capitalize">
+                            {name}
+                          </FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                  )
+                )}
               </div>
 
               {/* Temperament */}
@@ -384,21 +281,13 @@ export default function EditInspectionPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Temperament</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select disabled value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Pick value" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Calm">Calm</SelectItem>
-                        <SelectItem value="Aggressive">Aggressive</SelectItem>
-                        <SelectItem value="Defensive">Defensive</SelectItem>
-                        <SelectItem value="Normal">Normal</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
                     </Select>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -410,26 +299,9 @@ export default function EditInspectionPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Pests</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pick value" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Varroa Mites">
-                          Varroa Mites
-                        </SelectItem>
-                        <SelectItem value="Hive Beetles">
-                          Hive Beetles
-                        </SelectItem>
-                        <SelectItem value="Ants">Ants</SelectItem>
-                        <SelectItem value="Mice">Mice</SelectItem>
-                        <SelectItem value="Wax Moths">Wax Moths</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
+                    <FormControl>
+                      <Input disabled value={field.value || ""} />
+                    </FormControl>
                   </FormItem>
                 )}
               />
@@ -441,23 +313,9 @@ export default function EditInspectionPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Feeding</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pick value" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Fondant">Fondant</SelectItem>
-                        <SelectItem value="Pollen Patties">
-                          Pollen Patties
-                        </SelectItem>
-                        <SelectItem value="Sugar Syrup">Sugar Syrup</SelectItem>
-                        <SelectItem value="No Feeding">No Feeding</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
+                    <FormControl>
+                      <Input disabled value={field.value || ""} />
+                    </FormControl>
                   </FormItem>
                 )}
               />
@@ -469,26 +327,9 @@ export default function EditInspectionPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Treatments</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pick value" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Oxalic Acid">Oxalic Acid</SelectItem>
-                        <SelectItem value="Formic Acid">Formic Acid</SelectItem>
-                        <SelectItem value="Apivar">Apivar</SelectItem>
-                        <SelectItem value="Diatomaceous Earth">
-                          Diatomaceous Earth
-                        </SelectItem>
-                        <SelectItem value="No Treatments">
-                          No Treatments
-                        </SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
+                    <FormControl>
+                      <Input disabled value={field.value || ""} />
+                    </FormControl>
                   </FormItem>
                 )}
               />
@@ -501,9 +342,8 @@ export default function EditInspectionPage() {
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Inspection notes..." {...field} />
+                      <Textarea disabled value={field.value || ""} />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -517,9 +357,8 @@ export default function EditInspectionPage() {
                     <FormItem>
                       <FormLabel>Weather Condition</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Sunny, Cloudy" {...field} />
+                        <Input disabled value={field.value || ""} />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -532,18 +371,32 @@ export default function EditInspectionPage() {
                     <FormItem>
                       <FormLabel>Weather Temp</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., 75°F" {...field} />
+                        <Input disabled value={field.value || ""} />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
 
+              {form.getValues("inspectionImage") && (
+                <div className="mt-4">
+                  <Image
+                    src={form.getValues("inspectionImage") || ""}
+                    alt="Inspection"
+                    width={600}
+                    height={320}
+                    className="rounded-lg border mt-2 max-h-80 object-cover"
+                  />
+                </div>
+              )}
+
               <div className="flex justify-end">
-                <Button type="submit" disabled={loading}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Update Inspection
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push(`/inspection/edit/${params.id}`)}
+                >
+                  Edit Inspection
                 </Button>
               </div>
             </form>

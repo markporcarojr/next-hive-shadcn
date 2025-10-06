@@ -123,7 +123,6 @@ export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
     },
     {
       id: "actions",
-      header: "Actions",
       cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
