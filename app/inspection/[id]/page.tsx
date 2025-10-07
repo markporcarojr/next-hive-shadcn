@@ -262,7 +262,7 @@ export default function ReadOnlyInspectionPage() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                           <FormControl>
-                            <Checkbox checked={field.value} disabled />
+                            <Checkbox checked={field.value as boolean} disabled />
                           </FormControl>
                           <FormLabel className="font-normal capitalize">
                             {name}
