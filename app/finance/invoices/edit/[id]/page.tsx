@@ -27,6 +27,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
 export default function EditInvoicePage() {
   const router = useRouter();
@@ -136,7 +137,9 @@ export default function EditInvoicePage() {
     }
   };
 
-  if (loading) return <div className="text-muted-foreground">Loading...</div>;
+  if (loading) {
+    return <DetailPageSkeleton />;
+  }
 
   return (
     <Card className="max-w-2xl mx-auto mt-8">

@@ -35,6 +35,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { CalendarIcon, Edit } from "lucide-react";
@@ -162,16 +163,9 @@ export default function EditInspectionPage() {
       toast.error("Could not update inspection.");
     }
   };
+
   if (loading) {
-    return (
-      <main className="p-8 max-w-2xl mx-auto">
-        <Card>
-          <CardContent>
-            <div className="flex justify-center p-8">Loading...</div>
-          </CardContent>
-        </Card>
-      </main>
-    );
+    return <DetailPageSkeleton />;
   }
 
   return (

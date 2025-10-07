@@ -54,7 +54,7 @@ export default function IncomeReadOnlyPage({
       }
     }
     loadIncome();
-    // eslint-disable-next-line react-hooks/exhaustive-docs
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   if (loading) {

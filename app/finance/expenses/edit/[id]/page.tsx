@@ -31,6 +31,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
 export default function EditExpensePage() {
   const router = useRouter();
@@ -115,12 +116,7 @@ export default function EditExpensePage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-40">
-        <Loader2 className="animate-spin w-6 h-6" />
-        <span className="ml-2">Loading...</span>
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   return (

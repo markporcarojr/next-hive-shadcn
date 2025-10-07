@@ -26,6 +26,7 @@ import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
 export default function EditIncomePage() {
   const router = useRouter();
@@ -96,7 +97,9 @@ export default function EditIncomePage() {
     }
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    return <DetailPageSkeleton />;
+  }
 
   return (
     <div className="max-w-md mx-auto p-6">

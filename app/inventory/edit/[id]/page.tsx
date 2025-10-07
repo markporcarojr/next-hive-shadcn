@@ -25,6 +25,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Edit } from "lucide-react";
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
 const LOCATIONS = ["Workshop", "Honey Room", "Storage Shed", "Garage", "Van"];
 
@@ -94,15 +95,7 @@ export default function EditInventoryPage() {
   };
 
   if (loading) {
-    return (
-      <main className="p-8 max-w-lg mx-auto">
-        <Card>
-          <CardContent>
-            <div className="flex justify-center p-8">Loading...</div>
-          </CardContent>
-        </Card>
-      </main>
-    );
+    return <DetailPageSkeleton />;
   }
 
   return (

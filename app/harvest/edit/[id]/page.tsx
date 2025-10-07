@@ -35,6 +35,7 @@ import { format } from "date-fns";
 import { useEffect, useState, use } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
 export default function EditHarvestPage({
   params,
@@ -103,7 +104,9 @@ export default function EditHarvestPage({
     }
   };
 
-  if (loading) return <p style={{ padding: "2rem" }}>Loading...</p>;
+  if (loading) {
+    return <DetailPageSkeleton />;
+  }
 
   return (
     <div className="flex justify-center mt-12">

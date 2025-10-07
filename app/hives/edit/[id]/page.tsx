@@ -34,6 +34,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, use } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
 export default function EditHivesPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -107,15 +108,7 @@ export default function EditHivesPage({ params }: { params: Promise<{ id: string
   };
 
   if (loading) {
-    return (
-      <main className="p-8 max-w-2xl mx-auto">
-        <Card>
-          <CardContent>
-            <div className="flex justify-center p-8">Loading...</div>
-          </CardContent>
-        </Card>
-      </main>
-    );
+    return <DetailPageSkeleton />;
   }
 
   return (
