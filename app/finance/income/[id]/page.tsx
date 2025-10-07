@@ -131,9 +131,13 @@ export default function IncomeReadOnlyPage({
               />
 
               {/* Actions */}
-              <div className="flex gap-2 mt-4">
-                <Button onClick={() => router.push("/finance/income")}>
-                  Back
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push(`/finance/income/edit/${id}`)}
+                >
+                  Edit Income
                 </Button>
               </div>
             </form>

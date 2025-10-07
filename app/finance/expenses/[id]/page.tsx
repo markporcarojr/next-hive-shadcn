@@ -131,12 +131,13 @@ export default function ExpenseReadOnlyPage({
               />
 
               {/* Actions */}
-              <div className="flex gap-2 mt-4">
+              <div className="flex justify-end">
                 <Button
                   type="button"
-                  onClick={() => router.push("/finance/expenses")}
+                  variant="outline"
+                  onClick={() => router.push(`/finance/expenses/edit/${id}`)}
                 >
-                  Back
+                  Edit Expense
                 </Button>
               </div>
             </form>

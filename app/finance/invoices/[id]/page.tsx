@@ -143,8 +143,14 @@ export default function InvoicePage() {
             className="font-bold"
           />
         </div>
-        <div className="flex gap-2 mt-4">
-          <Button onClick={() => router.push("/finance/invoices")}>Back</Button>
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push(`/finance/invoices/edit/${params.id}`)}
+          >
+            Edit Invoice
+          </Button>
         </div>
       </div>
     </Card>
