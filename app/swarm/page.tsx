@@ -5,7 +5,7 @@ import SwarmTable from "./swarm-table";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { SwarmInput } from "@/lib/schemas/swarmTrap";
-import TrapMap from "@/components/trap-map";
+import TrapMapWrapper from "@/components/trap-map-wrapper"; // ✅ use wrapper
 
 export default async function SwarmPage() {
   const { userId: clerkId } = await auth();
@@ -41,8 +41,11 @@ export default async function SwarmPage() {
           <Link href="/swarm/new">Add Trap</Link>
         </Button>
       </div>
+
       <SwarmTable swarms={sanitized} />
-      <TrapMap zoom={15} height={"400px"} />
+
+      {/* ✅ Client-only map, loaded safely */}
+      <TrapMapWrapper zoom={15} height="400px" />
     </main>
   );
 }
