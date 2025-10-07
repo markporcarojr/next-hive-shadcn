@@ -38,15 +38,13 @@ export async function POST(req: NextRequest) {
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-    // Convert invoiceId if present
-    const data: Record<string, unknown> = { ...parsed };
-    if (parsed.invoiceId !== undefined) {
-      data.invoiceId = parsed.invoiceId ? Number(parsed.invoiceId) : null;
-    }
-
     const income = await prisma.income.create({
       data: {
-        ...data,
+        source: parsed.source,
+        amount: parsed.amount,
+        date: parsed.date,
+        notes: parsed.notes,
+        invoiceId: parsed.invoiceId ? Number(parsed.invoiceId) : null,
         userId: user.id,
       },
     });

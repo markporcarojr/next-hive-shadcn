@@ -52,7 +52,7 @@ export async function PATCH(
     const parsedData = swarmTrapApiSchema.safeParse(body);
     if (!parsedData.success) {
       return NextResponse.json(
-        { error: parsedData.error.errors },
+        { error: parsedData.error.issues },
         { status: 400 }
       );
     }

@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { HarvestInput, harvestFormSchema } from "@/lib/schemas/harvest";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, use } from "react";
 import { useForm } from "react-hook-form";
 
 async function fetchHarvest(id: string): Promise<HarvestInput> {

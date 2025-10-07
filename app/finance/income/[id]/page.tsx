@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { IncomeInput, incomeFormSchema } from "@/lib/schemas/income";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, use } from "react";
 import { useForm } from "react-hook-form";
 
 async function fetchIncome(id: string): Promise<IncomeInput> {

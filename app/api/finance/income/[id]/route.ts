@@ -59,15 +59,26 @@ export async function PATCH(
         { status: 404 }
       );
 
-    // Convert invoiceId if present
-    const data: Record<string, unknown> = { ...parsed };
+    // Build update data with proper types
+    const updateData: {
+      source?: string;
+      amount?: number;
+      date?: Date;
+      notes?: string;
+      invoiceId?: number | null;
+    } = {};
+    
+    if (parsed.source !== undefined) updateData.source = parsed.source;
+    if (parsed.amount !== undefined) updateData.amount = parsed.amount;
+    if (parsed.date !== undefined) updateData.date = parsed.date;
+    if (parsed.notes !== undefined) updateData.notes = parsed.notes;
     if (parsed.invoiceId !== undefined) {
-      data.invoiceId = parsed.invoiceId ? Number(parsed.invoiceId) : null;
+      updateData.invoiceId = parsed.invoiceId ? Number(parsed.invoiceId) : null;
     }
 
     const income = await prisma.income.update({
       where: { id: Number(id) },
-      data,
+      data: updateData,
     });
     return NextResponse.json(income);
   } catch (error) {

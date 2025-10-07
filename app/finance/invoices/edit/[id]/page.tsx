@@ -19,6 +19,7 @@ import {
   invoiceFormSchema,
   invoiceApiSchema,
   PRODUCT_TYPES,
+  PRODUCT_TYPE_VALUES,
 } from "@/lib/schemas/invoice";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
@@ -237,7 +238,7 @@ export default function EditInvoicePage() {
                   <Input
                     value={item.product}
                     onChange={(e) =>
-                      updateItem(idx, { product: e.target.value })
+                      updateItem(idx, { product: e.target.value as typeof PRODUCT_TYPE_VALUES[number] })
                     }
                   />
                 </div>

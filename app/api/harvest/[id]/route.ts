@@ -7,9 +7,8 @@ export async function GET(
   _: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const harvest = await prisma.harvest.findUnique({
       where: { id: Number(id) },
@@ -33,8 +32,8 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
   try {
+    const { id } = await params;
     const body = await req.json();
     const { harvestAmount, harvestType, harvestDate } = body;
 
@@ -45,7 +44,6 @@ export async function PATCH(
       );
     }
 
-    const { id } = params;
     // const result = await Harvest.findByIdAndUpdate(id, body);
     const result = { id, updated: true }; // mock
 
