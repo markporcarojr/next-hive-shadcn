@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -9,9 +10,13 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -19,28 +24,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
+import { Textarea } from "@/components/ui/textarea";
 import {
   InspectionInput,
   inspectionFormSchema,
 } from "@/lib/schemas/inspection";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Hive } from "@prisma/client";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Hive } from "@prisma/client";
-import Image from "next/image";
 
 function getStrengthLabel(value: number) {
   if (value < 35) return "Weak";
@@ -262,7 +260,10 @@ export default function ReadOnlyInspectionPage() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                           <FormControl>
-                            <Checkbox checked={field.value as boolean} disabled />
+                            <Checkbox
+                              checked={field.value as boolean}
+                              disabled
+                            />
                           </FormControl>
                           <FormLabel className="font-normal capitalize">
                             {name}
