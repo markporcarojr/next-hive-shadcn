@@ -13,8 +13,9 @@ import { Input } from "@/components/ui/input";
 import { HarvestInput, harvestFormSchema } from "@/lib/schemas/harvest";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect, use } from "react";
+import { useEffect, use, useState } from "react";
 import { useForm } from "react-hook-form";
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
 async function fetchHarvest(id: string): Promise<HarvestInput> {
   const res = await fetch(`/api/harvest/${id}`);
@@ -31,6 +32,7 @@ export default function HarvestReadOnlyPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   const form = useForm<HarvestInput>({
     resolver: zodResolver(harvestFormSchema),
@@ -43,12 +45,20 @@ export default function HarvestReadOnlyPage({
 
   useEffect(() => {
     async function loadHarvest() {
-      const data = await fetchHarvest(id);
-      form.reset(data);
+      try {
+        const data = await fetchHarvest(id);
+        form.reset(data);
+      } finally {
+        setLoading(false);
+      }
     }
     loadHarvest();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  if (loading) {
+    return <DetailPageSkeleton />;
+  }
 
   return (
     <div className="container mx-auto py-8">

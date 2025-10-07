@@ -39,6 +39,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
 function getStrengthLabel(value: number) {
   if (value < 35) return "Weak";
@@ -134,15 +135,7 @@ export default function ReadOnlyInspectionPage() {
   }, [params.id, form, router]);
 
   if (loading) {
-    return (
-      <main className="p-8 max-w-2xl mx-auto">
-        <Card>
-          <CardContent>
-            <div className="flex justify-center p-8">Loading...</div>
-          </CardContent>
-        </Card>
-      </main>
-    );
+    return <DetailPageSkeleton />;
   }
 
   return (

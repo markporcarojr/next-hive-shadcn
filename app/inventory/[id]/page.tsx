@@ -21,15 +21,17 @@ import {
 import { InventoryInput, inventorySchema } from "@/lib/schemas/inventory";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
 const LOCATIONS = ["Storage", "Shop", "Garage", "Field", "Other"];
 
 export default function ReadOnlyInventoryPage() {
   const params = useParams();
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   const form = useForm<InventoryInput>({
     resolver: zodResolver(inventorySchema),
@@ -59,11 +61,16 @@ export default function ReadOnlyInventoryPage() {
         toast.error("Failed to load item data");
         router.push("/inventory");
       } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
   }, [params.id, form, router]);
+
+  if (loading) {
+    return <DetailPageSkeleton />;
+  }
 
   return (
     <main className="p-8 max-w-lg mx-auto">

@@ -13,8 +13,9 @@ import { Input } from "@/components/ui/input";
 import { IncomeInput, incomeFormSchema } from "@/lib/schemas/income";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect, use } from "react";
+import { useEffect, use, useState } from "react";
 import { useForm } from "react-hook-form";
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
 async function fetchIncome(id: string): Promise<IncomeInput> {
   const res = await fetch(`/api/finance/income/${id}`);
@@ -31,6 +32,7 @@ export default function IncomeReadOnlyPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   const form = useForm<IncomeInput>({
     resolver: zodResolver(incomeFormSchema),
@@ -44,12 +46,20 @@ export default function IncomeReadOnlyPage({
 
   useEffect(() => {
     async function loadIncome() {
-      const data = await fetchIncome(id);
-      form.reset(data);
+      try {
+        const data = await fetchIncome(id);
+        form.reset(data);
+      } finally {
+        setLoading(false);
+      }
     }
     loadIncome();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-docs
   }, [id]);
+
+  if (loading) {
+    return <DetailPageSkeleton />;
+  }
 
   return (
     <div className="container mx-auto py-8">
