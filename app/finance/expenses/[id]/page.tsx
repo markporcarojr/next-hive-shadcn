@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { ExpenseFormInput, expenseFormSchema } from "@/lib/schemas/expense";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, use } from "react";
 import { useForm } from "react-hook-form";
 
 async function fetchExpense(id: string): Promise<ExpenseFormInput> {
@@ -27,8 +27,9 @@ async function fetchExpense(id: string): Promise<ExpenseFormInput> {
 export default function ExpenseReadOnlyPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
   const router = useRouter();
 
   const form = useForm<ExpenseFormInput>({
@@ -43,12 +44,12 @@ export default function ExpenseReadOnlyPage({
 
   useEffect(() => {
     async function loadExpense() {
-      const data = await fetchExpense(params.id);
+      const data = await fetchExpense(id);
       form.reset(data);
     }
     loadExpense();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
+  }, [id]);
 
   return (
     <div className="container mx-auto py-8">

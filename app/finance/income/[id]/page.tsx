@@ -27,8 +27,9 @@ async function fetchIncome(id: string): Promise<IncomeInput> {
 export default function IncomeReadOnlyPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
   const router = useRouter();
 
   const form = useForm<IncomeInput>({
@@ -43,12 +44,12 @@ export default function IncomeReadOnlyPage({
 
   useEffect(() => {
     async function loadIncome() {
-      const data = await fetchIncome(params.id);
+      const data = await fetchIncome(id);
       form.reset(data);
     }
     loadIncome();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
+  }, [id]);
 
   return (
     <div className="container mx-auto py-8">

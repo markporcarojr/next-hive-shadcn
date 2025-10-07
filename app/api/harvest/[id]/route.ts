@@ -5,8 +5,9 @@ import { auth } from "@clerk/nextjs/server";
 
 export async function GET(
   _: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { id } = params;
 
@@ -30,8 +31,9 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const body = await req.json();
     const { harvestAmount, harvestType, harvestDate } = body;
@@ -59,7 +61,7 @@ export async function PATCH(
 
 // export async function DELETE(
 //   _: NextRequest,
-//   { params }: { params: { id: string } }
+//   { params }: { params: Promise<{ id: string }> }
 // ) {
 //   try {
 //     const { id } = params;

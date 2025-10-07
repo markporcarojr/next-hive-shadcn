@@ -39,8 +39,9 @@ import { toast } from "sonner";
 export default function EditHarvestPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -58,7 +59,7 @@ export default function EditHarvestPage({
       try {
         const res = await fetch("/api/harvest");
         const data = await res.json();
-        const current = data.find((h: Harvest) => h.id === Number(params.id));
+        const current = data.find((h: Harvest) => h.id === Number(id));
         if (!current) return router.push("/harvest");
 
         form.reset({
@@ -76,11 +77,11 @@ export default function EditHarvestPage({
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = async (values: HarvestInput) => {
     try {
-      const res = await fetch(`/api/harvest?id=${params.id}`, {
+      const res = await fetch(`/api/harvest?id=${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

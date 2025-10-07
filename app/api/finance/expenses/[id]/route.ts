@@ -5,19 +5,20 @@ import { expenseApiSchema } from "@/lib/schemas/expense";
 
 export async function GET(
   _: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
+    const { id } = await params;
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const expense = await prisma.expense.findFirst({
-      where: { id: Number(params.id), userId: user.id },
+      where: { id: Number(id), userId: user.id },
     });
 
     if (!expense)
@@ -35,7 +36,7 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
@@ -43,6 +44,7 @@ export async function PATCH(
 
   const body = await req.json();
   try {
+    const { id } = await params;
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -60,7 +62,7 @@ export async function PATCH(
     }
 
     const updated = await prisma.expense.update({
-      where: { id: Number(params.id), userId: user.id },
+      where: { id: Number(id), userId: user.id },
       data: parsed.data,
     });
 
@@ -76,19 +78,20 @@ export async function PATCH(
 
 export async function DELETE(
   _: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
+    const { id } = await params;
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     await prisma.expense.delete({
-      where: { id: Number(params.id), userId: user.id },
+      where: { id: Number(id), userId: user.id },
     });
 
     return NextResponse.json({ success: true });

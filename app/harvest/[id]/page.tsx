@@ -27,8 +27,9 @@ async function fetchHarvest(id: string): Promise<HarvestInput> {
 export default function HarvestReadOnlyPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
   const router = useRouter();
 
   const form = useForm<HarvestInput>({
@@ -42,12 +43,12 @@ export default function HarvestReadOnlyPage({
 
   useEffect(() => {
     async function loadHarvest() {
-      const data = await fetchHarvest(params.id);
+      const data = await fetchHarvest(id);
       form.reset(data);
     }
     loadHarvest();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
+  }, [id]);
 
   return (
     <div className="container mx-auto py-8">

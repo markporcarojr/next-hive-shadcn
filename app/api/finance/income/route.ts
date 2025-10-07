@@ -32,11 +32,17 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const data = incomeApiSchema.parse(body);
+    const parsed = incomeApiSchema.parse(body);
 
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+    // Convert invoiceId if present
+    const data: Record<string, unknown> = { ...parsed };
+    if (parsed.invoiceId !== undefined) {
+      data.invoiceId = parsed.invoiceId ? Number(parsed.invoiceId) : null;
+    }
 
     const income = await prisma.income.create({
       data: {

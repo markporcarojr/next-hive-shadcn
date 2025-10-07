@@ -12,6 +12,7 @@ import { InvoiceInput, PRODUCT_TYPES } from "@/lib/schemas/invoice";
 import { format } from "date-fns";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
 async function fetchInvoice(id: string): Promise<InvoiceInput> {
   const res = await fetch(`/api/finance/invoices/${id}`);
@@ -54,11 +55,7 @@ export default function InvoicePage() {
     ) ?? 0;
 
   if (loading) {
-    return (
-      <Card className="max-w-2xl mx-auto mb-8 p-8">
-        <p>Loading invoice...</p>
-      </Card>
-    );
+    return <DetailPageSkeleton />;
   }
 
   if (error || !invoice) {

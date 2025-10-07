@@ -5,19 +5,20 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
+    const { id } = await params;
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const income = await prisma.income.findUnique({
-      where: { id: Number(params.id), userId: user.id },
+      where: { id: Number(id), userId: user.id },
     });
 
     if (!income)
@@ -32,33 +33,41 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
+    const { id } = await params;
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const body = await req.json();
-    const data = incomeApiSchema.partial().parse(body);
+    const parsed = incomeApiSchema.partial().parse(body);
 
-    const updated = await prisma.income.updateMany({
-      where: { id: Number(params.id), userId: user.id },
-      data,
+    // First check if income exists and belongs to user
+    const existing = await prisma.income.findFirst({
+      where: { id: Number(id), userId: user.id },
     });
 
-    if (updated.count === 0)
+    if (!existing)
       return NextResponse.json(
         { error: "Income not found or not yours" },
         { status: 404 }
       );
 
-    const income = await prisma.income.findUnique({
-      where: { id: Number(params.id) },
+    // Convert invoiceId if present
+    const data: Record<string, unknown> = { ...parsed };
+    if (parsed.invoiceId !== undefined) {
+      data.invoiceId = parsed.invoiceId ? Number(parsed.invoiceId) : null;
+    }
+
+    const income = await prisma.income.update({
+      where: { id: Number(id) },
+      data,
     });
     return NextResponse.json(income);
   } catch (error) {
@@ -69,26 +78,32 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
+    const { id } = await params;
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-    const deleted = await prisma.income.deleteMany({
-      where: { id: Number(params.id), userId: user.id },
+    // First check if income exists and belongs to user
+    const existing = await prisma.income.findFirst({
+      where: { id: Number(id), userId: user.id },
     });
 
-    if (deleted.count === 0)
+    if (!existing)
       return NextResponse.json(
         { error: "Income not found or not yours" },
         { status: 404 }
       );
+
+    await prisma.income.delete({
+      where: { id: Number(id) },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

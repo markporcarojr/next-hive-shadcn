@@ -6,11 +6,12 @@ import { hiveApiSchema } from "@/lib/schemas/hive";
 // GET /api/hives/[id]
 export async function GET(
   _: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const hive = await prisma.hive.findUnique({
-      where: { id: Number(params.id) },
+      where: { id: Number(id) },
     });
 
     if (!hive) {
@@ -27,12 +28,13 @@ export async function GET(
 // PATCH /api/hives/[id]
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
+  const { id } = await params;
   const body = await req.json();
 
   const parsed = hiveApiSchema.safeParse(body);
@@ -46,7 +48,7 @@ export async function PATCH(
 
   try {
     const hive = await prisma.hive.update({
-      where: { id: Number(params.id) },
+      where: { id: Number(id) },
       data: {
         ...parsed.data,
       },

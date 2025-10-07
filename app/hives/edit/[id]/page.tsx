@@ -35,7 +35,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-export default function EditHivesPage({ params }: { params: { id: string } }) {
+export default function EditHivesPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -55,7 +56,7 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/hives/${params.id}`);
+        const res = await fetch(`/api/hives/${id}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to fetch data");
 
@@ -77,12 +78,12 @@ export default function EditHivesPage({ params }: { params: { id: string } }) {
     };
 
     fetchData();
-  }, [params.id, form, router]);
+  }, [id, form, router]);
 
   const handleSubmit = async (values: HiveInput) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/hives/${params.id}`, {
+      const res = await fetch(`/api/hives/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
