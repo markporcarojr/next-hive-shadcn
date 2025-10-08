@@ -70,6 +70,14 @@ export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
               attribution="© OpenStreetMap contributors"
             />
           </BaseLayer>
+          <BaseLayer name="Satellite">
+            <TileLayer
+              url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+              attribution="© Google"
+              subdomains={["mt0", "mt1", "mt2", "mt3"]}
+              maxZoom={20}
+            />
+          </BaseLayer>
 
           <Overlay checked name="Swarm Traps">
             <LayerGroup>

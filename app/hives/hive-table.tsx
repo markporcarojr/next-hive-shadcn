@@ -77,6 +77,7 @@ import {
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { hiveFormSchema } from "@/lib/schemas/hive";
 import { useState } from "react";
+import Link from "next/link";
 
 const columns: ColumnDef<z.infer<typeof hiveFormSchema>>[] = [
   {
@@ -84,7 +85,16 @@ const columns: ColumnDef<z.infer<typeof hiveFormSchema>>[] = [
     header: ({ column }) => (
       <DataTableSortableHeader column={column} title="Hive #" />
     ),
-    cell: ({ row }) => <span>{row.original.hiveNumber}</span>,
+    cell: ({ row }) => (
+      <Link href={`/hives/${row.original.id}`}>
+        <Button
+          variant="ghost"
+          className="w-full justify-start px-2 h-auto font-normal cursor-pointer"
+        >
+          {row.original.hiveNumber}
+        </Button>
+      </Link>
+    ),
   },
   {
     accessorKey: "hiveSource",

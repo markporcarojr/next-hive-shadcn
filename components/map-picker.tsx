@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Target } from "lucide-react";
 import L from "leaflet";
+
 import "leaflet/dist/leaflet.css";
 import {
   MapContainer,
@@ -12,6 +13,7 @@ import {
   Popup,
   TileLayer,
   useMapEvents,
+  useMap,
 } from "react-leaflet";
 import { honeyIcon } from "../Data/mapIcons";
 
@@ -46,6 +48,17 @@ function LocationMarker({
   );
 }
 
+// ✅ This helper keeps the map centered when position changes
+function MapUpdater({ position }: { position: L.LatLng | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (position) {
+      map.setView(position, map.getZoom());
+    }
+  }, [position, map]);
+  return null;
+}
+
 export default function MapPicker({
   initialLat = 42.78,
   initialLng = -83.77,
@@ -55,7 +68,6 @@ export default function MapPicker({
     new L.LatLng(initialLat, initialLng)
   );
   const inputRef = useRef<HTMLInputElement>(null);
-  const mapRef = useRef<L.Map>(null);
 
   useEffect(() => {
     const initAutocomplete = () => {
@@ -65,7 +77,7 @@ export default function MapPicker({
         inputRef.current,
         {
           fields: ["geometry", "formatted_address"],
-          types: ["geocode"], // only addresses
+          types: ["geocode"],
         }
       );
 
@@ -79,16 +91,13 @@ export default function MapPicker({
           const newPos = new L.LatLng(lat, lng);
           setPosition(newPos);
           onSelect(lat, lng, place.formatted_address);
-          mapRef.current?.setView(newPos, 15);
         }
       });
     };
 
-    // Google script already in <head> via layout.tsx
     if (typeof window !== "undefined" && window.google) {
       initAutocomplete();
     } else {
-      // If script might load late, listen for it
       const handleLoad = () => initAutocomplete();
       window.addEventListener("google-maps-loaded", handleLoad);
       return () => window.removeEventListener("google-maps-loaded", handleLoad);
@@ -102,10 +111,15 @@ export default function MapPicker({
         const newPos = new L.LatLng(coords.latitude, coords.longitude);
         setPosition(newPos);
         onSelect(newPos.lat, newPos.lng, "Current Location");
-        mapRef.current?.setView(newPos, 15);
       },
       () => alert("Could not access location")
     );
+  };
+
+  const handleMapSelect = (lat: number, lng: number, address?: string) => {
+    const newPos = new L.LatLng(lat, lng);
+    setPosition(newPos);
+    onSelect(lat, lng, address);
   };
 
   return (
@@ -126,15 +140,16 @@ export default function MapPicker({
         center={[initialLat, initialLng]}
         zoom={13}
         style={{ height: "400px", width: "100%" }}
-        ref={(ref) => {
-          if (ref && !mapRef.current) mapRef.current = ref;
-        }}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="© OpenStreetMap contributors"
         />
-        <LocationMarker onSelect={onSelect} selectedPosition={position} />
+        <MapUpdater position={position} />
+        <LocationMarker
+          onSelect={handleMapSelect}
+          selectedPosition={position}
+        />
       </MapContainer>
     </div>
   );
