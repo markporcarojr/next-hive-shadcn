@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { inspectionApiSchema } from "@/lib/schemas/inspection";
 
 // GET: Fetch all inspections for the current user
-export async function GET(req: NextRequest) {
+export async function GET() {
   const { userId: clerkId } = await auth();
 
   try {
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 }
 
 // POST: Create a new inspection
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
+    const body = await _req.json();
     const parsed = inspectionApiSchema.safeParse(body);
 
     if (!parsed.success) {

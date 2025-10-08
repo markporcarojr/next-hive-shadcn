@@ -4,7 +4,7 @@ import { incomeApiSchema } from "@/lib/schemas/income";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
@@ -32,7 +32,7 @@ export async function GET(
 }
 
 export async function PATCH(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
@@ -45,7 +45,7 @@ export async function PATCH(
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-    const body = await req.json();
+    const body = await _req.json();
     const parsed = incomeApiSchema.partial().parse(body);
 
     // First check if income exists and belongs to user
@@ -67,7 +67,7 @@ export async function PATCH(
       notes?: string;
       invoiceId?: number | null;
     } = {};
-    
+
     if (parsed.source !== undefined) updateData.source = parsed.source;
     if (parsed.amount !== undefined) updateData.amount = parsed.amount;
     if (parsed.date !== undefined) updateData.date = parsed.date;
@@ -88,7 +88,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();

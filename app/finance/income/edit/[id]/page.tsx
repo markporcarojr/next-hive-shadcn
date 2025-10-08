@@ -35,7 +35,6 @@ export default function EditIncomePage() {
 
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<IncomeInput>({
     resolver: zodResolver(incomeFormSchema),
@@ -154,7 +153,6 @@ export default function EditIncomePage() {
                     <FormControl>
                       <Button
                         variant="outline"
-                        disabled={submitting}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"

@@ -3,12 +3,11 @@ import { expenseApiSchema } from "@/lib/schemas/expense";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function GET(req: NextRequest) {
+export async function GET() {
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+  // No request object needed for GET in Next.js route handlers
   try {
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user)
@@ -26,7 +25,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -40,7 +39,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
+    const body = await _req.json();
     const convertedBody = {
       ...body,
       date: new Date(body.date), // Convert date string to Date object

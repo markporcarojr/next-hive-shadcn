@@ -6,6 +6,7 @@ import "./globals.css";
 
 import { ActiveThemeProvider } from "@/components/active-theme";
 import { AppSidebar } from "@/components/app-sidebar";
+import GoogleMapsScript from "@/components/client/MapScript";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import {
@@ -13,11 +14,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { checkUser } from "@/lib/auth/checkUser";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
-import { checkUser } from "@/lib/auth/checkUser";
-import Script from "next/script";
-import GoogleMapsScript from "@/components/client/MapScript";
 
 export const metadata: Metadata = {
   title: "Next Hive - Beekeeping Helper App",

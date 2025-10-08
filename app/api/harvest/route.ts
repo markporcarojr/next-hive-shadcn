@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { harvestFormSchema } from "@/lib/schemas/harvest";
 
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
+    const body = await _req.json();
     const parsed = harvestFormSchema.safeParse({
       ...body,
       harvestDate: new Date(body.harvestDate), // ✅ ensure it's a Date before Zod
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
@@ -121,7 +121,7 @@ export async function DELETE(req: NextRequest) {
 
 // PATCH /api/harvest?id=123
 // PATCH /api/harvest?id=123
-export async function PATCH(req: NextRequest) {
+export async function PATCH(_req: NextRequest) {
   const { userId: clerkId } = await auth();
   if (!clerkId) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -132,7 +132,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ message: "User not found" }, { status: 404 });
   }
 
-  const url = new URL(req.url);
+  const url = new URL(_req.url);
   const id = url.searchParams.get("id");
   if (!id || isNaN(Number(id))) {
     return NextResponse.json(
@@ -142,7 +142,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
+    const body = await _req.json();
 
     // ✅ Convert harvestDate BEFORE validation
     const parsed = harvestFormSchema.safeParse({

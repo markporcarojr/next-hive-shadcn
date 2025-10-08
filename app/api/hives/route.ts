@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { hiveApiSchema } from "@/lib/schemas/hive";
 
 // GET: /api/hives
-export async function GET(req: NextRequest) {
+export async function GET() {
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
 }
 
 // POST: /api/hives
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
+    const body = await _req.json();
     const convertedBody = {
       ...body,
       hiveDate: new Date(body.hiveDate), // Convert to Date object for validation

@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET: /api/swarm
-export async function GET(req: NextRequest) {
+export async function GET() {
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -27,14 +27,14 @@ export async function GET(req: NextRequest) {
 }
 
 // POST: /api/swarm
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
+  const body = await _req.json();
   const parsed = swarmTrapApiSchema.safeParse(body);
 
   if (!parsed.success) {

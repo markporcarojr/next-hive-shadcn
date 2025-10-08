@@ -20,7 +20,7 @@ export async function GET() {
   return NextResponse.json(items);
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   if (!user)
     return NextResponse.json({ message: "User not found" }, { status: 404 });
 
-  const body = await req.json();
+  const body = await _req.json();
   const parsed = inventorySchema.safeParse(body);
 
   if (!parsed.success) {

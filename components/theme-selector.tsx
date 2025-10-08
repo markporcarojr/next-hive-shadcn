@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useThemeConfig } from "@/components/active-theme";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useEffect } from "react";
 
 const HONEY_THEMES = [
   { name: "Default", value: "default" },
@@ -30,8 +30,6 @@ const SPECIAL_THEMES = [
   { name: "Hive", value: "hive" },
   { name: "Smoke", value: "smoke" },
 ];
-
-const MONO_THEMES = [{ name: "Mono", value: "mono-scaled" }];
 
 const THEME_STORAGE_KEY = "theme-selector-active-theme";
 

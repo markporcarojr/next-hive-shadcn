@@ -80,32 +80,6 @@ export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
       ),
     },
     {
-      accessorKey: "removedAt",
-      header: ({ column }) => (
-        <DataTableSortableHeader column={column} title="Removed" />
-      ),
-      cell: ({ row }) =>
-        row.original.removedAt ? (
-          <span>{new Date(row.original.removedAt).toLocaleDateString()}</span>
-        ) : (
-          <span className="text-muted-foreground italic">Active</span>
-        ),
-    },
-    {
-      accessorKey: "latitude",
-      header: ({ column }) => (
-        <DataTableSortableHeader column={column} title="Latitude" />
-      ),
-      cell: ({ row }) => <span>{row.original.latitude.toFixed(4)}</span>,
-    },
-    {
-      accessorKey: "longitude",
-      header: ({ column }) => (
-        <DataTableSortableHeader column={column} title="Longitude" />
-      ),
-      cell: ({ row }) => <span>{row.original.longitude.toFixed(4)}</span>,
-    },
-    {
       id: "actions",
       cell: ({ row }) => (
         <DropdownMenu>

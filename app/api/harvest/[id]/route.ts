@@ -29,12 +29,12 @@ export async function GET(
 }
 
 export async function PATCH(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-    const body = await req.json();
+    const body = await _req.json();
     const { harvestAmount, harvestType, harvestDate } = body;
 
     if (!harvestAmount || !harvestType || !harvestDate) {

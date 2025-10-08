@@ -27,7 +27,7 @@ export async function GET(
 
 // PATCH /api/hives/[id]
 export async function PATCH(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
@@ -35,7 +35,7 @@ export async function PATCH(
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const body = await req.json();
+  const body = await _req.json();
 
   const parsed = hiveApiSchema.safeParse(body);
 

@@ -3,9 +3,9 @@ import { invoiceApiSchema } from "@/lib/schemas/invoice";
 import { sendInvoiceEmail } from "@/lib/sendInvoiceEmail";
 import { auth } from "@clerk/nextjs/server";
 import { Decimal } from "@prisma/client/runtime/library";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(_req: Request) {
   try {
     const { userId: clerkId } = await auth(); // 🔧 no await
     if (!clerkId) {
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     }
 
     // parse body
-    const body = await req.json();
+    const body = await _req.json();
     const parse = invoiceApiSchema.safeParse(body);
     if (!parse.success) {
       return NextResponse.json(
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const { userId: clerkId } = await auth();
   if (!clerkId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

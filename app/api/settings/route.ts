@@ -18,7 +18,7 @@ export async function GET() {
 }
 
 // POST: Create default settings
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   const { userId: clerkId } = await auth();
   if (!clerkId) return new NextResponse("Unauthorized", { status: 401 });
 
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse("Settings already exist", { status: 409 });
   }
 
-  const data = await req.json();
+  const data = await _req.json();
   const newSettings = await prisma.settings.create({
     data: {
       ...data,
@@ -44,14 +44,14 @@ export async function POST(req: NextRequest) {
 }
 
 // PATCH: Update settings
-export async function PATCH(req: NextRequest) {
+export async function PATCH(_req: NextRequest) {
   const { userId: clerkId } = await auth();
   if (!clerkId) return new NextResponse("Unauthorized", { status: 401 });
 
   const user = await prisma.user.findUnique({ where: { clerkId } });
   if (!user) return new NextResponse("User not found", { status: 404 });
 
-  const body = await req.json();
+  const body = await _req.json();
 
   const updated = await prisma.settings.update({
     where: { userId: user.id },

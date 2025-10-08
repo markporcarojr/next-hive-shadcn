@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { inventorySchema } from "@/lib/schemas/inventory";
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
@@ -28,7 +28,7 @@ export async function GET(
 }
 
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
@@ -59,7 +59,7 @@ export async function DELETE(
 }
 
 export async function PUT(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
@@ -71,7 +71,7 @@ export async function PUT(
   if (!user)
     return NextResponse.json({ message: "User not found" }, { status: 404 });
 
-  const body = await req.json();
+  const body = await _req.json();
   const parsed = inventorySchema.safeParse(body);
 
   if (!parsed.success) {
@@ -90,7 +90,7 @@ export async function PUT(
 }
 
 export async function PATCH(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
@@ -102,7 +102,7 @@ export async function PATCH(
   if (!user)
     return NextResponse.json({ message: "User not found" }, { status: 404 });
 
-  const body = await req.json();
+  const body = await _req.json();
   const parsed = inventorySchema.partial().safeParse(body);
 
   if (!parsed.success) {

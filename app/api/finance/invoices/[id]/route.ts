@@ -5,10 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -40,10 +39,9 @@ export async function GET(
 }
 
 export async function PATCH(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -57,7 +55,7 @@ export async function PATCH(
 
     // Await params before accessing properties
     const { id } = await params;
-    const body = await req.json();
+    const body = await _req.json();
 
     const invoice = await prisma.invoice.update({
       where: { id: Number(id) },
@@ -78,10 +76,9 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {

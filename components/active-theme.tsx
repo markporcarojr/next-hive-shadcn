@@ -12,7 +12,7 @@ const DEFAULT_THEME = "default";
 
 type ThemeContextType = {
   activeTheme: string;
-  setActiveTheme: (theme: string) => void;
+  setActiveTheme: (_theme: string) => void;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);

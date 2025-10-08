@@ -1,5 +1,6 @@
 "use client";
 
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -11,23 +12,21 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import {
   InvoiceInput,
   InvoiceItemInput,
-  invoiceFormSchema,
-  invoiceApiSchema,
-  PRODUCT_TYPES,
   PRODUCT_TYPE_VALUES,
+  invoiceApiSchema,
+  invoiceFormSchema,
 } from "@/lib/schemas/invoice";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
 export default function EditInvoicePage() {
   const router = useRouter();
@@ -241,7 +240,10 @@ export default function EditInvoicePage() {
                   <Input
                     value={item.product}
                     onChange={(e) =>
-                      updateItem(idx, { product: e.target.value as typeof PRODUCT_TYPE_VALUES[number] })
+                      updateItem(idx, {
+                        product: e.target
+                          .value as (typeof PRODUCT_TYPE_VALUES)[number],
+                      })
                     }
                   />
                 </div>

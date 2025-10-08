@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 // GET: Fetch all inspections for the current user
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
@@ -46,7 +46,7 @@ export async function GET(
 
 // PATCH: Update an existing inspection
 export async function PATCH(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();
@@ -59,7 +59,7 @@ export async function PATCH(
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-    const body = await req.json();
+    const body = await _req.json();
     const parsedData = inspectionApiSchema.safeParse(body);
     if (!parsedData.success) {
       return NextResponse.json(
@@ -88,7 +88,7 @@ export async function PATCH(
 
 // DELETE: Delete an inspection
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId: clerkId } = await auth();

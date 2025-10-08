@@ -18,14 +18,14 @@ import { honeyIcon } from "../Data/mapIcons";
 type MapPickerProps = {
   initialLat?: number;
   initialLng?: number;
-  onSelect: (lat: number, lng: number, address?: string) => void;
+  onSelect: (_lat: number, _lng: number, _address?: string) => void;
 };
 
 function LocationMarker({
   onSelect,
   selectedPosition,
 }: {
-  onSelect: (lat: number, lng: number, address?: string) => void;
+  onSelect: (_lat: number, _lng: number, _address?: string) => void;
   selectedPosition: L.LatLng | null;
 }) {
   useMapEvents({
