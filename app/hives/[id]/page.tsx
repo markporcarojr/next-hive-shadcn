@@ -1,6 +1,7 @@
 "use client";
 
-import MapPicker from "@/components/map-picker";
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
+import MapPickerReadOnly from "@/components/map-picker-read-only";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,11 +33,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, use } from "react";
+import { use, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
-import MapPickerReadOnly from "@/components/map-picker-read-only";
 
 export default function ReadOnlyHivePage({
   params,
@@ -118,9 +117,6 @@ export default function ReadOnlyHivePage({
               <MapPickerReadOnly
                 initialLat={form.watch("latitude")}
                 initialLng={form.watch("longitude")}
-                onSelect={() => {
-                  // No-op - read only
-                }}
               />
 
               {/* Hive Date */}

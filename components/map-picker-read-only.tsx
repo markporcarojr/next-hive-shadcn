@@ -25,7 +25,9 @@ function MapUpdater({ position }: { position: L.LatLng | null }) {
       map.scrollWheelZoom.disable();
       map.boxZoom.disable();
       map.keyboard.disable();
-      if (map.tap) map.tap.disable();
+      if ((map as L.Map & { tap?: { disable: () => void } }).tap) {
+        (map as L.Map & { tap?: { disable: () => void } }).tap!.disable();
+      }
     }
   }, [position, map]);
   return null;

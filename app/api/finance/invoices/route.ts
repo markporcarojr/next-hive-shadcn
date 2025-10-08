@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(_req: Request) {
   try {
-    const { userId: clerkId } = await auth(); // 🔧 no await
+    const { userId: clerkId } = await auth();
     if (!clerkId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -38,7 +38,7 @@ export async function POST(_req: Request) {
         phone: data.phone,
         notes: data.notes,
         total: new Decimal(data.total),
-        userId: user.id, // 🔧 correct relation
+        userId: user.id,
         items: {
           create: data.items.map((item) => ({
             product: item.product,
@@ -50,23 +50,27 @@ export async function POST(_req: Request) {
       include: { items: true },
     });
 
-    // send email safely
+    // send email safely with proper invoice structure
     if (invoice.email) {
       try {
         await sendInvoiceEmail({
           to: invoice.email,
+          invoiceNumber: invoice.id,
           customerName: invoice.customerName,
           total: invoice.total.toNumber(),
-          date: invoice.date.toISOString().slice(0, 10),
-          description: invoice.notes ?? undefined,
-          items: data.items.map(
-            (item) =>
-              `${item.quantity}x ${item.product} @ $${item.unitPrice.toFixed(2)}`
-          ),
+          date: invoice.date.toISOString(),
+          email: invoice.email,
+          phone: invoice.phone || undefined,
+          notes: invoice.notes || undefined,
+          items: invoice.items.map((item) => ({
+            product: item.product,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice.toNumber(),
+          })),
         });
       } catch (err) {
         console.error("[EMAIL_ERROR]", err);
-        // don’t fail invoice creation if email send fails
+        // don't fail invoice creation if email send fails
       }
     }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import MapPicker from "@/components/map-picker";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +37,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
-export default function EditHivesPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditHivesPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -44,12 +49,18 @@ export default function EditHivesPage({ params }: { params: Promise<{ id: string
   const form = useForm<HiveInput>({
     resolver: zodResolver(hiveFormSchema),
     defaultValues: {
-      hiveNumber: 0,
-      hiveSource: "",
       hiveDate: new Date(),
-      queenColor: "",
+      hiveNumber: 1,
+      hiveSource: "",
+      hiveImage: "",
       broodBoxes: 0,
       superBoxes: 0,
+      hiveStrength: 50,
+      queenColor: "",
+      queenAge: "",
+      queenExcluder: "",
+      breed: "",
+      frames: 0,
       todo: "",
     },
   });
@@ -62,13 +73,21 @@ export default function EditHivesPage({ params }: { params: Promise<{ id: string
         if (!res.ok) throw new Error(data.message || "Failed to fetch data");
 
         form.reset({
+          hiveDate: new Date(data.hiveDate),
           hiveNumber: data.hiveNumber,
           hiveSource: data.hiveSource,
-          hiveDate: new Date(data.hiveDate),
-          queenColor: data.queenColor || "",
+          hiveImage: data.hiveImage || "",
           broodBoxes: data.broodBoxes || 0,
           superBoxes: data.superBoxes || 0,
+          hiveStrength: data.hiveStrength || 50,
+          queenColor: data.queenColor || "",
+          queenAge: data.queenAge || "",
+          queenExcluder: data.queenExcluder || "",
+          breed: data.breed || "",
+          frames: data.frames || 0,
           todo: data.todo || "",
+          latitude: data.latitude,
+          longitude: data.longitude,
         });
       } catch {
         toast.error("Failed to load data");
@@ -123,6 +142,16 @@ export default function EditHivesPage({ params }: { params: Promise<{ id: string
               onSubmit={form.handleSubmit(handleSubmit)}
               className="space-y-6"
             >
+              {/* Map Picker for Location */}
+              <MapPicker
+                initialLat={form.watch("latitude")}
+                initialLng={form.watch("longitude")}
+                onSelect={(lat, lng) => {
+                  form.setValue("latitude", lat);
+                  form.setValue("longitude", lng);
+                }}
+              />
+
               {/* Hive Date */}
               <FormField
                 control={form.control}
@@ -141,7 +170,6 @@ export default function EditHivesPage({ params }: { params: Promise<{ id: string
                             )}
                           >
                             {field.value ? (
-                              // display string value as a formatted date
                               format(new Date(field.value), "PPP")
                             ) : (
                               <span>Pick a date</span>
@@ -220,27 +248,20 @@ export default function EditHivesPage({ params }: { params: Promise<{ id: string
                 )}
               />
 
-              {/* Queen Color */}
+              {/* Hive Image URL */}
               <FormField
                 control={form.control}
-                name="queenColor"
+                name="hiveImage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Queen Color</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select queen color" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="white">White</SelectItem>
-                        <SelectItem value="yellow">Yellow</SelectItem>
-                        <SelectItem value="red">Red</SelectItem>
-                        <SelectItem value="green">Green</SelectItem>
-                        <SelectItem value="blue">Blue</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Hive Image URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Optional image URL"
+                        {...field}
+                        disabled={loading}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -295,6 +316,151 @@ export default function EditHivesPage({ params }: { params: Promise<{ id: string
                   )}
                 />
               </div>
+
+              {/* Hive Strength */}
+              <FormField
+                control={form.control}
+                name="hiveStrength"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hive Strength (0-100)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Queen Color */}
+                <FormField
+                  control={form.control}
+                  name="queenColor"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Queen Color</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select queen color" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="white">White</SelectItem>
+                          <SelectItem value="yellow">Yellow</SelectItem>
+                          <SelectItem value="red">Red</SelectItem>
+                          <SelectItem value="green">Green</SelectItem>
+                          <SelectItem value="blue">Blue</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Queen Age */}
+                <FormField
+                  control={form.control}
+                  name="queenAge"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Queen Age</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., 1 year"
+                          {...field}
+                          disabled={loading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Queen Excluder */}
+              <FormField
+                control={form.control}
+                name="queenExcluder"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Queen Excluder</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select option" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Yes">Yes</SelectItem>
+                        <SelectItem value="No">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Breed */}
+              <FormField
+                control={form.control}
+                name="breed"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Breed</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select breed" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Italian">Italian</SelectItem>
+                        <SelectItem value="Carniolan">Carniolan</SelectItem>
+                        <SelectItem value="Buckfast">Buckfast</SelectItem>
+                        <SelectItem value="Russian">Russian</SelectItem>
+                        <SelectItem value="German">German</SelectItem>
+                        <SelectItem value="Caucasian">Caucasian</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Frames */}
+              <FormField
+                control={form.control}
+                name="frames"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Frames</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* To-do */}
               <FormField
