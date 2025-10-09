@@ -1,6 +1,5 @@
 "use client";
 
-import { IconInnerShadowTop } from "@tabler/icons-react";
 import * as React from "react";
 
 import { NavMain } from "@/components/nav-main";
@@ -16,11 +15,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
 
-import { data } from "../Data/nav-data";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { data } from "../Data/nav-data";
 
+import Image from "next/image";
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const currentPath = usePathname();
   const { setOpenMobile } = useSidebar();
@@ -38,10 +39,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Hive Tool</span>
-              </a>
+              <Link href="/" className="flex items-center gap-2">
+                <Image
+                  src="/hive_tool@1x.png"
+                  alt="Hive Tool Logo"
+                  width={32}
+                  height={32}
+                  className="align-middle"
+                  priority
+                />
+                <span className="text-base font-semibold leading-none">
+                  Hive Tool
+                </span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

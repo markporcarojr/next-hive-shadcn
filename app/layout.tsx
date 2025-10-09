@@ -1,5 +1,4 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import type { Metadata } from "next";
 import { cookies } from "next/headers";
 
 import "./globals.css";
@@ -18,10 +17,71 @@ import { checkUser } from "@/lib/auth/checkUser";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
 
+import type { Metadata } from "next";
+
 export const metadata: Metadata = {
-  title: "Next Hive - Beekeeping Helper App",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+  ),
+  title: {
+    default: "Next Hive - Beekeeping Helper App",
+    template: "%s | Next Hive", // For page-specific titles
+  },
   description:
     "Your personal beekeeping assistant. Track your hives, manage tasks, and monitor health with ease.",
+  applicationName: "Next Hive",
+  keywords: ["beekeeping", "hive management", "beekeeping app", "hive tracker"],
+  authors: [{ name: "Your Name" }],
+  creator: "Your Name",
+
+  // Open Graph (for social media sharing)
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://yourdomain.com",
+    title: "Next Hive - Beekeeping Helper App",
+    description:
+      "Your personal beekeeping assistant. Track your hives, manage tasks, and monitor health with ease.",
+    siteName: "Next Hive",
+    images: [
+      {
+        url: "/og-image.png", // Create this image (1200x630px recommended)
+        width: 1200,
+        height: 630,
+        alt: "Next Hive Beekeeping App",
+      },
+    ],
+  },
+
+  // Twitter Card
+  twitter: {
+    card: "summary_large_image",
+    title: "Next Hive - Beekeeping Helper App",
+    description:
+      "Your personal beekeeping assistant. Track your hives, manage tasks, and monitor health with ease.",
+    images: ["/twitter-image.png"], // Can use same as og-image
+  },
+
+  // Icons
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
+
+  // Robots
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+
+  // Manifest for PWA (optional)
 };
 
 export default async function RootLayout({

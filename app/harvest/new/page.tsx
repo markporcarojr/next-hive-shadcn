@@ -91,7 +91,6 @@ export default function CreateHarvestPage() {
                   <FormControl>
                     <Input
                       type="number"
-                      step="0.01"
                       min={0}
                       placeholder="Amount"
                       disabled={loading}
