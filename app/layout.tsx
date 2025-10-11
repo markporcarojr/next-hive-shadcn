@@ -65,7 +65,6 @@ export const metadata: Metadata = {
   // Icons
   icons: {
     icon: "/favicon.ico",
-    apple: "/apple-icon.png",
   },
 
   // Robots
@@ -102,9 +101,10 @@ export default async function RootLayout({
           suppressHydrationWarning
           className={cn(
             "bg-background overscroll-none font-sans antialiased",
-            activeThemeValue ? `theme-${activeThemeValue}` : "",
+            activeThemeValue ? `theme-${activeThemeValue}` : "theme-default",
             isScaled ? "theme-scaled" : ""
           )}
+          data-theme={activeThemeValue || "default"}
         >
           <ThemeProvider
             attribute="class"

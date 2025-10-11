@@ -1,7 +1,7 @@
-// components/TrapMap.tsx
+// components/HiveMap.tsx
 "use client";
 
-import { SwarmInput } from "@/lib/schemas/swarmTrap";
+import { HiveInput } from "@/lib/schemas/hive";
 import { useEffect, useState } from "react";
 import {
   LayerGroup,
@@ -18,35 +18,35 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 const { BaseLayer, Overlay } = LayersControl;
 
-interface TrapMapProps {
+interface HiveMapProps {
   zoom?: number;
   height?: string;
 }
 
-// helper to recenter after traps load
-function RecenterOnTraps({ traps }: { traps: SwarmInput[] }) {
+// helper to recenter after Hives load
+function RecenterOnHives({ hives }: { hives: HiveInput[] }) {
   const map = useMap();
 
   useEffect(() => {
-    if (traps.length > 0) {
-      const firstTrap = traps[0];
-      map.setView([firstTrap.latitude, firstTrap.longitude]);
+    if (hives.length > 0) {
+      const firstHive = hives[0];
+      map.setView([firstHive.latitude ?? 0, firstHive.longitude ?? 0]);
     }
-    // only run when first trap changes
+    // only run when first Hive changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, traps[0]?.latitude, traps[0]?.longitude]);
+  }, [map, hives[0]?.latitude, hives[0]?.longitude]);
 
   return null;
 }
 
-export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
-  const [traps, setTraps] = useState<SwarmInput[]>([]);
+export default function HiveMap({ zoom = 15, height = "400px" }: HiveMapProps) {
+  const [hives, setHives] = useState<HiveInput[]>([]);
 
   useEffect(() => {
-    fetch("/api/swarm")
+    fetch("/api/hives")
       .then((res) => res.json())
-      .then(setTraps)
-      .catch((err) => console.error("Error loading traps", err));
+      .then(setHives)
+      .catch((err) => console.error("Error loading Hives", err));
   }, []);
 
   return (
@@ -60,8 +60,8 @@ export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
       >
         <ZoomControl position="bottomright" />
 
-        {/* Recenter once traps load */}
-        <RecenterOnTraps traps={traps} />
+        {/* Recenter once Hives load */}
+        <RecenterOnHives hives={hives} />
 
         <LayersControl position="topright">
           <BaseLayer name="OpenStreetMap">
@@ -79,32 +79,28 @@ export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
             />
           </BaseLayer>
 
-          <Overlay checked name="Swarm Traps">
+          <Overlay checked name="Swarm Hives">
             <LayerGroup>
-              {traps.map((trap) => (
+              {hives.map((hive) => (
                 <Marker
-                  key={trap.id}
-                  position={[trap.latitude, trap.longitude]}
+                  key={hive.id}
+                  position={[hive.latitude ?? 0, hive.longitude ?? 0]}
                   icon={honeyIcon}
                 >
                   <Popup>
                     <Card className="w-64">
                       <CardHeader>
                         <h5 className="text-base font-semibold">
-                          {trap.label || "Unnamed Trap"}
+                          {hive.hiveNumber || "Unnamed Hive"}
                         </h5>
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm">
-                          Trap Set:{" "}
-                          {
-                            new Date(trap.installedAt)
-                              .toISOString()
-                              .split("T")[0]
-                          }
+                          Hive Set:{" "}
+                          {new Date(hive.hiveDate).toISOString().split("T")[0]}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Label: {trap.label}
+                          Source: {hive.hiveSource || "N/A"}
                         </p>
                       </CardContent>
                     </Card>

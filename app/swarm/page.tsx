@@ -45,7 +45,7 @@ export default async function SwarmPage() {
       <SwarmTable swarms={sanitized} />
 
       {/* ✅ Client-only map, loaded safely */}
-      <TrapMapWrapper zoom={15} height="400px" />
+      <TrapMapWrapper zoom={17} height="400px" />
     </main>
   );
 }

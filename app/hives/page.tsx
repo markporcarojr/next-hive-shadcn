@@ -7,6 +7,7 @@ import { HiveTable } from "./hive-table";
 import { Button } from "@/components/ui/button";
 import type { HiveInput } from "@/lib/schemas/hive";
 import { unstable_cache } from "next/cache"; // ✅ Built-in Next.js cache
+import HiveMap from "@/components/trap-map";
 
 // ✅ Cache server response for 30s
 export const revalidate = 30;
@@ -68,6 +69,7 @@ export default async function HivePage() {
       </header>
 
       <HiveTable data={hives} />
+      <HiveMap zoom={16} height="500px" />
     </main>
   );
 }

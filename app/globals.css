@@ -142,18 +142,39 @@
 .theme-default-scaled {
   --primary: var(--color-neutral-600);
   --primary-foreground: var(--color-neutral-50);
+
+  /* Chart colors */
+  --chart-1: oklch(0.65 0.2 250);
+  --chart-2: oklch(0.58 0.15 220);
+  --chart-3: oklch(0.5 0.12 200);
+  --chart-4: oklch(0.42 0.1 180);
+  --chart-5: oklch(0.35 0.08 160);
 }
 
 .theme-blue,
 .theme-blue-scaled {
   --primary: var(--color-blue-600);
   --primary-foreground: var(--color-blue-50);
+
+  /* Chart colors */
+  --chart-1: oklch(0.72 0.19 250);
+  --chart-2: oklch(0.65 0.17 230);
+  --chart-3: oklch(0.55 0.15 210);
+  --chart-4: oklch(0.48 0.13 190);
+  --chart-5: oklch(0.4 0.11 170);
 }
 
 .theme-green,
 .theme-green-scaled {
   --primary: var(--color-lime-600);
   --primary-foreground: var(--color-lime-50);
+
+  /* Chart colors */
+  --chart-1: oklch(0.75 0.2 145);
+  --chart-2: oklch(0.65 0.17 130);
+  --chart-3: oklch(0.55 0.14 115);
+  --chart-4: oklch(0.45 0.1 100);
+  --chart-5: oklch(0.4 0.08 90);
 }
 
 /* Honey Family */
@@ -161,27 +182,54 @@
 .theme-honey-scaled {
   --primary: var(--color-honey);
   --primary-foreground: var(--color-cream);
+
+  /* Chart colors */
+  --chart-1: oklch(0.83 0.22 85);
+  --chart-2: oklch(0.72 0.18 75);
+  --chart-3: oklch(0.6 0.15 65);
+  --chart-4: oklch(0.5 0.12 55);
+  --chart-5: oklch(0.4 0.1 45);
 }
 
 .theme-amber,
 .theme-amber-scaled {
   --primary: var(--color-amber);
   --primary-foreground: var(--color-cream);
+
+  /* Chart colors */
+  --chart-1: oklch(0.82 0.19 80);
+  --chart-2: oklch(0.72 0.16 70);
+  --chart-3: oklch(0.55 0.12 55);
+  --chart-4: oklch(0.48 0.1 50);
+  --chart-5: oklch(0.42 0.08 45);
 }
 
 .theme-brown,
 .theme-brown-scaled {
   --primary: var(--color-brown);
   --primary-foreground: var(--color-cream);
+
+  /* Chart colors */
+  --chart-1: oklch(0.45 0.08 60);
+  --chart-2: oklch(0.4 0.06 55);
+  --chart-3: oklch(0.35 0.05 50);
+  --chart-4: oklch(0.3 0.04 45);
+  --chart-5: oklch(0.25 0.03 40);
 }
 
 .theme-deep,
 .theme-deep-scaled {
   --primary: var(--color-deep);
   --primary-foreground: var(--color-cream);
-}
+  /* Fun extras */
 
-/* Fun extras */
+  /* Chart colors */
+  --chart-1: oklch(0.65 0.12 40);
+  --chart-2: oklch(0.55 0.1 35);
+  --chart-3: oklch(0.45 0.08 30);
+  --chart-4: oklch(0.35 0.07 25);
+  --chart-5: oklch(0.3 0.06 20);
+}
 .theme-wax {
   --primary: #ffe082;
   --primary-foreground: #3e2723;

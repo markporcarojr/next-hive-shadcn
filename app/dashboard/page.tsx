@@ -6,6 +6,8 @@ import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HiveTable } from "../hives/hive-table";
+import { HarvestFinanceChart } from "@/components/chart-area-interactive";
+import HiveMap from "@/components/trap-map";
 export default async function Page() {
   const { userId: clerkId } = await auth();
   if (!clerkId) return; // Optional: redirect instead
@@ -16,6 +18,16 @@ export default async function Page() {
   });
 
   if (!user) return notFound();
+
+  const harvestsRaw = await prisma.harvest.findMany({
+    where: { userId: user.id },
+    orderBy: { harvestDate: "desc" },
+  });
+
+  const harvests = harvestsRaw.map((harvest) => ({
+    ...harvest,
+    harvestAmount: Number(harvest.harvestAmount),
+  }));
 
   const expensesRaw = await prisma.expense.findMany({
     where: { userId: user.id },
@@ -74,9 +86,12 @@ export default async function Page() {
         </div>
         <HiveTable data={sanitized} />
         <SectionCards expenses={expenses} incomes={incomes} />
-        {/* <div className="px-4 lg:px-6">
-          <ChartAreaInteractive />
-        </div> */}
+        {/* <HarvestFinanceChart
+          harvests={harvests}
+          incomes={incomes}
+          expenses={expenses}
+        /> */}
+        <HiveMap zoom={17} height="500px" />
       </div>
     </main>
   );
