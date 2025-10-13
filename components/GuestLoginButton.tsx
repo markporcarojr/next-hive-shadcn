@@ -26,8 +26,12 @@ export function GuestLoginButton() {
       } else {
         console.error("Unexpected Clerk result:", result);
       }
-    } catch (error: any) {
-      console.error("Guest login failed:", error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Guest login failed:", error.message);
+      } else {
+        console.error("Guest login failed:", error);
+      }
       alert("Guest login unavailable right now. Try again later.");
     } finally {
       setLoading(false);

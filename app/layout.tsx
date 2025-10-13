@@ -62,11 +62,6 @@ export const metadata: Metadata = {
     images: ["/twitter-image.png"], // Can use same as og-image
   },
 
-  // Icons
-  icons: {
-    icon: "/favicon.ico",
-  },
-
   // Robots
   robots: {
     index: true,
