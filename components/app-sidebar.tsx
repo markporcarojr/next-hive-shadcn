@@ -30,6 +30,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     setOpenMobile(false);
   }, [currentPath, setOpenMobile]);
 
+  if (currentPath === "/sign-in" || currentPath === "/sign-up") {
+    return null;
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>

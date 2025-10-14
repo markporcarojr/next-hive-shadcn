@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { checkUser } from "@/lib/auth/checkUser";
 import { cn } from "@/lib/utils";
+import { dark } from "@clerk/themes";
 import { Toaster } from "sonner";
 
 import type { Metadata } from "next";
@@ -33,6 +34,7 @@ export const metadata: Metadata = {
   keywords: ["beekeeping", "hive management", "beekeeping app", "hive tracker"],
   authors: [{ name: "Your Name" }],
   creator: "Your Name",
+  icons: [{ rel: "icon", url: "/favicon.ico" }],
 
   // Open Graph (for social media sharing)
   openGraph: {
@@ -90,7 +92,12 @@ export default async function RootLayout({
   const isScaled = activeThemeValue?.endsWith("-scaled");
 
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        baseTheme: dark,
+        // signIn: { baseTheme: neobrutalism },
+      }}
+    >
       <html lang="en" suppressHydrationWarning>
         <body
           suppressHydrationWarning
