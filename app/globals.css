@@ -244,6 +244,83 @@
 }
 
 /* =========================================================
+   Icon Markers
+   ========================================================= */
+
+/* Theme-aware honey marker */
+.custom-honey-marker {
+  background: transparent;
+  border: none;
+}
+
+.marker-pin {
+  position: relative;
+  width: 32px;
+  height: 42px;
+  background-color: var(--primary);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 3px solid var(--background);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.marker-pin:hover {
+  transform: rotate(-45deg) scale(1.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.marker-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  font-size: 18px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+/* Theme-aware Leaflet Popup Styling */
+.leaflet-popup-content-wrapper {
+  background-color: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+}
+
+.leaflet-popup-tip {
+  background-color: var(--popover) !important;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-right: none;
+}
+
+.leaflet-popup-close-button {
+  color: var(--muted-foreground) !important;
+  transition: color 0.2s ease;
+}
+
+.leaflet-popup-close-button:hover {
+  color: var(--foreground) !important;
+  background-color: var(--accent) !important;
+}
+
+/* Remove default padding since we're using Card component */
+.popup-container .leaflet-popup-content-wrapper {
+  padding: 0 !important;
+}
+
+/* =========================================================
    Base Layer
    ========================================================= */
 @layer base {

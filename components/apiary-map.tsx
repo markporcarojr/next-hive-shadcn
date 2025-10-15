@@ -1,7 +1,5 @@
-// components/HiveMap.tsx
 "use client";
 
-import { HiveInput } from "@/lib/schemas/hive";
 import { useEffect, useState } from "react";
 import {
   LayerGroup,
@@ -13,64 +11,70 @@ import {
   ZoomControl,
   useMap,
 } from "react-leaflet";
-import { themedHoneyIcon } from "../Data/mapIcons";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { IconCalendar, IconInfoCircle, IconMapPin } from "@tabler/icons-react";
+import { HiveInput } from "@/lib/schemas/hive";
+import { SwarmInput } from "@/lib/schemas/swarmTrap";
+import { themedHoneyIcon, themedTrapIcon } from "../Data/mapIcons";
 
 const { BaseLayer, Overlay } = LayersControl;
 
-interface HiveMapProps {
+interface ApiaryMapProps {
   zoom?: number;
   height?: string;
 }
 
-// helper to recenter after Hives load
-function RecenterOnHives({ hives }: { hives: HiveInput[] }) {
+function RecenterOnData({
+  hives,
+  traps,
+}: {
+  hives: HiveInput[];
+  traps: SwarmInput[];
+}) {
   const map = useMap();
 
   useEffect(() => {
-    if (hives.length > 0) {
-      const firstHive = hives[0];
-      map.setView([firstHive.latitude ?? 0, firstHive.longitude ?? 0]);
+    const target = hives[0] || traps[0];
+    if (target) {
+      map.setView([target.latitude ?? 0, target.longitude ?? 0]);
     }
-    // only run when first Hive changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, hives[0]?.latitude, hives[0]?.longitude]);
+  }, [map, hives, traps]);
 
   return null;
 }
 
-export default function HiveMap({ zoom = 15, height = "400px" }: HiveMapProps) {
+export default function ApiaryMap({
+  zoom = 15,
+  height = "500px",
+}: ApiaryMapProps) {
   const [hives, setHives] = useState<HiveInput[]>([]);
+  const [traps, setTraps] = useState<SwarmInput[]>([]);
 
   useEffect(() => {
     fetch("/api/hives")
       .then((res) => res.json())
       .then(setHives)
-      .catch((err) => console.error("Error loading Hives", err));
+      .catch((err) => console.error("Error loading hives", err));
+
+    fetch("/api/swarm")
+      .then((res) => res.json())
+      .then(setTraps)
+      .catch((err) => console.error("Error loading traps", err));
   }, []);
 
   return (
     <div style={{ width: "100%", height }}>
       <MapContainer
-        center={[42.78851953037975, -83.77241596723684]} // fallback
+        center={[42.78851953037975, -83.77241596723684]}
         zoom={zoom}
-        zoomControl={true}
-        scrollWheelZoom={true}
+        zoomControl={false}
+        scrollWheelZoom
         style={{ height: "100%", width: "100%" }}
       >
         <ZoomControl position="bottomright" />
-
-        {/* Recenter once Hives load */}
-        <RecenterOnHives hives={hives} />
+        <RecenterOnData hives={hives} traps={traps} />
 
         <LayersControl position="topright">
-          <BaseLayer name="OpenStreetMap">
-            <TileLayer
-              url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="© OpenStreetMap contributors"
-            />
-          </BaseLayer>
           <BaseLayer checked name="Satellite">
             <TileLayer
               url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
@@ -80,21 +84,81 @@ export default function HiveMap({ zoom = 15, height = "400px" }: HiveMapProps) {
             />
           </BaseLayer>
 
-          <Overlay checked name="Swarm Hives">
+          <BaseLayer name="OpenStreetMap">
+            <TileLayer
+              url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="© OpenStreetMap contributors"
+            />
+          </BaseLayer>
+
+          {/* Swarm Traps */}
+          <Overlay checked name="Swarm Traps">
             <LayerGroup>
-              {hives.map((hive) => (
+              {traps.map((trap) => (
                 <Marker
-                  key={hive.id}
-                  position={[hive.latitude ?? 0, hive.longitude ?? 0]}
-                  icon={themedHoneyIcon}
+                  key={`trap-${trap.id}`}
+                  position={[trap.latitude, trap.longitude]}
+                  icon={themedTrapIcon}
                 >
-                  {/* // In your HiveMap component, replace the Popup section: */}
                   <Popup className="popup-container">
                     <Card className="w-72 border-0 shadow-none">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <h5 className="text-lg font-semibold">
-                            {hive.hiveNumber || "Unnamed Hive"}
+                            {trap.label || "Unnamed Trap"}
+                          </h5>
+                          <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
+                            Active
+                          </span>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <IconCalendar
+                              className="h-4 w-4 text-primary"
+                              stroke={2}
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground">
+                              Installed
+                            </p>
+                            <p className="text-sm font-medium">
+                              {new Date(trap.installedAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Popup>
+                </Marker>
+              ))}
+            </LayerGroup>
+          </Overlay>
+
+          {/* Hives */}
+          <Overlay checked name="Hives">
+            <LayerGroup>
+              {hives.map((hive) => (
+                <Marker
+                  key={`hive-${hive.id}`}
+                  position={[hive.latitude ?? 0, hive.longitude ?? 0]}
+                  icon={themedHoneyIcon}
+                >
+                  <Popup className="popup-container">
+                    <Card className="w-72 border-0 shadow-none">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <h5 className="text-lg font-semibold">
+                            Hive {hive.hiveNumber}
                           </h5>
                           <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
                             Active

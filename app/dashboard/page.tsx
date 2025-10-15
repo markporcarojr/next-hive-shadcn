@@ -1,5 +1,5 @@
 import { SectionCards } from "@/components/section-cards";
-import HiveMap from "@/components/trap-map";
+import HiveMap from "@/components/hive-map";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { HiveInput } from "@/lib/schemas/hive";
@@ -7,6 +7,7 @@ import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HiveTable } from "../hives/hive-table";
+import ApiaryMap from "@/components/apiary-map";
 export default async function Page() {
   const { userId: clerkId } = await auth();
   if (!clerkId) return; // Optional: redirect instead
@@ -90,7 +91,8 @@ export default async function Page() {
           incomes={incomes}
           expenses={expenses}
         /> */}
-        <HiveMap zoom={17} height="500px" />
+        {/* <HiveMap zoom={17} height="500px" /> */}
+        <ApiaryMap zoom={17} height="500px" />
       </div>
     </main>
   );

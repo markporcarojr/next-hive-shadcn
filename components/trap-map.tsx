@@ -1,7 +1,9 @@
 // components/TrapMap.tsx
 "use client";
 
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SwarmInput } from "@/lib/schemas/swarmTrap";
+import { IconCalendar } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import {
   LayerGroup,
@@ -13,8 +15,7 @@ import {
   ZoomControl,
   useMap,
 } from "react-leaflet";
-import { honeyIcon } from "../Data/mapIcons";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { themedHoneyIcon } from "../Data/mapIcons";
 
 const { BaseLayer, Overlay } = LayersControl;
 
@@ -85,27 +86,44 @@ export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
                 <Marker
                   key={trap.id}
                   position={[trap.latitude, trap.longitude]}
-                  icon={honeyIcon}
+                  icon={themedHoneyIcon}
                 >
-                  <Popup>
-                    <Card className="w-64">
-                      <CardHeader>
-                        <h5 className="text-base font-semibold">
-                          {trap.label || "Unnamed Trap"}
-                        </h5>
+                  <Popup className="popup-container">
+                    <Card className="w-72 border-0 shadow-none">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <h5 className="text-lg font-semibold">
+                            {trap.label || "Unnamed Trap"}
+                          </h5>
+                          <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
+                            Active
+                          </span>
+                        </div>
                       </CardHeader>
-                      <CardContent>
-                        <p className="text-sm">
-                          Trap Set:{" "}
-                          {
-                            new Date(trap.installedAt)
-                              .toISOString()
-                              .split("T")[0]
-                          }
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Label: {trap.label}
-                        </p>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <IconCalendar
+                              className="h-4 w-4 text-primary"
+                              stroke={2}
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground">
+                              Date Set
+                            </p>
+                            <p className="text-sm font-medium">
+                              {new Date(trap.installedAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )}
+                            </p>
+                          </div>
+                        </div>
                       </CardContent>
                     </Card>
                   </Popup>
