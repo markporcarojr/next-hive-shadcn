@@ -1,5 +1,9 @@
 "use client";
 
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { HiveInput } from "@/lib/schemas/hive";
+import { SwarmInput } from "@/lib/schemas/swarmTrap";
+import { IconCalendar, IconInfoCircle } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import {
   LayerGroup,
@@ -11,10 +15,6 @@ import {
   ZoomControl,
   useMap,
 } from "react-leaflet";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { IconCalendar, IconInfoCircle, IconMapPin } from "@tabler/icons-react";
-import { HiveInput } from "@/lib/schemas/hive";
-import { SwarmInput } from "@/lib/schemas/swarmTrap";
 import { themedHoneyIcon, themedTrapIcon } from "../Data/mapIcons";
 
 const { BaseLayer, Overlay } = LayersControl;
@@ -158,7 +158,7 @@ export default function ApiaryMap({
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <h5 className="text-lg font-semibold">
-                            Hive {hive.hiveNumber}
+                            Hive #{hive.hiveNumber}
                           </h5>
                           <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
                             Active
@@ -204,26 +204,6 @@ export default function ApiaryMap({
                               </p>
                               <p className="text-sm font-medium truncate">
                                 {hive.hiveSource}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {hive.latitude && hive.longitude && (
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                              <IconMapPin
-                                className="h-4 w-4 text-primary"
-                                stroke={2}
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-xs text-muted-foreground">
-                                Coordinates
-                              </p>
-                              <p className="text-xs font-mono text-muted-foreground truncate">
-                                {hive.latitude.toFixed(5)},{" "}
-                                {hive.longitude.toFixed(5)}
                               </p>
                             </div>
                           </div>

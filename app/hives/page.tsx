@@ -7,7 +7,7 @@ import { HiveTable } from "./hive-table";
 import { Button } from "@/components/ui/button";
 import type { HiveInput } from "@/lib/schemas/hive";
 import { unstable_cache } from "next/cache"; // ✅ Built-in Next.js cache
-import HiveMap from "@/components/trap-map";
+import HiveMap from "@/components/hive-map";
 
 // ✅ Cache server response for 30s
 export const revalidate = 30;
