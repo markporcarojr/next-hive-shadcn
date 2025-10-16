@@ -8,23 +8,34 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      select: { id: true },
+    });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Await params before accessing properties
     const { id } = await params;
 
     const invoice = await prisma.invoice.findFirst({
       where: { id: Number(id), userId: user.id },
-      include: { items: true },
+      include: {
+        items: {
+          select: {
+            id: true,
+            product: true,
+            quantity: true,
+            unitPrice: true,
+          },
+        },
+      },
     });
 
     if (!invoice) {
@@ -34,7 +45,7 @@ export async function GET(
     return NextResponse.json(invoice);
   } catch (error) {
     console.error("[GET_INVOICE]", error);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
@@ -42,36 +53,49 @@ export async function PATCH(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      select: { id: true },
+    });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Await params before accessing properties
     const { id } = await params;
     const body = await _req.json();
+
+    // Verify ownership before updating
+    const existing = await prisma.invoice.findFirst({
+      where: { id: Number(id), userId: user.id },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+    }
 
     const invoice = await prisma.invoice.update({
       where: { id: Number(id) },
       data: {
         customerName: body.customerName,
         total: body.total,
-        date: new Date(body.date),
+        date: body.date ? new Date(body.date) : undefined,
         notes: body.notes,
-        // Add other fields as needed
+        email: body.email,
+        phone: body.phone,
       },
     });
 
     return NextResponse.json(invoice);
   } catch (error) {
     console.error("[PATCH_INVOICE]", error);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
@@ -79,27 +103,39 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      select: { id: true },
+    });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Await params before accessing properties
     const { id } = await params;
+
+    // Verify ownership before deleting
+    const existing = await prisma.invoice.findFirst({
+      where: { id: Number(id), userId: user.id },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+    }
 
     await prisma.invoice.delete({
       where: { id: Number(id) },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ message: "Invoice deleted successfully" });
   } catch (error) {
     console.error("[DELETE_INVOICE]", error);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
