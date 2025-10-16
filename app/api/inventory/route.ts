@@ -6,63 +6,82 @@ import { inventorySchema } from "@/lib/schemas/inventory";
 export async function GET() {
   const { userId: clerkId } = await auth();
   if (!clerkId)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const user = await prisma.user.findUnique({ where: { clerkId } });
-  if (!user)
-    return NextResponse.json({ message: "User not found" }, { status: 404 });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+    if (!user)
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  const items = await prisma.inventory.findMany({
-    where: { userId: user.id },
-    orderBy: { name: "asc" },
-  });
+    const items = await prisma.inventory.findMany({
+      where: { userId: user.id },
+      orderBy: { name: "asc" },
+    });
 
-  return NextResponse.json(items);
+    return NextResponse.json(items);
+  } catch (error) {
+    console.error("[INVENTORY_GET]", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
 }
 
 export async function POST(_req: NextRequest) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const user = await prisma.user.findUnique({ where: { clerkId } });
-  if (!user)
-    return NextResponse.json({ message: "User not found" }, { status: 404 });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+    if (!user)
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  const body = await _req.json();
-  const parsed = inventorySchema.safeParse(body);
+    const body = await _req.json();
+    const parsed = inventorySchema.safeParse(body);
 
-  if (!parsed.success) {
-    return NextResponse.json(
-      { errors: parsed.error.flatten().fieldErrors },
-      { status: 400 }
-    );
+    if (!parsed.success) {
+      return NextResponse.json(
+        { errors: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const item = await prisma.inventory.create({
+      data: {
+        ...parsed.data,
+        userId: user.id,
+      },
+    });
+
+    return NextResponse.json(item, { status: 201 });
+  } catch (error) {
+    console.error("[INVENTORY_POST]", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
-
-  const item = await prisma.inventory.create({
-    data: {
-      ...parsed.data,
-      userId: user.id,
-    },
-  });
-
-  return NextResponse.json(item, { status: 201 });
 }
 
 export async function DELETE(req: NextRequest) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const url = new URL(req.url);
     const id = url.searchParams.get("id");
     if (!id || isNaN(Number(id))) {
-      return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
     const result = await prisma.inventory.deleteMany({
@@ -73,10 +92,7 @@ export async function DELETE(req: NextRequest) {
     });
 
     if (result.count === 0) {
-      return NextResponse.json(
-        { message: "Inventory not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Inventory not found" }, { status: 404 });
     }
 
     return NextResponse.json({ message: "Inventory deleted" });

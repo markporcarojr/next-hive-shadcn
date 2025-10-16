@@ -7,15 +7,18 @@ export async function POST(_req: NextRequest) {
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  const user = await prisma.user.findUnique({ where: { clerkId } });
-  if (!user) {
-    return NextResponse.json({ message: "User not found" }, { status: 404 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     const body = await _req.json();
     const parsed = harvestFormSchema.safeParse({
       ...body,
@@ -39,7 +42,7 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json(harvest, { status: 201 });
   } catch (error) {
     console.error("[HARVEST_POST]", error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
@@ -54,6 +57,7 @@ export async function GET() {
     // Find matching user by Clerk ID
     const user = await prisma.user.findUnique({
       where: { clerkId },
+      select: { id: true },
     });
 
     if (!user) {
@@ -68,7 +72,7 @@ export async function GET() {
     return NextResponse.json(harvests);
   } catch (error) {
     console.error("[HARVEST_GET]", error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
@@ -76,16 +80,17 @@ export async function DELETE(req: NextRequest) {
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const user = await prisma.user.findUnique({
       where: { clerkId },
+      select: { id: true },
     });
 
     if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const url = new URL(req.url);
@@ -93,55 +98,54 @@ export async function DELETE(req: NextRequest) {
 
     if (!id || isNaN(Number(id))) {
       return NextResponse.json(
-        { message: "Missing or invalid harvest ID" },
+        { error: "Missing or invalid harvest ID" },
         { status: 400 }
       );
     }
 
     const harvest = await prisma.harvest.deleteMany({
       where: {
-        id: Number(id), // <-- convert here
+        id: Number(id),
         userId: user.id,
       },
     });
 
     if (harvest.count === 0) {
-      return NextResponse.json(
-        { message: "Harvest not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Harvest not found" }, { status: 404 });
     }
 
     return NextResponse.json({ message: "Harvest deleted successfully" });
   } catch (error) {
     console.error("[HARVEST_DELETE]", error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
 // PATCH /api/harvest?id=123
-// PATCH /api/harvest?id=123
 export async function PATCH(_req: NextRequest) {
   const { userId: clerkId } = await auth();
   if (!clerkId) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  const user = await prisma.user.findUnique({ where: { clerkId } });
-  if (!user) {
-    return NextResponse.json({ message: "User not found" }, { status: 404 });
-  }
-
-  const url = new URL(_req.url);
-  const id = url.searchParams.get("id");
-  if (!id || isNaN(Number(id))) {
-    return NextResponse.json(
-      { message: "Missing or invalid harvest ID" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const url = new URL(_req.url);
+    const id = url.searchParams.get("id");
+    if (!id || isNaN(Number(id))) {
+      return NextResponse.json(
+        { error: "Missing or invalid harvest ID" },
+        { status: 400 }
+      );
+    }
+
     const body = await _req.json();
 
     // ✅ Convert harvestDate BEFORE validation
@@ -169,15 +173,12 @@ export async function PATCH(_req: NextRequest) {
     });
 
     if (updated.count === 0) {
-      return NextResponse.json(
-        { message: "Harvest not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Harvest not found" }, { status: 404 });
     }
 
     return NextResponse.json({ message: "Harvest updated" });
   } catch (error) {
     console.error("[HARVEST_PATCH]", error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

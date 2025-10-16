@@ -7,11 +7,14 @@ import { inspectionApiSchema } from "@/lib/schemas/inspection";
 export async function GET() {
   const { userId: clerkId } = await auth();
 
-  try {
-    if (!clerkId)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!clerkId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
@@ -19,7 +22,13 @@ export async function GET() {
       where: { userId: user.id },
       orderBy: { inspectionDate: "desc" },
       include: {
-        hive: true, // 👈 This gives you hive.hiveNumber
+        hive: {
+          select: {
+            id: true,
+            hiveNumber: true,
+            hiveSource: true,
+          },
+        },
       },
     });
 
@@ -35,16 +44,19 @@ export async function POST(_req: NextRequest) {
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  const user = await prisma.user.findUnique({ where: { clerkId } });
-
-  if (!user) {
-    return NextResponse.json({ message: "User not found" }, { status: 404 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     const body = await _req.json();
     const parsed = inspectionApiSchema.safeParse(body);
 
@@ -57,6 +69,22 @@ export async function POST(_req: NextRequest) {
 
     const data = parsed.data;
 
+    // Verify hive ownership
+    const hive = await prisma.hive.findFirst({
+      where: {
+        id: data.hiveId,
+        userId: user.id,
+      },
+      select: { id: true },
+    });
+
+    if (!hive) {
+      return NextResponse.json(
+        { error: "Hive not found or unauthorized" },
+        { status: 404 }
+      );
+    }
+
     const inspection = await prisma.inspection.create({
       data: {
         ...data,
@@ -68,25 +96,29 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json(inspection, { status: 201 });
   } catch (error) {
     console.error("[INSPECTION_POST]", error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
 // DELETE: /api/inspections?id=123
 export async function DELETE(req: NextRequest) {
   const { userId: clerkId } = await auth();
-  try {
-    if (!clerkId)
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+  if (!clerkId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const url = new URL(req.url);
     const id = url.searchParams.get("id");
     if (!id || isNaN(Number(id))) {
-      return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
     const result = await prisma.inspection.deleteMany({
@@ -98,14 +130,14 @@ export async function DELETE(req: NextRequest) {
 
     if (result.count === 0) {
       return NextResponse.json(
-        { message: "Inspection not found" },
+        { error: "Inspection not found" },
         { status: 404 }
       );
     }
 
     return NextResponse.json({ message: "Inspection deleted" });
   } catch (error) {
-    console.error("[HIVE_ERROR]", error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    console.error("[INSPECTION_DELETE]", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

@@ -7,9 +7,12 @@ export async function GET() {
   const { userId: clerkId } = await auth();
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  // No request object needed for GET in Next.js route handlers
+
   try {
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
@@ -30,15 +33,16 @@ export async function POST(_req: NextRequest) {
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const user = await prisma.user.findUnique({
-    where: { clerkId },
-  });
-
-  if (!user) {
-    return NextResponse.json({ message: "User not found" }, { status: 404 });
-  }
-
   try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     const body = await _req.json();
     const convertedBody = {
       ...body,

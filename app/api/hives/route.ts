@@ -10,7 +10,10 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
@@ -31,18 +34,19 @@ export async function POST(_req: NextRequest) {
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { clerkId },
-  });
-
-  if (!user) {
-    return NextResponse.json({ message: "User not found" }, { status: 404 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     const body = await _req.json();
     const convertedBody = {
       ...body,
@@ -58,24 +62,18 @@ export async function POST(_req: NextRequest) {
     }
 
     const data = parsed.data;
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
-    if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
-    }
 
     const existingHive = await prisma.hive.findFirst({
       where: {
         hiveNumber: data.hiveNumber,
         userId: user.id,
       },
+      select: { id: true },
     });
 
     if (existingHive) {
       return NextResponse.json(
-        { message: `Hive number ${data.hiveNumber} already exists.` },
+        { error: `Hive number ${data.hiveNumber} already exists.` },
         { status: 409 }
       );
     }
@@ -90,30 +88,31 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json(hive, { status: 201 });
   } catch (error) {
     console.error("[HIVE_POST]", error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   const { userId: clerkId } = await auth();
   if (!clerkId) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const user = await prisma.user.findUnique({
       where: { clerkId },
+      select: { id: true },
     });
 
     if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const url = new URL(req.url);
     const id = url.searchParams.get("id");
 
     if (!id || isNaN(Number(id))) {
-      return NextResponse.json({ message: "Invalid hive ID" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid hive ID" }, { status: 400 });
     }
 
     // Attempt to delete
@@ -125,12 +124,12 @@ export async function DELETE(req: NextRequest) {
     });
 
     if (result.count === 0) {
-      return NextResponse.json({ message: "Hive not found" }, { status: 404 });
+      return NextResponse.json({ error: "Hive not found" }, { status: 404 });
     }
 
     return NextResponse.json({ message: "Hive deleted successfully" });
   } catch (error) {
     console.error("[HIVE_DELETE]", error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

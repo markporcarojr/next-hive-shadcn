@@ -6,10 +6,19 @@ import { Decimal } from "@prisma/client/runtime/library";
 import { NextResponse } from "next/server";
 
 export async function POST(_req: Request) {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // find user by clerkId
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // parse body
@@ -22,12 +31,6 @@ export async function POST(_req: Request) {
       );
     }
     const data = parse.data;
-
-    // find user by clerkId
-    const user = await prisma.user.findUnique({ where: { clerkId } });
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
 
     // create invoice
     const invoice = await prisma.invoice.create({
@@ -47,7 +50,16 @@ export async function POST(_req: Request) {
           })),
         },
       },
-      include: { items: true },
+      include: {
+        items: {
+          select: {
+            id: true,
+            product: true,
+            quantity: true,
+            unitPrice: true,
+          },
+        },
+      },
     });
 
     // send email safely with proper invoice structure
@@ -88,14 +100,26 @@ export async function GET() {
   }
 
   try {
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const invoices = await prisma.invoice.findMany({
       where: { userId: user.id },
-      include: { items: true },
+      include: {
+        items: {
+          select: {
+            id: true,
+            product: true,
+            quantity: true,
+            unitPrice: true,
+          },
+        },
+      },
       orderBy: { date: "desc" },
     });
 
