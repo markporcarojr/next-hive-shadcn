@@ -85,12 +85,12 @@ export default async function Page() {
           </Button>
         </div>
         <HiveTable data={sanitized} />
-        <SectionCards expenses={expenses} incomes={incomes} />
         <HarvestFinanceChart
           harvests={harvests}
           incomes={incomes}
           expenses={expenses}
         />
+        <SectionCards expenses={expenses} incomes={incomes} />
         <ApiaryMap zoom={17} height="500px" />
       </div>
     </main>
