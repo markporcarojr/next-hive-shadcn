@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { ModeToggle } from "./mode-toggle";
 import { ThemeSelector } from "./theme-selector";
+import ChatWidget from "./chat-widget";
 
 export function SiteHeader() {
   return (
@@ -14,6 +15,7 @@ export function SiteHeader() {
         <div className="ml-auto flex items-center gap-2">
           <ThemeSelector />
           <ModeToggle />
+          <ChatWidget />
         </div>
       </div>
     </header>
