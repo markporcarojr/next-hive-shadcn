@@ -143,18 +143,35 @@ async function main() {
   // ===================== Harvests =====================
   logSection("Creating Honey Harvests");
 
+  // Generate 5 years of data — two harvests per year (summer + fall)
   const harvests = [];
-  for (let year = 2016; year < 2026; year++) {
+  const endYear = 2025;
+  const startYear = endYear - 4; // 5 years total
+
+  for (let year = startYear; year <= endYear; year++) {
+    // Summer harvest (July)
     harvests.push({
       harvestType: "Honey",
-      harvestAmount: Math.floor(Math.random() * 80 + 20),
+      harvestAmount: parseFloat((Math.random() * 50 + 40).toFixed(1)), // 40–90 lbs
       harvestDate: new Date(`${year}-07-15`),
+      // Removed 'notes' field - not in Harvest schema
+      userId,
+    });
+
+    // Fall harvest (September)
+    harvests.push({
+      harvestType: "Honey",
+      harvestAmount: parseFloat((Math.random() * 60 + 30).toFixed(1)), // 30–90 lbs
+      harvestDate: new Date(`${year}-09-20`),
+      // Removed 'notes' field - not in Harvest schema
       userId,
     });
   }
 
   await prisma.harvest.createMany({ data: harvests });
-  logSuccess(`Created ${harvests.length} honey harvests (2016–2025)`);
+  logSuccess(
+    `Created ${harvests.length} honey harvests (2 per year, ${startYear}–${endYear})`
+  );
 
   // ===================== Invoices + Income =====================
   logSection("Creating Invoices and Income");

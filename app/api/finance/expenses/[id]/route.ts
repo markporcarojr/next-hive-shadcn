@@ -13,7 +13,10 @@ export async function GET(
 
   try {
     const { id } = await params;
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
@@ -42,27 +45,41 @@ export async function PATCH(
   if (!clerkId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await _req.json();
   try {
     const { id } = await params;
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+    const body = await _req.json();
     const convertedBody = {
       ...body,
-      date: new Date(body.date),
+      date: body.date ? new Date(body.date) : undefined,
     };
 
     const parsed = expenseApiSchema.safeParse(convertedBody);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid data", details: parsed.error.issues },
+        { errors: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
 
-    const updated = await prisma.expense.update({
+    // Verify ownership before updating
+    const existing = await prisma.expense.findFirst({
       where: { id: Number(id), userId: user.id },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Expense not found" }, { status: 404 });
+    }
+
+    const updated = await prisma.expense.update({
+      where: { id: Number(id) },
       data: parsed.data,
     });
 
@@ -86,15 +103,28 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-    await prisma.expense.delete({
+    // Verify ownership before deleting
+    const existing = await prisma.expense.findFirst({
       where: { id: Number(id), userId: user.id },
+      select: { id: true },
     });
 
-    return NextResponse.json({ success: true });
+    if (!existing) {
+      return NextResponse.json({ error: "Expense not found" }, { status: 404 });
+    }
+
+    await prisma.expense.delete({
+      where: { id: Number(id) },
+    });
+
+    return NextResponse.json({ message: "Expense deleted successfully" });
   } catch (error) {
     console.error("[EXPENSE_DELETE]", error);
     return NextResponse.json(

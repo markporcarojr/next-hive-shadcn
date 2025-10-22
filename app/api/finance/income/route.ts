@@ -9,7 +9,10 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
@@ -31,12 +34,15 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const body = await _req.json();
-    const parsed = incomeApiSchema.parse(body);
-
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+    const body = await _req.json();
+    const parsed = incomeApiSchema.parse(body);
 
     const income = await prisma.income.create({
       data: {

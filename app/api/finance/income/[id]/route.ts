@@ -13,11 +13,14 @@ export async function GET(
 
   try {
     const { id } = await params;
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-    const income = await prisma.income.findUnique({
+    const income = await prisma.income.findFirst({
       where: { id: Number(id), userId: user.id },
     });
 
@@ -41,7 +44,10 @@ export async function PATCH(
 
   try {
     const { id } = await params;
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
@@ -51,13 +57,11 @@ export async function PATCH(
     // First check if income exists and belongs to user
     const existing = await prisma.income.findFirst({
       where: { id: Number(id), userId: user.id },
+      select: { id: true },
     });
 
     if (!existing)
-      return NextResponse.json(
-        { error: "Income not found or not yours" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Income not found" }, { status: 404 });
 
     // Build update data with proper types
     const updateData: {
@@ -97,26 +101,27 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     // First check if income exists and belongs to user
     const existing = await prisma.income.findFirst({
       where: { id: Number(id), userId: user.id },
+      select: { id: true },
     });
 
     if (!existing)
-      return NextResponse.json(
-        { error: "Income not found or not yours" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Income not found" }, { status: 404 });
 
     await prisma.income.delete({
       where: { id: Number(id) },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ message: "Income deleted successfully" });
   } catch (error) {
     console.error("[INCOME_ID_DELETE]", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

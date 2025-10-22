@@ -1,13 +1,10 @@
 import {
   IconArchive,
-  IconCamera,
   IconCash,
   IconChartBar,
   IconClipboardSearch,
   IconDashboard,
   IconDatabase,
-  IconFileAi,
-  IconFileDescription,
   IconFileWord,
   IconFolder,
   IconHelp,

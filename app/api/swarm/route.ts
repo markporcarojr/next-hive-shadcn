@@ -10,7 +10,10 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
 
@@ -31,29 +34,30 @@ export async function POST(_req: NextRequest) {
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const body = await _req.json();
-  const parsed = swarmTrapApiSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json(
-      { errors: parsed.error.flatten().fieldErrors },
-      { status: 400 }
-    );
-  }
-
-  const data = parsed.data;
 
   try {
     const user = await prisma.user.findUnique({
       where: { clerkId },
+      select: { id: true },
     });
 
     if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
+    const body = await _req.json();
+    const parsed = swarmTrapApiSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { errors: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const data = parsed.data;
 
     const swarmTrap = await prisma.swarmTrap.create({
       data: {
@@ -67,24 +71,27 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json(swarmTrap, { status: 201 });
   } catch (error) {
     console.error("[SWARM_POST]", error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
     if (!user)
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const url = new URL(req.url);
     const id = url.searchParams.get("id");
     if (!id || isNaN(Number(id))) {
-      return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
     const result = await prisma.swarmTrap.deleteMany({
@@ -95,7 +102,7 @@ export async function DELETE(req: NextRequest) {
     });
 
     if (result.count === 0) {
-      return NextResponse.json({ message: "Swarm not found" }, { status: 404 });
+      return NextResponse.json({ error: "Swarm not found" }, { status: 404 });
     }
 
     return NextResponse.json({ message: "Swarm deleted" });

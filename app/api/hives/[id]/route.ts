@@ -8,20 +8,36 @@ export async function GET(
   _: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { userId: clerkId } = await auth();
+  if (!clerkId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
     const { id } = await params;
-    const hive = await prisma.hive.findUnique({
-      where: { id: Number(id) },
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const hive = await prisma.hive.findFirst({
+      where: {
+        id: Number(id),
+        userId: user.id,
+      },
     });
 
     if (!hive) {
-      return NextResponse.json({ message: "Hive not found" }, { status: 404 });
+      return NextResponse.json({ error: "Hive not found" }, { status: 404 });
     }
 
     return NextResponse.json(hive);
   } catch (error) {
     console.error("[HIVE_GET_BY_ID]", error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
@@ -32,21 +48,49 @@ export async function PATCH(
 ) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
-  const { id } = await params;
-  const body = await _req.json();
-
-  const parsed = hiveApiSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json(
-      { errors: parsed.error.flatten().fieldErrors },
-      { status: 400 }
-    );
-  }
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
+    const { id } = await params;
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const body = await _req.json();
+    const convertedBody = {
+      ...body,
+      hiveDate: body.hiveDate ? new Date(body.hiveDate) : undefined,
+      swarmCaptureDate: body.swarmCaptureDate
+        ? new Date(body.swarmCaptureDate)
+        : undefined,
+    };
+    const parsed = hiveApiSchema.safeParse(convertedBody);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { errors: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    // Verify ownership before updating
+    const existingHive = await prisma.hive.findFirst({
+      where: {
+        id: Number(id),
+        userId: user.id,
+      },
+      select: { id: true },
+    });
+
+    if (!existingHive) {
+      return NextResponse.json({ error: "Hive not found" }, { status: 404 });
+    }
+
     const hive = await prisma.hive.update({
       where: { id: Number(id) },
       data: {
@@ -57,6 +101,6 @@ export async function PATCH(
     return NextResponse.json(hive);
   } catch (error) {
     console.error("[HIVE_PATCH_BY_ID]", error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
