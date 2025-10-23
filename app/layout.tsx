@@ -25,12 +25,12 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
   ),
   title: {
-    default: "Next Hive - Beekeeping Helper App",
-    template: "%s | Next Hive", // For page-specific titles
+    default: "Hive-Tool - Beekeeping Helper App",
+    template: "%s | Hive-Tool", // For page-specific titles
   },
   description:
     "Your personal beekeeping assistant. Track your hives, manage tasks, and monitor health with ease.",
-  applicationName: "Next Hive",
+  applicationName: "Hive-Tool",
   keywords: ["beekeeping", "hive management", "beekeeping app", "hive tracker"],
   authors: [{ name: "Your Name" }],
   creator: "Your Name",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
   // Twitter Card
   twitter: {
     card: "summary_large_image",
-    title: "Next Hive - Beekeeping Helper App",
+    title: "Hive-Tool - Beekeeping Helper App",
     description:
       "Your personal beekeeping assistant. Track your hives, manage tasks, and monitor health with ease.",
     images: ["/twitter-image.png"], // Can use same as og-image
