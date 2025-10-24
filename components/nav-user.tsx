@@ -106,7 +106,7 @@ export function NavUser() {
             </DropdownMenuItem>
             <DropdownMenuItem>
               <SignedIn>
-                <SignOutButton>
+                <SignOutButton redirectUrl="/sign-in">
                   <div className="flex items-center gap-2">
                     <IconLogout className="size-4" />
                     <span>Log out</span>
