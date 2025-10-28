@@ -6,7 +6,6 @@ import "./globals.css";
 import { ActiveThemeProvider } from "@/components/active-theme";
 import { AppSidebar } from "@/components/app-sidebar";
 import GoogleMapsScript from "@/components/client/MapScript";
-import { SiteHeader } from "@/components/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import {
   SidebarInset,
@@ -18,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { dark } from "@clerk/themes";
 import { Toaster } from "sonner";
 
+import { SiteHeader } from "@/components/site-header";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
     "Your personal beekeeping assistant. Track your hives, manage tasks, and monitor health with ease.",
   applicationName: "Hive-Tool",
   keywords: ["beekeeping", "hive management", "beekeeping app", "hive tracker"],
-  authors: [{ name: "Your Name" }],
-  creator: "Your Name",
+  authors: [{ name: "Mark Porcaro" }],
+  creator: "Mark Porcaro",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 
   // Open Graph (for social media sharing)

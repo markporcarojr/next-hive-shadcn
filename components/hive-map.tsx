@@ -58,6 +58,7 @@ export default function HiveMap({ zoom = 15, height = "400px" }: HiveMapProps) {
         zoomControl={true}
         scrollWheelZoom={true}
         style={{ height: "100%", width: "100%" }}
+        className="z-0"
       >
         <ZoomControl position="bottomright" />
 

@@ -58,6 +58,7 @@ export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
         zoomControl={true}
         scrollWheelZoom={true}
         style={{ height: "100%", width: "100%" }}
+        className="z-0"
       >
         <ZoomControl position="bottomright" />
 
