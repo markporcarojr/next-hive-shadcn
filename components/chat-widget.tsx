@@ -94,7 +94,6 @@ export default function ChatWidget() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            style={{ zIndex: 99999 }}
             className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

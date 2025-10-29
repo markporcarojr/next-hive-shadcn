@@ -40,7 +40,7 @@ export default function InspectionTable({
 
     setIsDeleting(true);
     try {
-      const res = await fetch(`/api/inspections/${deleteId}`, {
+      const res = await fetch(`/api/inspection/${deleteId}`, {
         method: "DELETE",
       });
 
@@ -62,7 +62,8 @@ export default function InspectionTable({
 
   const columns: ColumnDef<InspectionWithHive>[] = [
     {
-      accessorKey: "hive.hiveNumber",
+      id: "hiveNumber",
+      accessorFn: (row) => row.hive?.hiveNumber?.toString() ?? "",
       header: ({ column }) => (
         <DataTableSortableHeader column={column} title="Hive" />
       ),
@@ -76,6 +77,10 @@ export default function InspectionTable({
           </Button>
         </Link>
       ),
+      filterFn: (row, id, value) => {
+        const hiveNumber = row.getValue(id) as string;
+        return hiveNumber.toLowerCase().includes(value.toLowerCase());
+      },
     },
     {
       accessorKey: "inspectionDate",
@@ -125,7 +130,7 @@ export default function InspectionTable({
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem asChild>
-              <a href={`/inspections/edit/${row.original.id}`}>Edit</a>
+              <a href={`/inspection/edit/${row.original.id}`}>Edit</a>
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setDeleteId(row.original.id ?? null)}
@@ -144,7 +149,7 @@ export default function InspectionTable({
       <DataTable
         data={inspections}
         columns={columns}
-        searchKey="hive.hiveNumber"
+        searchKey="hiveNumber"
         searchPlaceholder="Search inspections..."
       />
 

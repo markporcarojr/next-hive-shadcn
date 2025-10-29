@@ -137,6 +137,7 @@ export default function MapPicker({
       </div>
 
       <MapContainer
+        className="z-0"
         center={[initialLat, initialLng]}
         zoom={13}
         style={{ height: "400px", width: "100%" }}
