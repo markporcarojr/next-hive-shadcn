@@ -57,29 +57,31 @@ export default function MapPickerReadOnly({
 
   return (
     <div className="space-y-4">
-      <MapContainer
-        center={[position.lat, position.lng]}
-        zoom={16}
-        style={{ height: "400px", width: "100%", cursor: "default" }}
-        dragging={false}
-        touchZoom={false}
-        doubleClickZoom={false}
-        scrollWheelZoom={false}
-        boxZoom={false}
-        keyboard={false}
-        zoomControl={false}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="© OpenStreetMap contributors"
-        />
-        <MapUpdater position={position} />
-        <Marker position={position} icon={honeyIcon}>
-          <Popup>
-            Lat: {position.lat.toFixed(4)}, Lng: {position.lng.toFixed(4)}
-          </Popup>
-        </Marker>
-      </MapContainer>
+      <div className="z-0">
+        <MapContainer
+          center={[position.lat, position.lng]}
+          zoom={16}
+          style={{ height: "400px", width: "100%", cursor: "default" }}
+          dragging={false}
+          touchZoom={false}
+          doubleClickZoom={false}
+          scrollWheelZoom={false}
+          boxZoom={false}
+          keyboard={false}
+          zoomControl={false}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution="© OpenStreetMap contributors"
+          />
+          <MapUpdater position={position} />
+          <Marker position={position} icon={honeyIcon}>
+            <Popup>
+              Lat: {position.lat.toFixed(4)}, Lng: {position.lng.toFixed(4)}
+            </Popup>
+          </Marker>
+        </MapContainer>
+      </div>
     </div>
   );
 }

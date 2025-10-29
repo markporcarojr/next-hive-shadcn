@@ -136,21 +136,23 @@ export default function MapPicker({
         </Button>
       </div>
 
-      <MapContainer
-        center={[initialLat, initialLng]}
-        zoom={13}
-        style={{ height: "400px", width: "100%" }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="© OpenStreetMap contributors"
-        />
-        <MapUpdater position={position} />
-        <LocationMarker
-          onSelect={handleMapSelect}
-          selectedPosition={position}
-        />
-      </MapContainer>
+      <div className="z-0">
+        <MapContainer
+          center={[initialLat, initialLng]}
+          zoom={13}
+          style={{ height: "400px", width: "100%" }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution="© OpenStreetMap contributors"
+          />
+          <MapUpdater position={position} />
+          <LocationMarker
+            onSelect={handleMapSelect}
+            selectedPosition={position}
+          />
+        </MapContainer>
+      </div>
     </div>
   );
 }
