@@ -19,6 +19,7 @@ import { Toaster } from "sonner";
 
 import { SiteHeader } from "@/components/site-header";
 import type { Metadata } from "next";
+import { CustomTrigger } from "@/components/custom-sidebar-trigger";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -128,7 +129,9 @@ export default async function RootLayout({
                 <SidebarInset>
                   <SiteHeader />
                   <main className="flex-1 flex flex-col overflow-y-auto">
-                    <SidebarTrigger />
+                    <div className="ml-4 mt-4">
+                      <CustomTrigger />
+                    </div>
                     {children}
                   </main>
                   <Toaster />

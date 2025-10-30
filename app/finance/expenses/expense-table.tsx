@@ -75,7 +75,9 @@ export default function ExpenseTable({
           </Button>
         </Link>
       ),
+      filterFn: "fuzzy", // ✅ Uses the global fuzzy logic
     },
+
     {
       accessorKey: "amount",
       header: ({ column }) => (

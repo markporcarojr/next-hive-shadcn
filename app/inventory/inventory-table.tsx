@@ -71,6 +71,7 @@ export default function InventoryTable({ items }: { items: InventoryInput[] }) {
           </Button>
         </Link>
       ),
+      filterFn: "fuzzy", // ✅ Uses the global fuzzy logic
     },
     {
       accessorKey: "quantity",

@@ -81,7 +81,8 @@ import Link from "next/link";
 
 const columns: ColumnDef<z.infer<typeof hiveFormSchema>>[] = [
   {
-    accessorKey: "hiveNumber",
+    id: "hiveNumber",
+    accessorFn: (row) => row.hiveNumber?.toString() ?? "",
     header: ({ column }) => (
       <DataTableSortableHeader column={column} title="Hive #" />
     ),
@@ -95,7 +96,12 @@ const columns: ColumnDef<z.infer<typeof hiveFormSchema>>[] = [
         </Button>
       </Link>
     ),
+    filterFn: (row, id, value) => {
+      const hiveNumber = row.getValue(id) as string;
+      return hiveNumber.toLowerCase().includes(value.toLowerCase());
+    },
   },
+
   {
     accessorKey: "hiveSource",
     header: ({ column }) => (

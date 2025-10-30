@@ -47,8 +47,16 @@ import {
   useReactTable,
   VisibilityState,
   Column,
+  FilterFn,
 } from "@tanstack/react-table";
 import * as React from "react";
+
+// 👇 Add this near the top of DataTable.tsx (before the component)
+declare module "@tanstack/react-table" {
+  interface FilterFns {
+    fuzzy: FilterFn<unknown>;
+  }
+}
 
 type DataTableProps<TData> = {
   data: TData[];
@@ -118,6 +126,22 @@ export function DataTable<TData>({
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: setPagination,
+
+    // 🧠 ADD THIS:
+    filterFns: {
+      fuzzy: (row, columnId, value) => {
+        const cellValue = String(row.getValue(columnId) ?? "")
+          .toLowerCase()
+          .trim();
+        const search = String(value ?? "")
+          .toLowerCase()
+          .trim();
+
+        // ✅ Only match if it STARTS WITH the typed text
+        return cellValue.startsWith(search);
+      },
+    },
+
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),

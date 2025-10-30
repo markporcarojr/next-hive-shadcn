@@ -37,6 +37,7 @@ const columns: ColumnDef<Harvest>[] = [
         </Button>
       </Link>
     ),
+    filterFn: "fuzzy", // ✅ Uses the global fuzzy logic
   },
   {
     accessorKey: "harvestAmount",
