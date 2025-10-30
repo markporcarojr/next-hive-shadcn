@@ -33,8 +33,6 @@ import {
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
@@ -76,13 +74,12 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { hiveFormSchema } from "@/lib/schemas/hive";
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
 
 const columns: ColumnDef<z.infer<typeof hiveFormSchema>>[] = [
   {
-    id: "hiveNumber",
-    accessorFn: (row) => row.hiveNumber?.toString() ?? "",
+    accessorKey: "hiveNumber",
     header: ({ column }) => (
       <DataTableSortableHeader column={column} title="Hive #" />
     ),
@@ -96,12 +93,7 @@ const columns: ColumnDef<z.infer<typeof hiveFormSchema>>[] = [
         </Button>
       </Link>
     ),
-    filterFn: (row, id, value) => {
-      const hiveNumber = row.getValue(id) as string;
-      return hiveNumber.toLowerCase().includes(value.toLowerCase());
-    },
   },
-
   {
     accessorKey: "hiveSource",
     header: ({ column }) => (
@@ -250,19 +242,32 @@ export function HiveTable({
       columnFilters,
       pagination,
     },
-    getRowId: (row) => (row.id !== undefined ? row.id.toString() : ""),
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: setPagination,
+
+    // 🧠 ADD THIS:
+    filterFns: {
+      fuzzy: (row, columnId, value) => {
+        const cellValue = String(row.getValue(columnId) ?? "")
+          .toLowerCase()
+          .trim();
+        const search = String(value ?? "")
+          .toLowerCase()
+          .trim();
+
+        // ✅ Only match if it STARTS WITH the typed text
+        return cellValue.startsWith(search);
+      },
+    },
+
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
   function handleDragEnd(event: DragEndEvent) {

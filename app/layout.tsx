@@ -7,19 +7,15 @@ import { ActiveThemeProvider } from "@/components/active-theme";
 import { AppSidebar } from "@/components/app-sidebar";
 import GoogleMapsScript from "@/components/client/MapScript";
 import { ThemeProvider } from "@/components/theme-provider";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { checkUser } from "@/lib/auth/checkUser";
 import { cn } from "@/lib/utils";
 import { dark } from "@clerk/themes";
 import { Toaster } from "sonner";
 
+import { CustomTrigger } from "@/components/custom-sidebar-trigger";
 import { SiteHeader } from "@/components/site-header";
 import type { Metadata } from "next";
-import { CustomTrigger } from "@/components/custom-sidebar-trigger";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
