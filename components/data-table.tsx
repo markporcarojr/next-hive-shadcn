@@ -55,6 +55,8 @@ import * as React from "react";
 declare module "@tanstack/react-table" {
   interface FilterFns {
     fuzzy: FilterFn<unknown>;
+    sourceMatch: FilterFn<unknown>;
+    customerNameMatch: FilterFn<unknown>;
   }
 }
 
@@ -139,6 +141,32 @@ export function DataTable<TData>({
 
         // ✅ Only match if it STARTS WITH the typed text
         return cellValue.startsWith(search);
+      },
+      sourceMatch: (row, _columnId, value) => {
+        const search = String(value ?? "")
+          .toLowerCase()
+          .trim();
+        const source = String(row.original.source ?? "")
+          .toLowerCase()
+          .trim();
+
+        if (!search) return true;
+
+        // ✅ Match if the search appears anywhere in the source string
+        return source.includes(search);
+      },
+      customerNameMatch: (row, _columnId, value) => {
+        const search = String(value ?? "")
+          .toLowerCase()
+          .trim();
+        const customerName = String(row.original.customerName ?? "")
+          .toLowerCase()
+          .trim();
+
+        if (!search) return true;
+
+        // ✅ Match if the search appears ANYWHERE in the name
+        return customerName.includes(search);
       },
     },
 

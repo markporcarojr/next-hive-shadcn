@@ -85,7 +85,7 @@ export default function IncomeTable({ data }: { data: Income[] }) {
           </Link>
         );
       },
-      filterFn: "fuzzy", // ✅ Uses the global fuzzy logic
+      filterFn: "sourceMatch", // better for source matching :)
     },
     {
       accessorKey: "amount",

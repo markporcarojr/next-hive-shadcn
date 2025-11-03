@@ -80,7 +80,7 @@ export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
           </Button>
         </Link>
       ),
-      filterFn: "fuzzy", // ✅ Uses the global fuzzy logic
+      filterFn: "customerNameMatch",
     },
     {
       accessorKey: "email",

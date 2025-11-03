@@ -79,12 +79,13 @@ import { useState } from "react";
 
 const columns: ColumnDef<z.infer<typeof hiveFormSchema>>[] = [
   {
-    accessorKey: "hiveNumber",
+    id: "hiveNumber",
+    accessorFn: (row) => row.hiveNumber?.toString() ?? "",
     header: ({ column }) => (
-      <DataTableSortableHeader column={column} title="Hive #" />
+      <DataTableSortableHeader column={column} title="Hive" />
     ),
     cell: ({ row }) => (
-      <Link href={`/hives/${row.original.id}`}>
+      <Link href={`/inspection/${row.original.id}`}>
         <Button
           variant="ghost"
           className="w-full justify-start px-2 h-auto font-normal cursor-pointer"
@@ -93,6 +94,10 @@ const columns: ColumnDef<z.infer<typeof hiveFormSchema>>[] = [
         </Button>
       </Link>
     ),
+    filterFn: (row, id, value) => {
+      const hiveNumber = row.getValue(id) as string;
+      return hiveNumber.toLowerCase().includes(value.toLowerCase());
+    },
   },
   {
     accessorKey: "hiveSource",
