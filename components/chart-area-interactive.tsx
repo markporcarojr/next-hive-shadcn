@@ -36,9 +36,9 @@ interface ChartData {
 }
 
 interface HarvestFinanceChartProps {
-  harvests?: Array<{ harvestDate: Date; harvestAmount: number }>;
-  incomes?: Array<{ date: Date; amount: number }>;
-  expenses?: Array<{ date: Date; amount: number }>;
+  harvests?: Array<{ harvestDate: Date | string; harvestAmount: number }>;
+  incomes?: Array<{ date: Date | string; amount: number }>;
+  expenses?: Array<{ date: Date | string; amount: number }>;
 }
 
 export function HarvestFinanceChart({

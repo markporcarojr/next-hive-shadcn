@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
-import { HiveTable } from "./hive-table";
+import HiveTable from "./hive-table";
 import { Button } from "@/components/ui/button";
 import type { HiveInput } from "@/lib/schemas/hive";
 import { unstable_cache } from "next/cache"; // ✅ Built-in Next.js cache

@@ -1,16 +1,17 @@
-import ApiaryMap from "@/components/apiary-map";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import HiveTable from "../hives/hive-table";
 import { HarvestFinanceChart } from "@/components/chart-area-interactive";
 import { SectionCards } from "@/components/section-cards";
-import { Button } from "@/components/ui/button";
-import { prisma } from "@/lib/prisma";
 import { HiveInput } from "@/lib/schemas/hive";
-import { auth } from "@clerk/nextjs/server";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { HiveTable } from "../hives/hive-table";
+import ApiaryMapWrapper from "@/components/apiary-map-wrapper";
+
 export default async function Page() {
   const { userId: clerkId } = await auth();
-  if (!clerkId) return; // Optional: redirect instead
+  if (!clerkId) return;
 
   const user = await prisma.user.findUnique({
     where: { clerkId },
@@ -19,60 +20,89 @@ export default async function Page() {
 
   if (!user) return notFound();
 
-  const harvestsRaw = await prisma.harvest.findMany({
-    where: { userId: user.id },
-    orderBy: { harvestDate: "desc" },
-  });
+  // 🔹 Helper to safely serialize Prisma records
+  const serializeDates = <T extends Record<string, unknown>>(obj: T): T =>
+    JSON.parse(
+      JSON.stringify(obj, (key, value) =>
+        value instanceof Date ? value.toISOString() : value
+      )
+    ) as T;
 
-  const harvests = harvestsRaw.map((harvest) => ({
-    ...harvest,
-    harvestAmount: Number(harvest.harvestAmount),
-  }));
+  const [harvestsRaw, incomesRaw, expensesRaw, hives] = await Promise.all([
+    prisma.harvest.findMany({
+      where: { userId: user.id },
+      orderBy: { harvestDate: "desc" },
+    }),
+    prisma.income.findMany({
+      where: { userId: user.id },
+      orderBy: { date: "desc" },
+    }),
+    prisma.expense.findMany({
+      where: { userId: user.id },
+      orderBy: { date: "desc" },
+    }),
+    prisma.hive.findMany({
+      where: { userId: user.id },
+      orderBy: { hiveNumber: "asc" },
+    }),
+  ]);
 
-  const expensesRaw = await prisma.expense.findMany({
-    where: { userId: user.id },
-    orderBy: { date: "desc" },
-  });
+  // 🔹 Convert Dates → Strings before passing to client components
+  const harvests = harvestsRaw.map((h) =>
+    serializeDates({
+      id: h.id,
+      userId: h.userId,
+      harvestType: h.harvestType,
+      harvestAmount: Number(h.harvestAmount),
+      harvestDate: h.harvestDate,
+      createdAt: h.createdAt,
+      updatedAt: h.updatedAt,
+    })
+  );
 
-  const expenses = expensesRaw.map((expense) => ({
-    ...expense,
-    amount: Number(expense.amount),
-    notes: expense.notes ?? undefined,
-  }));
+  const incomes = incomesRaw.map((i) =>
+    serializeDates({
+      id: i.id,
+      userId: i.userId,
+      amount: Number(i.amount),
+      source: i.source,
+      date: i.date,
+      notes: i.notes ?? "",
+      createdAt: i.createdAt,
+      updatedAt: i.updatedAt,
+    })
+  );
 
-  const incomesRaw = await prisma.income.findMany({
-    where: { userId: user.id },
-    orderBy: { date: "desc" },
-  });
+  const expenses = expensesRaw.map((e) =>
+    serializeDates({
+      id: e.id,
+      userId: e.userId,
+      item: e.item,
+      amount: Number(e.amount),
+      date: e.date,
+      notes: e.notes ?? "",
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+    })
+  );
 
-  const incomes = incomesRaw.map((income) => ({
-    ...income,
-    amount: Number(income.amount),
-    notes: income.notes ?? undefined,
-  }));
-
-  const hives = await prisma.hive.findMany({
-    where: { userId: user.id },
-    orderBy: { hiveNumber: "asc" },
-  });
-
-  const sanitized: HiveInput[] = hives.map((hive) => ({
-    id: hive.id,
-    hiveDate: hive.hiveDate,
-    hiveNumber: hive.hiveNumber,
-    hiveSource: hive.hiveSource,
-    breed: hive.breed ?? undefined,
-    broodBoxes: hive.broodBoxes ?? undefined,
-    frames: hive.frames ?? undefined,
-    hiveImage: hive.hiveImage ?? undefined,
-    hiveStrength: hive.hiveStrength ?? undefined,
-    latitude: hive.latitude ?? undefined,
-    longitude: hive.longitude ?? undefined,
-    queenAge: hive.queenAge ?? undefined,
-    queenColor: hive.queenColor ?? undefined,
-    queenExcluder: hive.queenExcluder ?? undefined,
-    superBoxes: hive.superBoxes ?? undefined,
-    todo: hive.todo ?? undefined,
+  const sanitized: HiveInput[] = hives.map((h) => ({
+    id: h.id,
+    hiveDate: h.hiveDate as Date,
+    hiveNumber: h.hiveNumber,
+    hiveSource: h.hiveSource,
+    breed: h.breed ?? undefined,
+    broodBoxes: h.broodBoxes ?? undefined,
+    frames: h.frames ?? undefined,
+    hiveImage: h.hiveImage ?? undefined,
+    hiveStrength: h.hiveStrength ?? undefined,
+    latitude: h.latitude ?? undefined,
+    longitude: h.longitude ?? undefined,
+    queenAge: h.queenAge ?? undefined,
+    queenColor: h.queenColor ?? undefined,
+    queenExcluder: h.queenExcluder ?? undefined,
+    superBoxes: h.superBoxes ?? undefined,
+    todo: h.todo ?? undefined,
   }));
 
   return (
@@ -84,14 +114,19 @@ export default async function Page() {
             <Link href="/hives/new">Add Hive</Link>
           </Button>
         </div>
+
         <HiveTable data={sanitized} />
+
+        {/* ✅ Safe: All date fields are now strings */}
         <HarvestFinanceChart
           harvests={harvests}
           incomes={incomes}
           expenses={expenses}
         />
+
         <SectionCards expenses={expenses} incomes={incomes} />
-        <ApiaryMap zoom={17} height="500px" />
+
+        <ApiaryMapWrapper />
       </div>
     </main>
   );

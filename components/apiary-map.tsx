@@ -68,7 +68,7 @@ export default function ApiaryMap({
         center={[42.78851953037975, -83.77241596723684]}
         zoom={zoom}
         zoomControl={false}
-        scrollWheelZoom
+        scrollWheelZoom={false}
         style={{ height: "100%", width: "100%" }}
         className="z-0"
       >
