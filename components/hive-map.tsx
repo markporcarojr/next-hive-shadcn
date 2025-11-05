@@ -15,7 +15,15 @@ import {
   ZoomControl,
   useMap,
 } from "react-leaflet";
+import L from "leaflet";
+
 import { themedHoneyIcon } from "../Data/mapIcons";
+import { GestureHandling } from "leaflet-gesture-handling";
+import "leaflet/dist/leaflet.css";
+import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
+
+// Register the gesture handling plugin globally
+L.Map.addInitHook("addHandler", "gestureHandling", GestureHandling);
 
 const { BaseLayer, Overlay } = LayersControl;
 
@@ -58,6 +66,8 @@ export default function HiveMap({ zoom = 15, height = "400px" }: HiveMapProps) {
         zoomControl={true}
         scrollWheelZoom={true}
         style={{ height: "100%", width: "100%" }}
+        // @ts-expect-error leaflet-gesture-handling prop not in react-leaflet types
+        gestureHandling={true} // <-- this activates two-finger gesture handling
         className="z-0"
       >
         <ZoomControl position="bottomright" />

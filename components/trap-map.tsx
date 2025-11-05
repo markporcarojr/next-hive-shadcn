@@ -1,4 +1,3 @@
-// components/TrapMap.tsx
 "use client";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -15,7 +14,14 @@ import {
   ZoomControl,
   useMap,
 } from "react-leaflet";
+import L from "leaflet";
+import { GestureHandling } from "leaflet-gesture-handling";
+import "leaflet/dist/leaflet.css";
+import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
 import { themedHoneyIcon } from "../Data/mapIcons";
+
+// Register the gesture handling plugin globally
+L.Map.addInitHook("addHandler", "gestureHandling", GestureHandling);
 
 const { BaseLayer, Overlay } = LayersControl;
 
@@ -33,7 +39,6 @@ function RecenterOnTraps({ traps }: { traps: SwarmInput[] }) {
       const firstTrap = traps[0];
       map.setView([firstTrap.latitude, firstTrap.longitude]);
     }
-    // only run when first trap changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, traps[0]?.latitude, traps[0]?.longitude]);
 
@@ -53,31 +58,32 @@ export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
   return (
     <div style={{ width: "100%", height }}>
       <MapContainer
-        center={[42.78851953037975, -83.77241596723684]} // fallback
+        center={[42.78851953037975, -83.77241596723684]}
         zoom={zoom}
         zoomControl={true}
-        scrollWheelZoom={true}
+        scrollWheelZoom={false}
+        // @ts-expect-error leaflet-gesture-handling prop not in react-leaflet types
+        gestureHandling={true} // <-- this activates two-finger gesture handling
         style={{ height: "100%", width: "100%" }}
         className="z-0"
       >
         <ZoomControl position="bottomright" />
-
-        {/* Recenter once traps load */}
         <RecenterOnTraps traps={traps} />
 
         <LayersControl position="topright">
-          <BaseLayer name="OpenStreetMap">
-            <TileLayer
-              url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="© OpenStreetMap contributors"
-            />
-          </BaseLayer>
           <BaseLayer checked name="Satellite">
             <TileLayer
               url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
               attribution="© Google"
               subdomains={["mt0", "mt1", "mt2", "mt3"]}
               maxZoom={20}
+            />
+          </BaseLayer>
+
+          <BaseLayer name="OpenStreetMap">
+            <TileLayer
+              url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="© OpenStreetMap contributors"
             />
           </BaseLayer>
 
