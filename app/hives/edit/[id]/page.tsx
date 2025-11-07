@@ -1,5 +1,6 @@
 "use client";
 
+import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 import MapPicker from "@/components/map-picker";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -32,10 +33,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, use } from "react";
+import { use, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { DetailPageSkeleton } from "@/components/detail-page-skeleton";
 
 export default function EditHivesPage({
   params,
@@ -91,6 +91,7 @@ export default function EditHivesPage({
         });
       } catch {
         toast.error("Failed to load data");
+
         router.back();
       } finally {
         setLoading(false);
@@ -117,6 +118,7 @@ export default function EditHivesPage({
       } else {
         toast.success(`Hive #${values.hiveNumber} was updated successfully.`);
         router.push("/hives");
+        router.refresh();
       }
     } catch (error) {
       console.error(error);

@@ -2,7 +2,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { cookies } from "next/headers";
 
 import "./globals.css";
-
+import "@/lib/setupLeafletGesture"; // 👈 one-line global gesture setup
 import { ActiveThemeProvider } from "@/components/active-theme";
 import { AppSidebar } from "@/components/app-sidebar";
 import GoogleMapsScript from "@/components/client/MapScript";
@@ -16,6 +16,7 @@ import { Toaster } from "sonner";
 import { CustomTrigger } from "@/components/custom-sidebar-trigger";
 import { SiteHeader } from "@/components/site-header";
 import type { Metadata } from "next";
+import ClientSetup from "./client-setup";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -135,6 +136,7 @@ export default async function RootLayout({
               </SidebarProvider>
             </ActiveThemeProvider>
           </ThemeProvider>
+          <ClientSetup />
           <GoogleMapsScript />
         </body>
       </html>

@@ -1,52 +1,42 @@
 import { auth } from "@clerk/nextjs/server";
-import { notFound } from "next/navigation";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
-import { prisma } from "@/lib/prisma";
-import HiveTable from "./hive-table";
-import { Button } from "@/components/ui/button";
-import type { HiveInput } from "@/lib/schemas/hive";
-import { unstable_cache } from "next/cache"; // ✅ Built-in Next.js cache
 import HiveMap from "@/components/hive-map";
+import { Button } from "@/components/ui/button";
+import { prisma } from "@/lib/prisma";
+import type { HiveInput } from "@/lib/schemas/hive";
+import HiveTable from "./hive-table";
 
-// ✅ Cache server response for 30s
-export const revalidate = 30;
-
-// ✅ Reusable cached Prisma query
-const getCachedHives = unstable_cache(
-  async (clerkId: string): Promise<HiveInput[]> => {
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-      select: {
-        id: true,
-        Hive: {
-          orderBy: { hiveNumber: "asc" },
-        },
+const getHives = async (clerkId: string): Promise<HiveInput[]> => {
+  const user = await prisma.user.findUnique({
+    where: { clerkId },
+    select: {
+      id: true,
+      Hive: {
+        orderBy: { hiveNumber: "asc" },
       },
-    });
+    },
+  });
 
-    if (!user) return [];
+  if (!user) return [];
 
-    // Sanitize optional fields for consistent shape
-    return user.Hive.map((hive) => ({
-      ...hive,
-      breed: hive.breed ?? undefined,
-      broodBoxes: hive.broodBoxes ?? undefined,
-      frames: hive.frames ?? undefined,
-      hiveImage: hive.hiveImage ?? undefined,
-      hiveStrength: hive.hiveStrength ?? undefined,
-      latitude: hive.latitude ?? undefined,
-      longitude: hive.longitude ?? undefined,
-      queenAge: hive.queenAge ?? undefined,
-      queenColor: hive.queenColor ?? undefined,
-      queenExcluder: hive.queenExcluder ?? undefined,
-      superBoxes: hive.superBoxes ?? undefined,
-      todo: hive.todo ?? undefined,
-    }));
-  },
-  ["hives"], // ✅ Global cache key
-  { revalidate: 30 } // Re-fetch every 30s
-);
+  return user.Hive.map((hive) => ({
+    ...hive,
+    breed: hive.breed ?? undefined,
+    broodBoxes: hive.broodBoxes ?? undefined,
+    frames: hive.frames ?? undefined,
+    hiveImage: hive.hiveImage ?? undefined,
+    hiveStrength: hive.hiveStrength ?? undefined,
+    latitude: hive.latitude ?? undefined,
+    longitude: hive.longitude ?? undefined,
+    queenAge: hive.queenAge ?? undefined,
+    queenColor: hive.queenColor ?? undefined,
+    queenExcluder: hive.queenExcluder ?? undefined,
+    superBoxes: hive.superBoxes ?? undefined,
+    todo: hive.todo ?? undefined,
+  }));
+};
 
 export default async function HivePage() {
   // 🔐 Clerk authentication
@@ -54,7 +44,7 @@ export default async function HivePage() {
   if (!clerkId) return notFound();
 
   // ⚡ Fetch cached data
-  const hives = await getCachedHives(clerkId);
+  const hives = await getHives(clerkId);
 
   // 🖥️ Render
   return (

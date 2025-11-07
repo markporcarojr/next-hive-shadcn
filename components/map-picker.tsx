@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Target } from "lucide-react";
 import L from "leaflet";
-
 import "leaflet/dist/leaflet.css";
 import {
   MapContainer,
@@ -48,7 +47,6 @@ function LocationMarker({
   );
 }
 
-// ✅ This helper keeps the map centered when position changes
 function MapUpdater({ position }: { position: L.LatLng | null }) {
   const map = useMap();
   useEffect(() => {
@@ -140,6 +138,9 @@ export default function MapPicker({
         className="z-0"
         center={[initialLat, initialLng]}
         zoom={13}
+        scrollWheelZoom={false}
+        // @ts-expect-error: gestureHandling is provided by plugin
+        gestureHandling={true} // ✅ two-finger scroll for mobile
         style={{ height: "400px", width: "100%" }}
       >
         <TileLayer
