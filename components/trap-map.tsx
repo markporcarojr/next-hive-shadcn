@@ -67,7 +67,6 @@ export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
         style={{ height: "100%", width: "100%" }}
         className="z-0"
       >
-        <ZoomControl position="bottomright" />
         <RecenterOnTraps traps={traps} />
 
         <LayersControl position="topright">

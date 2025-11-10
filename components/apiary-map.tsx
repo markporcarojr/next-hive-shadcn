@@ -74,14 +74,13 @@ export default function ApiaryMap({
       <MapContainer
         center={[42.78851953037975, -83.77241596723684]}
         zoom={zoom}
-        zoomControl={false}
+        zoomControl={true}
         scrollWheelZoom={false}
         // @ts-expect-error leaflet-gesture-handling prop not in react-leaflet types
         gestureHandling={true} // <-- this activates two-finger gesture handling
         style={{ height: "100%", width: "100%" }}
         className="z-0"
       >
-        <ZoomControl position="bottomright" />
         <RecenterOnData hives={hives} traps={traps} />
 
         <LayersControl position="topright">

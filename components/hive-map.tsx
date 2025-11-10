@@ -70,8 +70,6 @@ export default function HiveMap({ zoom = 15, height = "400px" }: HiveMapProps) {
         gestureHandling={true} // <-- this activates two-finger gesture handling
         className="z-0"
       >
-        <ZoomControl position="bottomright" />
-
         {/* Recenter once Hives load */}
         <RecenterOnHives hives={hives} />
 
