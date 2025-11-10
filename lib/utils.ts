@@ -19,3 +19,15 @@ export async function fetchWeather(lat: number, lon: number) {
     temperature: `${Math.round(data.main?.temp)}°F`,
   };
 }
+
+export function getStrengthLabel(value: number) {
+  if (value < 35) return "Weak";
+  if (value < 70) return "Moderate";
+  return "Strong";
+}
+
+export function getColor(value: number) {
+  if (value < 35) return "red";
+  if (value < 70) return "yellow";
+  return "green";
+}

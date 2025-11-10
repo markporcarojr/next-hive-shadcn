@@ -31,7 +31,7 @@ import {
   InspectionInput,
   inspectionFormSchema,
 } from "@/lib/schemas/inspection";
-import { cn, fetchWeather } from "@/lib/utils";
+import { cn, fetchWeather, getColor, getStrengthLabel } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Hive } from "@prisma/client";
 import { format } from "date-fns";
@@ -40,18 +40,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-
-function getStrengthLabel(value: number) {
-  if (value < 35) return "Weak";
-  if (value < 70) return "Moderate";
-  return "Strong";
-}
-
-function getColor(value: number) {
-  if (value < 35) return "red";
-  if (value < 70) return "yellow";
-  return "green";
-}
 
 export default function CreateInspectionPage() {
   const router = useRouter();

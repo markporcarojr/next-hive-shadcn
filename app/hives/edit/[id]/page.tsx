@@ -26,9 +26,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { HiveInput, hiveFormSchema } from "@/lib/schemas/hive";
-import { cn } from "@/lib/utils";
+import { cn, getColor, getStrengthLabel } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon, Edit } from "lucide-react";
@@ -325,17 +326,30 @@ export default function EditHivesPage({
                 name="hiveStrength"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hive Strength (0-100)</FormLabel>
+                    <FormLabel>
+                      Hive Strength:{" "}
+                      <span style={{ color: getColor(field.value || 0) }}>
+                        {getStrengthLabel(field.value || 0)}
+                      </span>
+                    </FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={100}
-                        {...field}
-                        value={field.value || ""}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        disabled={loading}
-                      />
+                      <div className="px-3">
+                        <Slider
+                          value={[field.value || 0]}
+                          onValueChange={(values: number[]) =>
+                            field.onChange(values[0])
+                          }
+                          max={100}
+                          min={0}
+                          step={1}
+                          className="w-full"
+                        />
+                        <div className="flex justify-between text-sm text-gray-500 mt-1">
+                          <span>0</span>
+                          <span>50</span>
+                          <span>100</span>
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
