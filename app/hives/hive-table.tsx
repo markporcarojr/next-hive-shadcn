@@ -1,6 +1,16 @@
 "use client";
 
 import { DataTable, DataTableSortableHeader } from "@/components/data-table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,15 +19,44 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { hiveFormSchema } from "@/lib/schemas/hive";
 import { IconDotsVertical } from "@tabler/icons-react";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
-import { hiveFormSchema } from "@/lib/schemas/hive";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 import { z } from "zod";
 
 type Hive = z.infer<typeof hiveFormSchema>;
 
 export default function HiveTable({ data }: { data: Hive[] }) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const router = useRouter();
+
+  // 🧹 Delete handler
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setIsDeleting(true);
+
+    try {
+      const res = await fetch(`/api/hives/${deleteId}`, { method: "DELETE" });
+
+      if (res.ok) {
+        toast.success(`Deleted hive #${deleteId}`);
+        router.refresh();
+      } else {
+        toast.error("Failed to delete hive");
+      }
+    } catch {
+      toast.error("Error deleting hive");
+    } finally {
+      setIsDeleting(false);
+      setDeleteId(null);
+    }
+  };
+
   const columns: ColumnDef<Hive>[] = [
     {
       id: "hiveNumber",
@@ -105,11 +144,12 @@ export default function HiveTable({ data }: { data: Hive[] }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem asChild>
-              <a href={`/hives/edit/${row.original.id}`}>Edit</a>
+              <Link href={`/hives/edit/${row.original.id}`}>Edit</Link>
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => console.log("Delete hive", row.original.id)}
               className="text-destructive"
+              disabled={isDeleting}
+              onClick={() => setDeleteId(row.original.id || null)}
             >
               Delete
             </DropdownMenuItem>
@@ -120,11 +160,38 @@ export default function HiveTable({ data }: { data: Hive[] }) {
   ];
 
   return (
-    <DataTable
-      data={data}
-      columns={columns}
-      searchKey="hiveNumber"
-      searchPlaceholder="Search by hive number..."
-    />
+    <>
+      <DataTable
+        data={data}
+        columns={columns}
+        searchKey="hiveNumber"
+        searchPlaceholder="Search by hive number..."
+      />
+
+      <AlertDialog
+        open={deleteId !== null}
+        onOpenChange={() => setDeleteId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Hive</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              selected hive and its related inspection data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

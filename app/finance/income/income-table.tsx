@@ -23,6 +23,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 type Income = {
   id: number;
@@ -47,16 +48,14 @@ export default function IncomeTable({ data }: { data: Income[] }) {
       });
 
       if (res.ok) {
-        console.log("Deleted income", deleteId);
+        toast.success(`Deleted income ${deleteId}`);
         setDeleteId(null);
         router.refresh();
       } else {
-        console.error("Failed to delete income", deleteId);
-        alert("Failed to delete income");
+        toast.error(`Failed to delete income ${deleteId}`);
       }
-    } catch (error) {
-      console.error("Error deleting income", error);
-      alert("Error deleting income");
+    } catch {
+      toast.error("Error deleting income");
     } finally {
       setIsDeleting(false);
     }

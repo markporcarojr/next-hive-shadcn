@@ -4,6 +4,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { HiveInput } from "@/lib/schemas/hive";
 import { IconCalendar, IconInfoCircle } from "@tabler/icons-react";
+import L from "leaflet";
 import { useEffect, useState } from "react";
 import {
   LayerGroup,
@@ -12,15 +13,13 @@ import {
   Marker,
   Popup,
   TileLayer,
-  ZoomControl,
   useMap,
 } from "react-leaflet";
-import L from "leaflet";
 
-import { themedHoneyIcon } from "../Data/mapIcons";
 import { GestureHandling } from "leaflet-gesture-handling";
-import "leaflet/dist/leaflet.css";
 import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
+import "leaflet/dist/leaflet.css";
+import { themedHoneyIcon } from "../Data/mapIcons";
 
 // Register the gesture handling plugin globally
 L.Map.addInitHook("addHandler", "gestureHandling", GestureHandling);

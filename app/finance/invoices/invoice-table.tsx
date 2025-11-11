@@ -24,6 +24,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 type Invoice = {
   id: number;
@@ -49,16 +50,14 @@ export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
       });
 
       if (res.ok) {
-        console.log("Deleted invoice", deleteId);
+        toast.success(`Deleted invoice ${deleteId}`);
         setDeleteId(null);
         router.refresh();
       } else {
-        console.error("Failed to delete invoice", deleteId);
-        alert("Failed to delete invoice");
+        toast.error(`Failed to delete invoice ${deleteId}`);
       }
-    } catch (error) {
-      console.error("Error deleting invoice", error);
-      alert("Error deleting invoice");
+    } catch {
+      toast.error("Error deleting invoice");
     } finally {
       setIsDeleting(false);
     }

@@ -19,7 +19,6 @@ export default function GoogleMapsScript() {
     script.defer = true;
 
     script.onload = () => {
-      console.log("✅ Google Maps loaded with async flag");
       window.dispatchEvent(new Event("google-maps-loaded"));
     };
 

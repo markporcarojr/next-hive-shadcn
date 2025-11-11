@@ -1,16 +1,13 @@
 "use client";
 
-import { DataTable } from "@/components/data-table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ColumnDef } from "@tanstack/react-table";
+import { IconDotsVertical } from "@tabler/icons-react";
+import { toast } from "sonner";
+import { InspectionWithHive } from "@/lib/schemas/inspection";
+import { DataTable, DataTableSortableHeader } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,13 +15,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { InspectionWithHive } from "@/lib/schemas/inspection";
-import { IconDotsVertical } from "@tabler/icons-react";
-import { ColumnDef } from "@tanstack/react-table";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { DataTableSortableHeader } from "@/components/data-table";
-import Link from "next/link";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 export default function InspectionTable({
   inspections,
@@ -37,26 +37,24 @@ export default function InspectionTable({
 
   const handleDelete = async () => {
     if (!deleteId) return;
-
     setIsDeleting(true);
+
     try {
       const res = await fetch(`/api/inspection/${deleteId}`, {
         method: "DELETE",
       });
 
       if (res.ok) {
-        console.log("Deleted inspection", deleteId);
-        setDeleteId(null);
+        toast.success("Deleted inspection");
         router.refresh();
       } else {
-        console.error("Failed to delete inspection", deleteId);
-        alert("Failed to delete inspection");
+        toast.error("Failed to delete inspection");
       }
-    } catch (error) {
-      console.error("Error deleting inspection", error);
-      alert("Error deleting inspection");
+    } catch {
+      toast.error("Error deleting inspection");
     } finally {
       setIsDeleting(false);
+      setDeleteId(null);
     }
   };
 
@@ -73,7 +71,7 @@ export default function InspectionTable({
             variant="ghost"
             className="w-full justify-start px-2 h-auto font-normal cursor-pointer"
           >
-            {row.original.hive.hiveNumber}
+            {row.original.hive?.hiveNumber ?? "—"}
           </Button>
         </Link>
       ),
@@ -98,12 +96,14 @@ export default function InspectionTable({
       header: ({ column }) => (
         <DataTableSortableHeader column={column} title="Temperament" />
       ),
+      cell: ({ row }) => <span>{row.original.temperament ?? "—"}</span>,
     },
     {
       accessorKey: "hiveStrength",
       header: ({ column }) => (
         <DataTableSortableHeader column={column} title="Strength" />
       ),
+      cell: ({ row }) => <span>{row.original.hiveStrength ?? "—"}</span>,
     },
     {
       accessorKey: "queen",
@@ -130,11 +130,12 @@ export default function InspectionTable({
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem asChild>
-              <a href={`/inspection/edit/${row.original.id}`}>Edit</a>
+              <Link href={`/inspection/edit/${row.original.id}`}>Edit</Link>
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => setDeleteId(row.original.id ?? null)}
               className="text-destructive"
+              disabled={isDeleting}
+              onClick={() => setDeleteId(row.original.id ?? null)}
             >
               Delete
             </DropdownMenuItem>
@@ -159,10 +160,10 @@ export default function InspectionTable({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Inspection</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete this
-              inspection from your records.
+              inspection record from your data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

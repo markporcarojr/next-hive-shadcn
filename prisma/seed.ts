@@ -184,70 +184,88 @@ async function main() {
   ];
 
   const products = [
-    { name: "Honey Jar", price: 8 },
-    { name: "Candle", price: 12 },
-    { name: "Wax Block", price: 20 },
+    { name: "Honey Jar", price: 10 },
+    { name: "Candle", price: 15 },
+    { name: "Wax Block", price: 25 },
+    { name: "Gift Box", price: 40 },
   ];
 
-  for (let i = 0; i < 20; i++) {
-    const customer = customers[i % customers.length];
-    const product = products[i % products.length];
-    const quantity = Math.floor(Math.random() * 3) + 1;
-    const total = product.price * quantity;
-    const date = new Date(`2025-${(i % 12) + 1}-10`);
+  const invoicesPerYear = 12;
+  let totalInvoices = 0;
 
-    const invoice = await prisma.invoice.create({
-      data: {
-        customerName: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-        date,
-        total,
-        notes: `Demo Invoice #${i + 1}`,
-        userId,
-        items: {
-          create: [
-            {
-              product: product.name,
-              quantity,
-              unitPrice: product.price,
-            },
-          ],
+  for (let year = startYear; year <= endYear; year++) {
+    for (let i = 0; i < invoicesPerYear; i++) {
+      const customer = customers[(i + year) % customers.length];
+      const numItems = Math.floor(Math.random() * 3) + 1;
+      const items = Array.from({ length: numItems }).map(() => {
+        const product = products[Math.floor(Math.random() * products.length)];
+        const quantity = Math.floor(Math.random() * 5) + 1;
+        return {
+          product: product.name,
+          quantity,
+          unitPrice: product.price,
+        };
+      });
+
+      const total = items.reduce(
+        (sum, item) => sum + item.unitPrice * item.quantity,
+        0
+      );
+
+      const date = new Date(`${year}-${(i % 12) + 1}-10`);
+
+      const invoice = await prisma.invoice.create({
+        data: {
+          customerName: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          date,
+          total,
+          notes: `Demo Invoice ${year}-${i + 1}`,
+          userId,
+          items: { create: items },
         },
-      },
-    });
+      });
 
-    await prisma.income.create({
-      data: {
-        source: `Invoice - ${customer.name}`,
-        amount: total,
-        date,
-        notes: `Income from ${product.name} sale`,
-        invoiceId: invoice.id,
-        userId,
-      },
-    });
+      await prisma.income.create({
+        data: {
+          source: `Invoice - ${customer.name}`,
+          amount: total,
+          date,
+          notes: `Income from ${customer.name} (${year})`,
+          invoiceId: invoice.id,
+          userId,
+        },
+      });
+
+      totalInvoices++;
+    }
   }
-  logSuccess("Created 20 invoices and linked incomes");
+
+  logSuccess(
+    `Created ${totalInvoices} invoices and linked incomes (~$20k/year)`
+  );
 
   // ===================== Expenses =====================
   logSection("Creating Expenses");
 
   const categories = ["Equipment", "Supplies", "Travel", "Maintenance", "Feed"];
-  await Promise.all(
-    Array.from({ length: 20 }).map((_, i) =>
-      prisma.expense.create({
-        data: {
-          item: categories[i % categories.length],
-          amount: parseFloat((Math.random() * 200 + 50).toFixed(2)),
-          date: new Date(`2025-${(i % 12) + 1}-05`),
-          notes: "Demo expense entry",
-          userId,
-        },
-      })
-    )
-  );
-  logSuccess("Created 20 expenses");
+  const expenses = [];
+
+  for (let year = startYear; year <= endYear; year++) {
+    for (let i = 0; i < 8; i++) {
+      expenses.push({
+        item: categories[i % categories.length],
+        amount: parseFloat((Math.random() * 500 + 100).toFixed(2)),
+        date: new Date(`${year}-${(i % 12) + 1}-05`),
+        notes: `Operational expense ${year}`,
+        userId,
+      });
+    }
+  }
+
+  await prisma.expense.createMany({ data: expenses });
+  logSuccess(`Created ${expenses.length} expenses`);
 
   // ===================== Inventory =====================
   logSection("Creating Inventory");

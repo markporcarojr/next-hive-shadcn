@@ -25,7 +25,6 @@ export function useLeafletGestureSetup() {
         (
           L.Map.prototype as unknown as { _gestureHandlingInitialized: boolean }
         )._gestureHandlingInitialized = true;
-        console.log("✅ Leaflet gesture handling initialized");
       }
     });
   }, []);

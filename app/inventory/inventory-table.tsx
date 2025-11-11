@@ -1,5 +1,12 @@
 "use client";
 
+import { IconDotsVertical } from "@tabler/icons-react";
+import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+
 import { DataTable, DataTableSortableHeader } from "@/components/data-table";
 import {
   AlertDialog,
@@ -18,12 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { IconDotsVertical } from "@tabler/icons-react";
-import { ColumnDef } from "@tanstack/react-table";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { InventoryInput } from "@/lib/schemas/inventory";
-import Link from "next/link";
 
 export default function InventoryTable({ items }: { items: InventoryInput[] }) {
   const router = useRouter();
@@ -40,18 +42,16 @@ export default function InventoryTable({ items }: { items: InventoryInput[] }) {
       });
 
       if (res.ok) {
-        console.log("Deleted item", deleteId);
-        setDeleteId(null);
+        toast.success(`Deleted inventory item #${deleteId}`);
         router.refresh();
       } else {
-        console.error("Failed to delete item", deleteId);
-        alert("Failed to delete item");
+        toast.error("Failed to delete item");
       }
-    } catch (error) {
-      console.error("Error deleting item", error);
-      alert("Error deleting item");
+    } catch {
+      toast.error("Error deleting item");
     } finally {
       setIsDeleting(false);
+      setDeleteId(null);
     }
   };
 
@@ -71,7 +71,7 @@ export default function InventoryTable({ items }: { items: InventoryInput[] }) {
           </Button>
         </Link>
       ),
-      filterFn: "fuzzy", // ✅ Uses the global fuzzy logic
+      filterFn: "fuzzy",
     },
     {
       accessorKey: "quantity",
@@ -98,10 +98,11 @@ export default function InventoryTable({ items }: { items: InventoryInput[] }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem asChild>
-              <a href={`/inventory/edit/${row.original.id}`}>Edit</a>
+              <Link href={`/inventory/edit/${row.original.id}`}>Edit</Link>
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setDeleteId(row.original.id ?? null)}
+              disabled={isDeleting}
               className="text-destructive"
             >
               Delete
@@ -127,10 +128,10 @@ export default function InventoryTable({ items }: { items: InventoryInput[] }) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Item</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this inventory item from your
-              records.
+              This action cannot be undone. This will permanently delete the
+              selected inventory item from your records.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

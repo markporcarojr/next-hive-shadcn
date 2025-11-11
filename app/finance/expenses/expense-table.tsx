@@ -24,6 +24,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function ExpenseTable({
   expenses,
@@ -44,16 +45,14 @@ export default function ExpenseTable({
       });
 
       if (res.ok) {
-        console.log("Deleted expense", deleteId);
+        toast.success(`Deleted expense ${deleteId}`);
         setDeleteId(null);
         router.refresh();
       } else {
-        console.error("Failed to delete expense", deleteId);
-        alert("Failed to delete expense");
+        toast.error("Failed to delete expense");
       }
-    } catch (error) {
-      console.error("Error deleting expense", error);
-      alert("Error deleting expense");
+    } catch {
+      toast.error("Error deleting expense");
     } finally {
       setIsDeleting(false);
     }

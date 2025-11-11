@@ -1,5 +1,12 @@
 "use client";
 
+import { IconDotsVertical } from "@tabler/icons-react";
+import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+
 import { DataTable, DataTableSortableHeader } from "@/components/data-table";
 import {
   AlertDialog,
@@ -18,12 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { IconDotsVertical } from "@tabler/icons-react";
-import { ColumnDef } from "@tanstack/react-table";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { SwarmInput } from "@/lib/schemas/swarmTrap";
-import Link from "next/link";
 
 export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
   const router = useRouter();
@@ -38,18 +40,16 @@ export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
       const res = await fetch(`/api/swarm/${deleteId}`, { method: "DELETE" });
 
       if (res.ok) {
-        console.log("Deleted swarm trap", deleteId);
-        setDeleteId(null);
+        toast.success(`Deleted swarm trap #${deleteId}`);
         router.refresh();
       } else {
-        console.error("Failed to delete swarm trap", deleteId);
-        alert("Failed to delete swarm trap");
+        toast.error("Failed to delete swarm trap");
       }
-    } catch (error) {
-      console.error("Error deleting swarm trap", error);
-      alert("Error deleting swarm trap");
+    } catch {
+      toast.error("Error deleting swarm trap");
     } finally {
       setIsDeleting(false);
+      setDeleteId(null);
     }
   };
 
@@ -69,6 +69,7 @@ export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
           </Button>
         </Link>
       ),
+      filterFn: "fuzzy",
     },
     {
       accessorKey: "installedAt",
@@ -90,10 +91,11 @@ export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem asChild>
-              <a href={`/swarm/edit/${row.original.id}`}>Edit</a>
+              <Link href={`/swarm/edit/${row.original.id}`}>Edit</Link>
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setDeleteId(row.original.id ?? null)}
+              disabled={isDeleting}
               className="text-destructive"
             >
               Delete
@@ -119,9 +121,10 @@ export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Swarm Trap</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this swarm trap record.
+              This action cannot be undone. This will permanently delete the
+              selected swarm trap record from your account.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
