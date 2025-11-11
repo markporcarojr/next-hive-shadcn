@@ -1,230 +1,258 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  LayersControl,
+  LayerGroup,
+} from "react-leaflet";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Select,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+} from "@/components/ui/select";
 import { HiveInput } from "@/lib/schemas/hive";
 import { SwarmInput } from "@/lib/schemas/swarmTrap";
 import { IconCalendar, IconInfoCircle } from "@tabler/icons-react";
-import L from "leaflet";
-import { GestureHandling } from "leaflet-gesture-handling";
-import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
-import "leaflet/dist/leaflet.css";
-import { useEffect, useState } from "react";
-import {
-  LayerGroup,
-  LayersControl,
-  MapContainer,
-  Marker,
-  Popup,
-  TileLayer,
-  useMap,
-} from "react-leaflet";
 import { themedHoneyIcon, themedTrapIcon } from "../Data/mapIcons";
-
-// Register the gesture handling plugin globally
-L.Map.addInitHook("addHandler", "gestureHandling", GestureHandling);
+import "leaflet/dist/leaflet.css";
+import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
 
 const { BaseLayer, Overlay } = LayersControl;
-
-interface ApiaryMapProps {
-  zoom?: number;
-  height?: string;
-}
-
-function RecenterOnData({
-  hives,
-  traps,
-}: {
-  hives: HiveInput[];
-  traps: SwarmInput[];
-}) {
-  const map = useMap();
-
-  useEffect(() => {
-    const target = hives[0] || traps[0];
-    if (target) {
-      map.setView([target.latitude ?? 0, target.longitude ?? 0]);
-    }
-  }, [map, hives, traps]);
-
-  return null;
-}
 
 export default function ApiaryMap({
   zoom = 15,
   height = "500px",
-}: ApiaryMapProps) {
+}: {
+  zoom?: number;
+  height?: string;
+}) {
   const [hives, setHives] = useState<HiveInput[]>([]);
   const [traps, setTraps] = useState<SwarmInput[]>([]);
+  const [selectedHive, setSelectedHive] = useState<string>("all");
+  const [selectedTrap, setSelectedTrap] = useState<string>("all");
 
   useEffect(() => {
-    fetch("/api/hives")
-      .then((res) => res.json())
-      .then(setHives)
-      .catch((err) => console.error("Error loading hives", err));
+    const loadData = async () => {
+      try {
+        const [hivesRes, trapsRes] = await Promise.all([
+          fetch("/api/hives"),
+          fetch("/api/swarm"),
+        ]);
+        if (!hivesRes.ok || !trapsRes.ok)
+          throw new Error("Failed to load data");
 
-    fetch("/api/swarm")
-      .then((res) => res.json())
-      .then(setTraps)
-      .catch((err) => console.error("Error loading traps", err));
+        const [hivesData, trapsData] = await Promise.all([
+          hivesRes.json(),
+          trapsRes.json(),
+        ]);
+        setHives(hivesData);
+        setTraps(trapsData);
+      } catch (err) {
+        console.error("Error loading data:", err);
+      }
+    };
+    loadData();
   }, []);
 
+  // Filtered arrays
+  const filteredHives =
+    selectedHive === "all"
+      ? hives
+      : hives.filter((h) => h.id === Number(selectedHive));
+
+  const filteredTraps =
+    selectedTrap === "all"
+      ? traps
+      : traps.filter((t) => t.id === Number(selectedTrap));
+
   return (
-    <div style={{ width: "100%", height }}>
-      <MapContainer
-        center={[42.78851953037975, -83.77241596723684]}
-        zoom={zoom}
-        zoomControl={true}
-        scrollWheelZoom={false}
-        // @ts-expect-error leaflet-gesture-handling prop not in react-leaflet types
-        gestureHandling={true} // <-- this activates two-finger gesture handling
-        style={{ height: "100%", width: "100%" }}
-        className="z-0"
-      >
-        <RecenterOnData hives={hives} traps={traps} />
-
-        <LayersControl position="topright">
-          <BaseLayer checked name="Satellite">
-            <TileLayer
-              url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
-              attribution="© Google"
-              subdomains={["mt0", "mt1", "mt2", "mt3"]}
-              maxZoom={20}
-            />
-          </BaseLayer>
-
-          <BaseLayer name="OpenStreetMap">
-            <TileLayer
-              url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="© OpenStreetMap contributors"
-            />
-          </BaseLayer>
-
-          {/* Swarm Traps */}
-          <Overlay checked name="Swarm Traps">
-            <LayerGroup>
-              {traps.map((trap) => (
-                <Marker
-                  key={`trap-${trap.id}`}
-                  position={[trap.latitude, trap.longitude]}
-                  icon={themedTrapIcon}
-                >
-                  <Popup className="popup-container">
-                    <Card className="w-72 border-0 shadow-none">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <h5 className="text-lg font-semibold">
-                            {trap.label || "Unnamed Trap"}
-                          </h5>
-                          <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
-                            Active
-                          </span>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <IconCalendar
-                              className="h-4 w-4 text-primary"
-                              stroke={2}
-                            />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs text-muted-foreground">
-                              Installed
-                            </p>
-                            <p className="text-sm font-medium">
-                              {new Date(trap.installedAt).toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                }
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Popup>
-                </Marker>
-              ))}
-            </LayerGroup>
-          </Overlay>
-
-          {/* Hives */}
-          <Overlay checked name="Hives">
-            <LayerGroup>
+    <div className="space-y-3">
+      {/* Filter Dropdowns */}
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="w-48">
+          <Select value={selectedHive} onValueChange={setSelectedHive}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by Hive" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Hives</SelectItem>
               {hives.map((hive) => (
-                <Marker
-                  key={`hive-${hive.id}`}
-                  position={[hive.latitude ?? 0, hive.longitude ?? 0]}
-                  icon={themedHoneyIcon}
-                >
-                  <Popup className="popup-container">
-                    <Card className="w-72 border-0 shadow-none">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <h5 className="text-lg font-semibold">
-                            Hive #{hive.hiveNumber}
-                          </h5>
-                          <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
-                            Active
-                          </span>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <IconCalendar
-                              className="h-4 w-4 text-primary"
-                              stroke={2}
-                            />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs text-muted-foreground">
-                              Established
-                            </p>
-                            <p className="text-sm font-medium">
-                              {new Date(hive.hiveDate).toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                }
-                              )}
-                            </p>
-                          </div>
-                        </div>
-
-                        {hive.hiveSource && (
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                              <IconInfoCircle
-                                className="h-4 w-4 text-primary"
-                                stroke={2}
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-xs text-muted-foreground">
-                                Source
-                              </p>
-                              <p className="text-sm font-medium truncate">
-                                {hive.hiveSource}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Popup>
-                </Marker>
+                <SelectItem key={hive.id} value={hive.id?.toString() || ""}>
+                  Hive #{hive.hiveNumber}
+                </SelectItem>
               ))}
-            </LayerGroup>
-          </Overlay>
-        </LayersControl>
-      </MapContainer>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="w-48">
+          <Select value={selectedTrap} onValueChange={setSelectedTrap}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by Trap" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Traps</SelectItem>
+              {traps.map((trap) => (
+                <SelectItem key={trap.id} value={trap.id?.toString() || ""}>
+                  {trap.label || `Trap #${trap.id}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Map */}
+      <div style={{ width: "100%", height }}>
+        <MapContainer
+          center={[42.78851953037975, -83.77241596723684]}
+          zoom={zoom}
+          scrollWheelZoom={false}
+          // @ts-expect-error leaflet-gesture-handling prop not in react-leaflet types
+          gestureHandling={true}
+          className="z-0 w-full h-full"
+        >
+          <LayersControl position="topright">
+            <BaseLayer checked name="Satellite">
+              <TileLayer
+                url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+                subdomains={["mt0", "mt1", "mt2", "mt3"]}
+                attribution="© Google"
+                maxZoom={20}
+              />
+            </BaseLayer>
+            <BaseLayer name="OpenStreetMap">
+              <TileLayer
+                url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="© OpenStreetMap contributors"
+              />
+            </BaseLayer>
+
+            {/* Swarm Traps */}
+            <Overlay checked name="Swarm Traps">
+              <LayerGroup>
+                {filteredTraps.map((trap) => (
+                  <Marker
+                    key={`trap-${trap.id}`}
+                    position={[trap.latitude, trap.longitude]}
+                    icon={themedTrapIcon}
+                  >
+                    <Popup>
+                      <Card className="w-72 border-0 shadow-none">
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between">
+                            <h5 className="text-lg font-semibold">
+                              {trap.label || "Unnamed Trap"}
+                            </h5>
+                            <span className="text-xs bg-primary/10 px-2 py-1 rounded-full text-primary">
+                              Active
+                            </span>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                              <IconCalendar className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                Installed
+                              </p>
+                              <p className="text-sm font-medium">
+                                {new Date(trap.installedAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  }
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Popup>
+                  </Marker>
+                ))}
+              </LayerGroup>
+            </Overlay>
+
+            {/* Hives */}
+            <Overlay checked name="Hives">
+              <LayerGroup>
+                {filteredHives.map((hive) => (
+                  <Marker
+                    key={`hive-${hive.id}`}
+                    position={[hive.latitude ?? 0, hive.longitude ?? 0]}
+                    icon={themedHoneyIcon}
+                  >
+                    <Popup>
+                      <Card className="w-72 border-0 shadow-none">
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between">
+                            <h5 className="text-lg font-semibold">
+                              Hive #{hive.hiveNumber}
+                            </h5>
+                            <span className="text-xs bg-primary/10 px-2 py-1 rounded-full text-primary">
+                              Active
+                            </span>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                              <IconCalendar className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                Established
+                              </p>
+                              <p className="text-sm font-medium">
+                                {new Date(hive.hiveDate).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  }
+                                )}
+                              </p>
+                            </div>
+                          </div>
+
+                          {hive.hiveSource && (
+                            <div className="flex items-center gap-3">
+                              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                                <IconInfoCircle className="h-4 w-4 text-primary" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">
+                                  Source
+                                </p>
+                                <p className="text-sm font-medium truncate">
+                                  {hive.hiveSource}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Popup>
+                  </Marker>
+                ))}
+              </LayerGroup>
+            </Overlay>
+          </LayersControl>
+        </MapContainer>
+      </div>
     </div>
   );
 }
