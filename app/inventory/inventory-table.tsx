@@ -42,7 +42,7 @@ export default function InventoryTable({ items }: { items: InventoryInput[] }) {
       });
 
       if (res.ok) {
-        toast.success(`Deleted inventory item #${deleteId}`);
+        toast.success("Item deleted");
         router.refresh();
       } else {
         toast.error("Failed to delete item");
@@ -120,6 +120,7 @@ export default function InventoryTable({ items }: { items: InventoryInput[] }) {
         columns={columns}
         searchKey="name"
         searchPlaceholder="Search inventory..."
+        mobileColumns={["name", "quantity", "actions"]} 
       />
 
       <AlertDialog

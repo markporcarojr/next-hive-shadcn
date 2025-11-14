@@ -48,11 +48,11 @@ export default function IncomeTable({ data }: { data: Income[] }) {
       });
 
       if (res.ok) {
-        toast.success(`Deleted income ${deleteId}`);
+        toast.success("Income deleted");
         setDeleteId(null);
         router.refresh();
       } else {
-        toast.error(`Failed to delete income ${deleteId}`);
+        toast.error("Failed to delete income");
       }
     } catch {
       toast.error("Error deleting income");

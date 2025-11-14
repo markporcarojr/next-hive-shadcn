@@ -104,3 +104,47 @@ export async function PATCH(
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
+// DELETE /api/hives/[id]
+export async function DELETE(
+  _: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { userId: clerkId } = await auth();
+  if (!clerkId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const { id } = await params;
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Verify ownership before deleting
+    const existingHive = await prisma.hive.findFirst({
+      where: {
+        id: Number(id),
+        userId: user.id,
+      },
+      select: { id: true },
+    });
+
+    if (!existingHive) {
+      return NextResponse.json({ error: "Hive not found" }, { status: 404 });
+    }
+
+    await prisma.hive.delete({
+      where: { id: Number(id) },
+    });
+
+    return NextResponse.json({ message: "Hive deleted" });
+  } catch (error) {
+    console.error("[HIVE_DELETE_BY_ID]", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+} 

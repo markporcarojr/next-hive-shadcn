@@ -50,11 +50,11 @@ export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
       });
 
       if (res.ok) {
-        toast.success(`Deleted invoice ${deleteId}`);
+        toast.success("Invoice deleted");
         setDeleteId(null);
         router.refresh();
       } else {
-        toast.error(`Failed to delete invoice ${deleteId}`);
+        toast.error("Failed to delete invoice");
       }
     } catch {
       toast.error("Error deleting invoice");

@@ -45,7 +45,7 @@ export default function ExpenseTable({
       });
 
       if (res.ok) {
-        toast.success(`Deleted expense ${deleteId}`);
+        toast.success("Expense deleted");
         setDeleteId(null);
         router.refresh();
       } else {

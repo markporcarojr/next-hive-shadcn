@@ -40,7 +40,7 @@ export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
       const res = await fetch(`/api/swarm/${deleteId}`, { method: "DELETE" });
 
       if (res.ok) {
-        toast.success(`Deleted swarm trap #${deleteId}`);
+        toast.success("Swarm trap deleted");
         router.refresh();
       } else {
         toast.error("Failed to delete swarm trap");

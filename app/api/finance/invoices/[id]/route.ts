@@ -133,9 +133,11 @@ export async function DELETE(
       where: { id: Number(id) },
     });
 
-    return NextResponse.json({ message: "Invoice deleted successfully" });
+    return NextResponse.json({ message: "Invoice deleted" });
   } catch (error) {
     console.error("[DELETE_INVOICE]", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
+

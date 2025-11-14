@@ -44,7 +44,7 @@ export default function HiveTable({ data }: { data: Hive[] }) {
       const res = await fetch(`/api/hives/${deleteId}`, { method: "DELETE" });
 
       if (res.ok) {
-        toast.success(`Deleted hive #${deleteId}`);
+        toast.success("Hive deleted");
         router.refresh();
       } else {
         toast.error("Failed to delete hive");
@@ -166,7 +166,7 @@ export default function HiveTable({ data }: { data: Hive[] }) {
         columns={columns}
         searchKey="hiveNumber"
         searchPlaceholder="Search by hive number..."
-        mobileColumns={["hiveNumber", "hiveSource", "actions"]}
+        mobileColumns={["hiveNumber", "todo", "actions"]}
       />
 
       <AlertDialog

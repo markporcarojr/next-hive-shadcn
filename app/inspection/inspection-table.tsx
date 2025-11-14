@@ -152,6 +152,7 @@ export default function InspectionTable({
         columns={columns}
         searchKey="hiveNumber"
         searchPlaceholder="Search inspections..."
+        mobileColumns={["hiveNumber", "inspectionDate", "actions"]} 
       />
 
       <AlertDialog
