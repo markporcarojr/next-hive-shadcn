@@ -155,6 +155,7 @@ export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
         columns={columns}
         searchKey="customerName"
         searchPlaceholder="Search invoices..."
+        mobileColumns={["customerName", "total", "actions"]}
       />
 
       <AlertDialog

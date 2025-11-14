@@ -125,6 +125,7 @@ export default function ExpenseTable({
         columns={columns}
         searchKey="item"
         searchPlaceholder="Search expenses..."
+        mobileColumns={["item", "amount", "actions"]}
       />
 
       <AlertDialog

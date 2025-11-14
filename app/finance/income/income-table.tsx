@@ -134,6 +134,7 @@ export default function IncomeTable({ data }: { data: Income[] }) {
         columns={columns}
         searchKey="source"
         searchPlaceholder="Search income..."
+        mobileColumns={["source", "amount","actions"]}
       />
       <AlertDialog
         open={deleteId !== null}

@@ -113,6 +113,7 @@ export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
         columns={columns}
         searchKey="label"
         searchPlaceholder="Search swarm traps..."
+        mobileColumns={["label", "installedAt", "actions"]}
       />
 
       <AlertDialog

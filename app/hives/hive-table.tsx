@@ -166,6 +166,7 @@ export default function HiveTable({ data }: { data: Hive[] }) {
         columns={columns}
         searchKey="hiveNumber"
         searchPlaceholder="Search by hive number..."
+        mobileColumns={["hiveNumber", "hiveSource", "actions"]}
       />
 
       <AlertDialog
