@@ -134,7 +134,7 @@ model InvoiceItem {
   product   String
   quantity  Int
   unitPrice Decimal @db.Decimal(10, 2)
-  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  invoice    Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   invoiceId Int
 }
 

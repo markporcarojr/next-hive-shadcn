@@ -103,21 +103,22 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { userId } = await auth();
-  if (!userId) {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const { id } = await params;
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+      where: { clerkId: clerkId },
       select: { id: true },
     });
+
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { id } = await params;
 
     // Verify ownership before deleting
     const existing = await prisma.invoice.findFirst({
