@@ -1,17 +1,17 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { cookies } from "next/headers";
 
-import "./globals.css";
-import "@/lib/setupLeafletGesture"; // 👈 one-line global gesture setup
 import { ActiveThemeProvider } from "@/components/active-theme";
 import { AppSidebar } from "@/components/app-sidebar";
 import GoogleMapsScript from "@/components/client/MapScript";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { checkUser } from "@/lib/auth/checkUser";
+import "@/lib/setupLeafletGesture"; // 👈 one-line global gesture setup
 import { cn } from "@/lib/utils";
 import { dark } from "@clerk/themes";
 import { Toaster } from "sonner";
+import "./globals.css";
 
 import { CustomTrigger } from "@/components/custom-sidebar-trigger";
 import { SiteHeader } from "@/components/site-header";

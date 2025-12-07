@@ -9,5 +9,5 @@ const ApiaryMap = dynamic(() => import("./apiary-map"), {
 });
 
 export default function ApiaryMapWrapper() {
-  return <ApiaryMap zoom={15} height="500px" />;
+  return <ApiaryMap zoom={16} height="500px" />;
 }
