@@ -15,11 +15,13 @@ import {
   TileLayer,
   useMap,
 } from "react-leaflet";
+import type { MarkerIcon } from "../Data/mapIcons";
 
 import { GestureHandling } from "leaflet-gesture-handling";
 import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
 import "leaflet/dist/leaflet.css";
-import { themedHoneyIcon } from "../Data/mapIcons";
+import { getMapIcons } from "../Data/mapIcons";
+
 
 // Register the gesture handling plugin globally
 L.Map.addInitHook("addHandler", "gestureHandling", GestureHandling);
@@ -49,6 +51,23 @@ function RecenterOnHives({ hives }: { hives: HiveInput[] }) {
 
 export default function HiveMap({ zoom = 15, height = "400px" }: HiveMapProps) {
   const [hives, setHives] = useState<HiveInput[]>([]);
+  const [icons, setIcons] = useState<{
+    themedHoneyIcon: MarkerIcon;
+    themedTrapIcon: MarkerIcon;
+  } | null>(null);
+  
+  useEffect(() => {
+    let mounted = true;
+  
+    (async () => {
+      const { themedHoneyIcon, themedTrapIcon } = await getMapIcons();
+      if (mounted) setIcons({ themedHoneyIcon, themedTrapIcon });
+    })();
+  
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     fetch("/api/hives")
@@ -94,7 +113,7 @@ export default function HiveMap({ zoom = 15, height = "400px" }: HiveMapProps) {
                 <Marker
                   key={hive.id}
                   position={[hive.latitude ?? 0, hive.longitude ?? 0]}
-                  icon={themedHoneyIcon}
+                  icon={icons?.themedHoneyIcon}
                 >
                   {/* // In your HiveMap component, replace the Popup section: */}
                   <Popup className="popup-container">

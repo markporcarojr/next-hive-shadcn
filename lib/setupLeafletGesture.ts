@@ -2,30 +2,36 @@
 "use client";
 
 import { useEffect } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 
-// Import inside the effect so it never runs on the server
 export function useLeafletGestureSetup() {
   useEffect(() => {
-    // Only run on the client
-    if (typeof window === "undefined") return;
+    let mounted = true;
 
-    // Dynamically import plugin
-    import("leaflet-gesture-handling").then(({ GestureHandling }) => {
-      // Prevent re-initialization
-      if (
-        !(
-          L.Map.prototype as unknown as {
-            _gestureHandlingInitialized?: boolean;
-          }
-        )._gestureHandlingInitialized
-      ) {
+    (async () => {
+      if (typeof window === "undefined") return;
+
+      // Import Leaflet ONLY in the browser
+      const L = (await import("leaflet")).default;
+
+      // Import plugin ONLY in the browser
+      const { GestureHandling } = await import("leaflet-gesture-handling");
+
+      // Prevent re-init across renders/hot reload
+      const proto = L.Map.prototype as unknown as {
+        _gestureHandlingInitialized?: boolean;
+      };
+
+      if (!proto._gestureHandlingInitialized) {
         L.Map.addInitHook("addHandler", "gestureHandling", GestureHandling);
-        (
-          L.Map.prototype as unknown as { _gestureHandlingInitialized: boolean }
-        )._gestureHandlingInitialized = true;
+        proto._gestureHandlingInitialized = true;
       }
-    });
+
+      // optional guard if component unmounts mid-import
+      if (!mounted) return;
+    })();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 }

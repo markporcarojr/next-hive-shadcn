@@ -15,7 +15,9 @@ import {
   TileLayer,
   useMap,
 } from "react-leaflet";
-import { themedHoneyIcon } from "../Data/mapIcons";
+import type { MarkerIcon } from "../Data/mapIcons";
+import { getMapIcons } from "../Data/mapIcons";
+
 
 const { BaseLayer, Overlay } = LayersControl;
 
@@ -41,7 +43,23 @@ function RecenterOnTraps({ traps }: { traps: SwarmInput[] }) {
 
 export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
   const [traps, setTraps] = useState<SwarmInput[]>([]);
-
+  const [icons, setIcons] = useState<{
+    themedHoneyIcon: MarkerIcon;
+    themedTrapIcon: MarkerIcon;
+  } | null>(null);
+  
+  useEffect(() => {
+    let mounted = true;
+  
+    (async () => {
+      const { themedHoneyIcon, themedTrapIcon } = await getMapIcons();
+      if (mounted) setIcons({ themedHoneyIcon, themedTrapIcon });
+    })();
+  
+    return () => {
+      mounted = false;
+    };
+  }, []);
   useEffect(() => {
     fetch("/api/swarm")
       .then((res) => res.json())
@@ -86,7 +104,7 @@ export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
                 <Marker
                   key={trap.id}
                   position={[trap.latitude, trap.longitude]}
-                  icon={themedHoneyIcon}
+                  icon={icons?.themedHoneyIcon}
                 >
                   <Popup className="popup-container">
                     <Card className="w-72 border-0 shadow-none">
