@@ -25,11 +25,19 @@ export async function POST(request: Request) {
 
     const reply = completion.choices[0]?.message?.content ?? "";
     return NextResponse.json({ reply });
-  } catch (error) {
-    console.error("OpenAI chat error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
+ } catch (error) {
+  const message =
+    error instanceof Error ? error.message : "Unknown error";
+
+  console.error("OpenAI chat error:", {
+    message,
+    name: error instanceof Error ? error.name : "NonError",
+  });
+
+  return NextResponse.json(
+    { error: "Internal server error" },
+    { status: 500 }
+  );
+}
+
 }

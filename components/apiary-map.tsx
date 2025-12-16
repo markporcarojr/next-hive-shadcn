@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { MarkerIcon } from "../Data/mapIcons";
+import { getMapIcons } from "../Data/mapIcons";
 import {
   MapContainer,
   TileLayer,
@@ -20,7 +22,6 @@ import {
 import { HiveInput } from "@/lib/schemas/hive";
 import { SwarmInput } from "@/lib/schemas/swarmTrap";
 import { IconCalendar, IconInfoCircle } from "@tabler/icons-react";
-import { themedHoneyIcon, themedTrapIcon } from "../Data/mapIcons";
 import "leaflet/dist/leaflet.css";
 import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
 
@@ -37,6 +38,24 @@ export default function ApiaryMap({
   const [traps, setTraps] = useState<SwarmInput[]>([]);
   const [selectedHive, setSelectedHive] = useState<string>("all");
   const [selectedTrap, setSelectedTrap] = useState<string>("all");
+  const [icons, setIcons] = useState<{
+  themedHoneyIcon: MarkerIcon;
+  themedTrapIcon: MarkerIcon;
+} | null>(null);
+
+useEffect(() => {
+  let mounted = true;
+
+  (async () => {
+    const { themedHoneyIcon, themedTrapIcon } = await getMapIcons();
+    if (mounted) setIcons({ themedHoneyIcon, themedTrapIcon });
+  })();
+
+  return () => {
+    mounted = false;
+  };
+}, []);
+
 
   useEffect(() => {
     const loadData = async () => {
@@ -138,12 +157,13 @@ export default function ApiaryMap({
             {/* Swarm Traps */}
             <Overlay checked name="Swarm Traps">
               <LayerGroup>
-                {filteredTraps.map((trap) => (
+                {icons && filteredTraps.map((trap) => (
                   <Marker
                     key={`trap-${trap.id}`}
                     position={[trap.latitude, trap.longitude]}
-                    icon={themedTrapIcon}
+                    icon={icons.themedTrapIcon}
                   >
+
                     <Popup>
                       <Card className="w-72 border-0 shadow-none">
                         <CardHeader className="pb-3">
@@ -188,11 +208,11 @@ export default function ApiaryMap({
             {/* Hives */}
             <Overlay checked name="Hives">
               <LayerGroup>
-                {filteredHives.map((hive) => (
+                {icons && filteredHives.map((hive) => (
                   <Marker
                     key={`hive-${hive.id}`}
                     position={[hive.latitude ?? 0, hive.longitude ?? 0]}
-                    icon={themedHoneyIcon}
+                    icon={icons.themedHoneyIcon}
                   >
                     <Popup>
                       <Card className="w-72 border-0 shadow-none">
