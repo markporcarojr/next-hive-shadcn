@@ -14,7 +14,8 @@ import {
   useMapEvents,
   useMap,
 } from "react-leaflet";
-import { honeyIcon } from "../Data/mapIcons";
+import type { MarkerIcon } from "../Data/mapIcons";
+import { getMapIcons } from "../Data/mapIcons";
 
 type MapPickerProps = {
   initialLat?: number;
@@ -34,11 +35,28 @@ function LocationMarker({
       onSelect(e.latlng.lat, e.latlng.lng);
     },
   });
+  const [icons, setIcons] = useState<{
+  themedHoneyIcon: MarkerIcon;
+  themedTrapIcon: MarkerIcon;
+} | null>(null);
+
+useEffect(() => {
+  let mounted = true;
+
+  (async () => {
+    const { themedHoneyIcon, themedTrapIcon } = await getMapIcons();
+    if (mounted) setIcons({ themedHoneyIcon, themedTrapIcon });
+  })();
+
+  return () => {
+    mounted = false;
+  };
+}, []);
 
   if (!selectedPosition) return null;
 
   return (
-    <Marker position={selectedPosition} icon={honeyIcon}>
+    <Marker position={selectedPosition} icon={icons?.themedHoneyIcon}>
       <Popup>
         Lat: {selectedPosition.lat.toFixed(4)}, Lng:{" "}
         {selectedPosition.lng.toFixed(4)}
@@ -66,6 +84,7 @@ export default function MapPicker({
     new L.LatLng(initialLat, initialLng)
   );
   const inputRef = useRef<HTMLInputElement>(null);
+  
 
   useEffect(() => {
     const initAutocomplete = () => {

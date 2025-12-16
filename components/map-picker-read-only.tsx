@@ -5,7 +5,9 @@ import { useEffect, useState } from "react";
 
 import "leaflet/dist/leaflet.css";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
-import { honeyIcon } from "../Data/mapIcons";
+import type { MarkerIcon } from "../Data/mapIcons";
+import { getMapIcons } from "../Data/mapIcons";
+
 
 type MapPickerReadOnlyProps = {
   initialLat?: number;
@@ -39,7 +41,23 @@ export default function MapPickerReadOnly({
 }: MapPickerReadOnlyProps) {
   const [position, setPosition] = useState<L.LatLng | null>(
     initialLat && initialLng ? new L.LatLng(initialLat, initialLng) : null
-  );
+  );const [icons, setIcons] = useState<{
+    themedHoneyIcon: MarkerIcon;
+    themedTrapIcon: MarkerIcon;
+  } | null>(null);
+  
+  useEffect(() => {
+    let mounted = true;
+  
+    (async () => {
+      const { themedHoneyIcon, themedTrapIcon } = await getMapIcons();
+      if (mounted) setIcons({ themedHoneyIcon, themedTrapIcon });
+    })();
+  
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (initialLat && initialLng) {
@@ -74,7 +92,7 @@ export default function MapPickerReadOnly({
           attribution="© OpenStreetMap contributors"
         />
         <MapUpdater position={position} />
-        <Marker position={position} icon={honeyIcon}>
+        <Marker position={position} icon={icons?.themedHoneyIcon}>
           <Popup>
             Lat: {position.lat.toFixed(4)}, Lng: {position.lng.toFixed(4)}
           </Popup>

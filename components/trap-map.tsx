@@ -120,7 +120,7 @@ export default function TrapMap({ zoom = 15, height = "400px" }: TrapMapProps) {
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                             <IconCalendar
                               className="h-4 w-4 text-primary"
                               stroke={2}
