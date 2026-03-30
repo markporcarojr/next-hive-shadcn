@@ -114,7 +114,7 @@ export default function CreateInspectionPage() {
   };
 
   return (
-    <main className="p-8 max-w-2xl mx-auto">
+    <main className="p-8 max-w-2xl mx-auto w-full">
       <Card>
         <CardHeader>
           <CardTitle>New Inspection</CardTitle>
@@ -139,7 +139,7 @@ export default function CreateInspectionPage() {
                             variant={"outline"}
                             className={cn(
                               "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (
@@ -184,11 +184,11 @@ export default function CreateInspectionPage() {
                           try {
                             const weather = await fetchWeather(
                               hive.lat,
-                              hive.lon
+                              hive.lon,
                             );
                             form.setValue(
                               "weatherCondition",
-                              weather.condition
+                              weather.condition,
                             );
                             form.setValue("weatherTemp", weather.temperature);
                             toast.success("Weather info added automatically");

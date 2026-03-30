@@ -56,7 +56,7 @@ export default function NewIncomePage() {
   };
 
   return (
-    <Card className="max-w-lg mx-auto mt-8">
+    <Card className="max-w-lg mx-auto mt-8 w-full">
       <CardHeader>
         <CardTitle>Add New Income</CardTitle>
       </CardHeader>
@@ -124,7 +124,9 @@ export default function NewIncomePage() {
                       }
                       onChange={(e) =>
                         field.onChange(
-                          e.target.value ? new Date(e.target.value) : new Date()
+                          e.target.value
+                            ? new Date(e.target.value)
+                            : new Date(),
                         )
                       }
                     />

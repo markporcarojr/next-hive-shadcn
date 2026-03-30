@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { InventoryInput } from "@/lib/schemas/inventory";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function InventoryTable({ items }: { items: InventoryInput[] }) {
   const router = useRouter();
@@ -55,7 +56,44 @@ export default function InventoryTable({ items }: { items: InventoryInput[] }) {
     }
   };
 
+  const handleBulkDelete = async (ids: number[]) => {
+    setIsDeleting(true);
+    try {
+      await Promise.all(
+        ids.map((id) => fetch(`/api/YOUR_ROUTE/${id}`, { method: "DELETE" })),
+      );
+      toast.success(`${ids.length} item${ids.length > 1 ? "s" : ""} deleted`);
+      router.refresh();
+    } catch {
+      toast.error("Error deleting items");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const columns: ColumnDef<InventoryInput>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -118,9 +156,10 @@ export default function InventoryTable({ items }: { items: InventoryInput[] }) {
       <DataTable
         data={items}
         columns={columns}
+        onDeleteRows={handleBulkDelete}
         searchKey="name"
         searchPlaceholder="Search inventory..."
-        mobileColumns={["name", "quantity", "actions"]} 
+        mobileColumns={["name", "quantity", "actions"]}
       />
 
       <AlertDialog

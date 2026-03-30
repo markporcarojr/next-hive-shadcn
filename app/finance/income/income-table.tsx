@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,7 +62,44 @@ export default function IncomeTable({ data }: { data: Income[] }) {
     }
   };
 
+  const handleBulkDelete = async (ids: number[]) => {
+    setIsDeleting(true);
+    try {
+      await Promise.all(
+        ids.map((id) => fetch(`/api/YOUR_ROUTE/${id}`, { method: "DELETE" })),
+      );
+      toast.success(`${ids.length} item${ids.length > 1 ? "s" : ""} deleted`);
+      router.refresh();
+    } catch {
+      toast.error("Error deleting items");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const columns: ColumnDef<Income>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       accessorKey: "source",
       header: ({ column }) => (
@@ -132,9 +170,10 @@ export default function IncomeTable({ data }: { data: Income[] }) {
       <DataTable
         data={data}
         columns={columns}
+        onDeleteRows={handleBulkDelete}
         searchKey="source"
         searchPlaceholder="Search income..."
-        mobileColumns={["source", "amount","actions"]}
+        mobileColumns={["source", "amount", "actions"]}
       />
       <AlertDialog
         open={deleteId !== null}

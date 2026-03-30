@@ -70,7 +70,7 @@ export default function NewSwarmPage() {
   };
 
   return (
-    <main className="p-8 max-w-2xl mx-auto">
+    <main className="p-8 max-w-2xl mx-auto w-full">
       <Card>
         <CardHeader>
           <CardTitle>Add New Swarm Trap</CardTitle>
@@ -121,7 +121,7 @@ export default function NewSwarmPage() {
                             variant={"outline"}
                             className={cn(
                               "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (

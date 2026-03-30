@@ -138,7 +138,7 @@ export default function NewInvoicePage() {
   };
 
   return (
-    <Card className="max-w-2xl mx-auto mt-8">
+    <Card className="max-w-2xl mx-auto w-full mt-8">
       <CardHeader>
         <CardTitle>Create New Invoice</CardTitle>
       </CardHeader>
@@ -218,7 +218,9 @@ export default function NewInvoicePage() {
                       }
                       onChange={(e) =>
                         field.onChange(
-                          e.target.value ? new Date(e.target.value) : new Date()
+                          e.target.value
+                            ? new Date(e.target.value)
+                            : new Date(),
                         )
                       }
                     />
@@ -254,7 +256,7 @@ export default function NewInvoicePage() {
             {items.map((item, index) => (
               <div key={index} className="flex gap-2 items-end">
                 <div className="flex-1">
-                  <FormLabel>Product</FormLabel>
+                  <FormLabel className="mb-3">Product</FormLabel>
                   <Select
                     value={item.product}
                     onValueChange={(value) => {

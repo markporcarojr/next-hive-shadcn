@@ -62,11 +62,12 @@ declare module "@tanstack/react-table" {
 
 type DataTableProps<TData> = {
   data: TData[];
+  onDeleteRows?: (ids: number[]) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   columns: ColumnDef<TData, any>[];
   searchKey?: string;
   searchPlaceholder?: string;
-  mobileColumns?: string[]; 
+  mobileColumns?: string[];
 };
 
 // Reusable sortable header component
@@ -101,10 +102,11 @@ export function DataTable<TData>({
   searchKey,
   searchPlaceholder = "Search...",
   mobileColumns,
+  onDeleteRows,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -179,24 +181,23 @@ export function DataTable<TData>({
   });
 
   // 👇 Mobile column visibility controller
-React.useEffect(() => {
-  if (!mobileColumns) return;
+  React.useEffect(() => {
+    if (!mobileColumns) return;
 
-  const updateVisibility = () => {
-    const isMobile = window.innerWidth < 1024; // Tailwind's lg breakpoint
+    const updateVisibility = () => {
+      const isMobile = window.innerWidth < 1024; // Tailwind's lg breakpoint
 
-    table.getAllLeafColumns().forEach((col) => {
-      const shouldShow = !isMobile || mobileColumns.includes(col.id);
-      col.toggleVisibility(shouldShow);
-    });
-  };
+      table.getAllLeafColumns().forEach((col) => {
+        const shouldShow = !isMobile || mobileColumns.includes(col.id);
+        col.toggleVisibility(shouldShow);
+      });
+    };
 
-  updateVisibility(); // run on mount
+    updateVisibility(); // run on mount
 
-  window.addEventListener("resize", updateVisibility);
-  return () => window.removeEventListener("resize", updateVisibility);
-}, [table, mobileColumns]);
-
+    window.addEventListener("resize", updateVisibility);
+    return () => window.removeEventListener("resize", updateVisibility);
+  }, [table, mobileColumns]);
 
   return (
     <div className="w-full flex flex-col gap-4">
@@ -215,6 +216,25 @@ React.useEffect(() => {
               className="w-full"
             />
           </div>
+        )}
+
+        {/* Multi Delete */}
+
+        {/* Inside your search/toolbar div, after the search Input */}
+        {table.getFilteredSelectedRowModel().rows.length > 0 && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              const ids = table
+                .getFilteredSelectedRowModel()
+                .rows.map((row) => (row.original as { id: number }).id);
+              onDeleteRows?.(ids);
+              table.resetRowSelection();
+            }}
+          >
+            Delete ({table.getFilteredSelectedRowModel().rows.length})
+          </Button>
         )}
 
         {/* Column Visibility Toggle */}
@@ -261,7 +281,7 @@ React.useEffect(() => {
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -279,7 +299,7 @@ React.useEffect(() => {
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -301,7 +321,6 @@ React.useEffect(() => {
 
       {/* Pagination */}
       <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
-
         {/* Desktop: selected rows */}
         <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
@@ -319,7 +338,9 @@ React.useEffect(() => {
               onValueChange={(value) => table.setPageSize(Number(value))}
             >
               <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                <SelectValue placeholder={table.getState().pagination.pageSize} />
+                <SelectValue
+                  placeholder={table.getState().pagination.pageSize}
+                />
               </SelectTrigger>
               <SelectContent side="top">
                 {[5, 10, 20, 30, 40, 50].map((pageSize) => (

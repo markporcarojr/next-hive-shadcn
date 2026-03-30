@@ -74,7 +74,7 @@ export default function CreateHarvestPage() {
   };
 
   return (
-    <Card className="max-w-md mx-auto mt-8">
+    <Card className="max-w-md mx-auto mt-8 w-full">
       <CardHeader>
         <CardTitle>Add New Harvest</CardTitle>
       </CardHeader>
@@ -102,7 +102,7 @@ export default function CreateHarvestPage() {
                       }
                       onChange={(e) =>
                         field.onChange(
-                          e.target.value === "" ? "" : Number(e.target.value)
+                          e.target.value === "" ? "" : Number(e.target.value),
                         )
                       }
                     />
@@ -154,7 +154,7 @@ export default function CreateHarvestPage() {
                           variant="outline"
                           className={cn(
                             "w-full justify-start text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                           type="button"
                           disabled={loading}

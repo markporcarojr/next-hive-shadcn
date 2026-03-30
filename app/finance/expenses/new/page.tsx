@@ -78,7 +78,7 @@ export default function NewExpensePage() {
   };
 
   return (
-    <Card className="max-w-md mx-auto mt-8">
+    <Card className="max-w-md mx-auto mt-8 w-full">
       <CardHeader>
         <CardTitle>Add New Expense</CardTitle>
       </CardHeader>
@@ -120,7 +120,7 @@ export default function NewExpensePage() {
                       }
                       onChange={(e) =>
                         field.onChange(
-                          e.target.value === "" ? "" : Number(e.target.value)
+                          e.target.value === "" ? "" : Number(e.target.value),
                         )
                       }
                     />
@@ -144,7 +144,7 @@ export default function NewExpensePage() {
                             variant="outline"
                             className={cn(
                               "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (

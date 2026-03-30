@@ -65,7 +65,7 @@ export default function NewInventoryPage() {
   };
 
   return (
-    <main className="p-8 max-w-lg mx-auto">
+    <main className="p-8 max-w-lg mx-auto w-full">
       <Card>
         <CardHeader>
           <CardTitle>Add Inventory Item</CardTitle>

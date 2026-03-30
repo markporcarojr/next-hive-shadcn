@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,7 +59,48 @@ export default function ExpenseTable({
     }
   };
 
+  const handleBulkDelete = async (ids: number[]) => {
+    setIsDeleting(true);
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          fetch(`/api/finance/expenses/${id}`, { method: "DELETE" }),
+        ),
+      );
+      toast.success(
+        `${ids.length} expense${ids.length > 1 ? "s" : ""} deleted`,
+      );
+      router.refresh();
+    } catch {
+      toast.error("Error deleting expenses");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const columns: ColumnDef<ExpenseFormInput>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       accessorKey: "item",
       header: ({ column }) => (
@@ -123,6 +165,7 @@ export default function ExpenseTable({
       <DataTable
         data={expenses}
         columns={columns}
+        onDeleteRows={handleBulkDelete}
         searchKey="item"
         searchPlaceholder="Search expenses..."
         mobileColumns={["item", "amount", "actions"]}
@@ -141,7 +184,6 @@ export default function ExpenseTable({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
@@ -149,6 +191,7 @@ export default function ExpenseTable({
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
