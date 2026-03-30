@@ -144,7 +144,6 @@ export default function HarvestTable({ data }: { data: Harvest[] }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
@@ -152,6 +151,7 @@ export default function HarvestTable({ data }: { data: Harvest[] }) {
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

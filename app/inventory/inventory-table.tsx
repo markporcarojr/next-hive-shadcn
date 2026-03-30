@@ -175,7 +175,6 @@ export default function InventoryTable({ items }: { items: InventoryInput[] }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
@@ -183,6 +182,7 @@ export default function InventoryTable({ items }: { items: InventoryInput[] }) {
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -221,7 +221,6 @@ export default function HiveTable({ data }: { data: Hive[] }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
@@ -229,6 +228,7 @@ export default function HiveTable({ data }: { data: Hive[] }) {
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

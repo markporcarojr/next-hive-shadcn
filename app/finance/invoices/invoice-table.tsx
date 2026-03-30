@@ -210,7 +210,6 @@ export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
@@ -218,6 +217,7 @@ export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

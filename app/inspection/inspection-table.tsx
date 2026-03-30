@@ -207,7 +207,6 @@ export default function InspectionTable({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
@@ -215,6 +214,7 @@ export default function InspectionTable({
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
