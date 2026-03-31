@@ -1,18 +1,26 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare const google: any;
 
-import { useEffect, useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
+declare global {
+  interface Window {
+    google: typeof google;
+  }
+}
+
 import { Button } from "@/components/ui/button";
-import { Target } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { Target } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import {
   MapContainer,
   Marker,
   Popup,
   TileLayer,
-  useMapEvents,
   useMap,
+  useMapEvents,
 } from "react-leaflet";
 import type { MarkerIcon } from "../Data/mapIcons";
 import { getMapIcons } from "../Data/mapIcons";
@@ -36,27 +44,30 @@ function LocationMarker({
     },
   });
   const [icons, setIcons] = useState<{
-  themedHoneyIcon: MarkerIcon;
-  themedTrapIcon: MarkerIcon;
-} | null>(null);
+    themedHoneyIcon: MarkerIcon;
+    themedTrapIcon: MarkerIcon;
+  } | null>(null);
 
-useEffect(() => {
-  let mounted = true;
+  useEffect(() => {
+    let mounted = true;
 
-  (async () => {
-    const { themedHoneyIcon, themedTrapIcon } = await getMapIcons();
-    if (mounted) setIcons({ themedHoneyIcon, themedTrapIcon });
-  })();
+    (async () => {
+      const { themedHoneyIcon, themedTrapIcon } = await getMapIcons();
+      if (mounted) setIcons({ themedHoneyIcon, themedTrapIcon });
+    })();
 
-  return () => {
-    mounted = false;
-  };
-}, []);
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-  if (!selectedPosition) return null;
+  if (!selectedPosition || !icons) return null;
 
   return (
-    <Marker position={selectedPosition} icon={icons?.themedHoneyIcon}>
+    <Marker
+      position={selectedPosition}
+      icon={icons?.themedHoneyIcon || undefined}
+    >
       <Popup>
         Lat: {selectedPosition.lat.toFixed(4)}, Lng:{" "}
         {selectedPosition.lng.toFixed(4)}
@@ -81,21 +92,20 @@ export default function MapPicker({
   onSelect,
 }: MapPickerProps) {
   const [position, setPosition] = useState<L.LatLng | null>(
-    new L.LatLng(initialLat, initialLng)
+    new L.LatLng(initialLat, initialLng),
   );
   const inputRef = useRef<HTMLInputElement>(null);
-  
 
   useEffect(() => {
     const initAutocomplete = () => {
       if (!inputRef.current || !window.google) return;
 
-      const autocomplete = new google.maps.places.Autocomplete(
+      const autocomplete = new window.google.maps.places.Autocomplete(
         inputRef.current,
         {
           fields: ["geometry", "formatted_address"],
           types: ["geocode"],
-        }
+        },
       );
 
       autocomplete.addListener("place_changed", () => {
@@ -129,7 +139,7 @@ export default function MapPicker({
         setPosition(newPos);
         onSelect(newPos.lat, newPos.lng, "Current Location");
       },
-      () => alert("Could not access location")
+      () => alert("Could not access location"),
     );
   };
 

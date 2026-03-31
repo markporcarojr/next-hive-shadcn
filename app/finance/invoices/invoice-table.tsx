@@ -68,7 +68,9 @@ export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
     setIsDeleting(true);
     try {
       await Promise.all(
-        ids.map((id) => fetch(`/api/YOUR_ROUTE/${id}`, { method: "DELETE" })),
+        ids.map((id) =>
+          fetch(`/api/finance/invoices/${id}`, { method: "DELETE" }),
+        ),
       );
       toast.success(`${ids.length} item${ids.length > 1 ? "s" : ""} deleted`);
       router.refresh();

@@ -63,12 +63,14 @@ export default function InspectionTable({
     setIsDeleting(true);
     try {
       await Promise.all(
-        ids.map((id) => fetch(`/api/YOUR_ROUTE/${id}`, { method: "DELETE" })),
+        ids.map((id) => fetch(`/api/inspection/${id}`, { method: "DELETE" })),
       );
-      toast.success(`${ids.length} item${ids.length > 1 ? "s" : ""} deleted`);
+      toast.success(
+        `${ids.length} inspection${ids.length > 1 ? "s" : ""} deleted`,
+      );
       router.refresh();
     } catch {
-      toast.error("Error deleting items");
+      toast.error("Error deleting inspections");
     } finally {
       setIsDeleting(false);
     }

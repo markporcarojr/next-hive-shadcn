@@ -1,6 +1,5 @@
 "use client";
 
-import MapPicker from "@/components/map-picker";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,10 +31,15 @@ import { cn, getColor, getStrengthLabel } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+
+const MapPicker = dynamic(() => import("@/components/map-picker"), {
+  ssr: false,
+});
 
 export default function NewHivePage() {
   const router = useRouter();

@@ -61,6 +61,23 @@ export default function HarvestTable({ data }: { data: Harvest[] }) {
     }
   };
 
+  const handleBulkDelete = async (ids: number[]) => {
+    setIsDeleting(true);
+    try {
+      await Promise.all(
+        ids.map((id) => fetch(`/api/harvest/${id}`, { method: "DELETE" })),
+      );
+      toast.success(
+        `${ids.length} harvest${ids.length > 1 ? "s" : ""} deleted`,
+      );
+      router.refresh();
+    } catch {
+      toast.error("Error deleting harvests");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const columns: ColumnDef<Harvest>[] = [
     {
       accessorKey: "harvestType",
@@ -128,6 +145,7 @@ export default function HarvestTable({ data }: { data: Harvest[] }) {
         data={data}
         columns={columns}
         searchKey="harvestType"
+        onDeleteRows={handleBulkDelete}
         searchPlaceholder="Search harvests..."
       />
 
