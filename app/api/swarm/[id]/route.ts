@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 // GET: /api/swarm/[id]
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
@@ -39,7 +39,7 @@ export async function GET(
 // PATCH: /api/swarm/[id]
 export async function PATCH(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { userId: clerkId } = await auth();
   if (!clerkId)
@@ -69,7 +69,7 @@ export async function PATCH(
     if (!parsedData.success) {
       return NextResponse.json(
         { errors: parsedData.error.flatten().fieldErrors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -81,6 +81,49 @@ export async function PATCH(
     return NextResponse.json(updatedSwarm);
   } catch (error) {
     console.error("[SWARM_PATCH_BY_ID]", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  _: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { userId: clerkId } = await auth();
+  if (!clerkId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const { id } = await params;
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Verify ownership before deleting
+    const existingSwarm = await prisma.swarmTrap.findFirst({
+      where: {
+        id: Number(id),
+        userId: user.id,
+      },
+      select: { id: true },
+    });
+
+    if (!existingSwarm) {
+      return NextResponse.json({ error: "Swarm not found" }, { status: 404 });
+    }
+
+    await prisma.swarmTrap.delete({
+      where: { id: Number(id) },
+    });
+
+    return NextResponse.json({ message: "Swarm deleted" });
+  } catch (error) {
+    console.error("[SWARM_DELETE_BY_ID]", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
