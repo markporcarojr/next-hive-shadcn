@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-import { Image } from "@react-pdf/renderer"; // ✅
+import { Image as PdfImage } from "@react-pdf/renderer"; // ✅
 
 const styles = StyleSheet.create({
   page: {
@@ -124,8 +124,7 @@ export default function InvoicePDF({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Image
-            alt="Apiary Tool Logo"
+          <PdfImage
             src="https://www.apiary-tool.com/static/logo.webp"
             style={styles.logo}
           />
