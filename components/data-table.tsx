@@ -2,6 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -105,6 +115,7 @@ export function DataTable<TData>({
   onDeleteRows,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [pendingDeleteIds, setPendingDeleteIds] = React.useState<number[]>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
@@ -220,17 +231,16 @@ export function DataTable<TData>({
 
         {/* Multi Delete */}
 
-        {/* Inside your search/toolbar div, after the search Input */}
         {table.getFilteredSelectedRowModel().rows.length > 0 && (
           <Button
+            className="mx-auto"
             variant="destructive"
             size="sm"
             onClick={() => {
               const ids = table
                 .getFilteredSelectedRowModel()
                 .rows.map((row) => (row.original as { id: number }).id);
-              onDeleteRows?.(ids);
-              table.resetRowSelection();
+              setPendingDeleteIds(ids); // 👈 stage the ids, don't delete yet
             }}
           >
             Delete ({table.getFilteredSelectedRowModel().rows.length})
@@ -427,6 +437,34 @@ export function DataTable<TData>({
           </Button>
         </div>
       </div>
+      <AlertDialog
+        open={pendingDeleteIds.length > 0}
+        onOpenChange={() => setPendingDeleteIds([])}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete {pendingDeleteIds.length} item
+              {pendingDeleteIds.length > 1 ? "s" : ""}. This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                onDeleteRows?.(pendingDeleteIds);
+                table.resetRowSelection();
+                setPendingDeleteIds([]);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
