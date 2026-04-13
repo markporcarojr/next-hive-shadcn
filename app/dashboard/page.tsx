@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import HiveTable from "../hives/hive-table";
-import { HarvestFinanceChart } from "@/components/chart-area-interactive";
+// import { HarvestFinanceChart } from "@/components/chart-area-interactive";
 import { SectionCards } from "@/components/section-cards";
 import { HiveInput } from "@/lib/schemas/hive";
 import ApiaryMapWrapper from "@/components/apiary-map-wrapper";
@@ -24,15 +24,11 @@ export default async function Page() {
   const serializeDates = <T extends Record<string, unknown>>(obj: T): T =>
     JSON.parse(
       JSON.stringify(obj, (key, value) =>
-        value instanceof Date ? value.toISOString() : value
-      )
+        value instanceof Date ? value.toISOString() : value,
+      ),
     ) as T;
 
-  const [harvestsRaw, incomesRaw, expensesRaw, hives] = await Promise.all([
-    prisma.harvest.findMany({
-      where: { userId: user.id },
-      orderBy: { harvestDate: "desc" },
-    }),
+  const [incomesRaw, expensesRaw, hives] = await Promise.all([
     prisma.income.findMany({
       where: { userId: user.id },
       orderBy: { date: "desc" },
@@ -48,17 +44,17 @@ export default async function Page() {
   ]);
 
   // 🔹 Convert Dates → Strings before passing to client components
-  const harvests = harvestsRaw.map((h) =>
-    serializeDates({
-      id: h.id,
-      userId: h.userId,
-      harvestType: h.harvestType,
-      harvestAmount: Number(h.harvestAmount),
-      harvestDate: h.harvestDate,
-      createdAt: h.createdAt,
-      updatedAt: h.updatedAt,
-    })
-  );
+  // const harvests = harvestsRaw.map((h) =>
+  //   serializeDates({
+  //     id: h.id,
+  //     userId: h.userId,
+  //     harvestType: h.harvestType,
+  //     harvestAmount: Number(h.harvestAmount),
+  //     harvestDate: h.harvestDate,
+  //     createdAt: h.createdAt,
+  //     updatedAt: h.updatedAt,
+  //   })
+  // );
 
   const incomes = incomesRaw.map((i) =>
     serializeDates({
@@ -70,7 +66,7 @@ export default async function Page() {
       notes: i.notes ?? "",
       createdAt: i.createdAt,
       updatedAt: i.updatedAt,
-    })
+    }),
   );
 
   const expenses = expensesRaw.map((e) =>
@@ -83,7 +79,7 @@ export default async function Page() {
       notes: e.notes ?? "",
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
-    })
+    }),
   );
 
   const sanitized: HiveInput[] = hives.map((h) => ({
@@ -118,11 +114,11 @@ export default async function Page() {
         <HiveTable data={sanitized} />
 
         {/* ✅ Safe: All date fields are now strings */}
-        <HarvestFinanceChart
+        {/* <HarvestFinanceChart
           harvests={harvests}
           incomes={incomes}
           expenses={expenses}
-        />
+        /> */}
 
         <SectionCards expenses={expenses} incomes={incomes} />
 
