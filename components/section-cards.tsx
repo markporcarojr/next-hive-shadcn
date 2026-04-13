@@ -56,7 +56,7 @@ export function SectionCards({ expenses, incomes }: SectionCardsProps) {
             })}
           </CardTitle>
           <CardAction>
-            <Badge variant="outline">
+            <Badge variant="outline" className="hidden md:block">
               <IconTrendingUp />
               {/* Placeholder for % change */}
               +0%
@@ -82,7 +82,7 @@ export function SectionCards({ expenses, incomes }: SectionCardsProps) {
             })}
           </CardTitle>
           <CardAction>
-            <Badge variant="outline">
+            <Badge variant="outline" className="hidden md:block">
               <IconTrendingDown />
               {/* Placeholder for % change */}
               +0%
@@ -105,7 +105,7 @@ export function SectionCards({ expenses, incomes }: SectionCardsProps) {
             ${netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </CardTitle>
           <CardAction>
-            <Badge variant="outline">
+            <Badge variant="outline" className="hidden md:block">
               {netIncome >= 0 ? <IconTrendingUp /> : <IconTrendingDown />}
               {netIncome >= 0 ? "+" : ""}
               {netIncome.toLocaleString(undefined, {
@@ -133,7 +133,7 @@ export function SectionCards({ expenses, incomes }: SectionCardsProps) {
             {Array.from(new Set(incomes.map((i) => i.source))).length}
           </CardTitle>
           <CardAction>
-            <Badge variant="outline">
+            <Badge variant="outline" className="hidden md:block">
               <IconTrendingUp />
               {/* Placeholder for % change */}
               +0%
