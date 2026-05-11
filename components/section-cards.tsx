@@ -45,10 +45,10 @@ export function SectionCards({ expenses, incomes }: SectionCardsProps) {
   const numExpenses = expenses.length;
 
   return (
-    <Card className="p-6">
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+    <Card className="p-6 ">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {/* Revenue */}
-        <div className="space-y-3 rounded-xl border p-4">
+        <div className="space-y-3 rounded-xl  p-4">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-muted-foreground text-sm">Total Revenue</p>
@@ -59,11 +59,6 @@ export function SectionCards({ expenses, incomes }: SectionCardsProps) {
                 })}
               </h3>
             </div>
-
-            <Badge variant="outline" className="hidden md:flex">
-              <IconTrendingUp className="mr-1 size-4" />
-              +0%
-            </Badge>
           </div>
 
           <div className="space-y-1 text-sm">
@@ -77,7 +72,7 @@ export function SectionCards({ expenses, incomes }: SectionCardsProps) {
         </div>
 
         {/* Expenses */}
-        <div className="space-y-3 rounded-xl border p-4">
+        <div className="space-y-3 rounded-xl  p-4">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-muted-foreground text-sm">Total Expenses</p>
@@ -89,11 +84,6 @@ export function SectionCards({ expenses, incomes }: SectionCardsProps) {
                 })}
               </h3>
             </div>
-
-            <Badge variant="outline" className="hidden md:flex">
-              <IconTrendingDown className="mr-1 size-4" />
-              +0%
-            </Badge>
           </div>
 
           <div className="space-y-1 text-sm">
@@ -109,7 +99,7 @@ export function SectionCards({ expenses, incomes }: SectionCardsProps) {
         </div>
 
         {/* Net Income */}
-        <div className="space-y-3 rounded-xl border p-4">
+        <div className="space-y-3 rounded-xl p-4">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-muted-foreground text-sm">Net Income</p>
@@ -121,19 +111,6 @@ export function SectionCards({ expenses, incomes }: SectionCardsProps) {
                 })}
               </h3>
             </div>
-
-            <Badge variant="outline" className="hidden md:flex">
-              {netIncome >= 0 ? (
-                <IconTrendingUp className="mr-1 size-4" />
-              ) : (
-                <IconTrendingDown className="mr-1 size-4" />
-              )}
-
-              {netIncome >= 0 ? "+" : ""}
-              {netIncome.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-              })}
-            </Badge>
           </div>
 
           <div className="space-y-1 text-sm">
