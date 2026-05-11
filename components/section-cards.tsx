@@ -45,115 +45,113 @@ export function SectionCards({ expenses, incomes }: SectionCardsProps) {
   const numExpenses = expenses.length;
 
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-2 gap-4 px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Total Revenue</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $
-            {totalRevenue.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-            })}
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline" className="hidden md:block">
-              <IconTrendingUp />
-              {/* Placeholder for % change */}
+    <Card className="p-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        {/* Revenue */}
+        <div className="space-y-3 rounded-xl border p-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-muted-foreground text-sm">Total Revenue</p>
+              <h3 className="text-2xl font-semibold tabular-nums">
+                $
+                {totalRevenue.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
+              </h3>
+            </div>
+
+            <Badge variant="outline" className="hidden md:flex">
+              <IconTrendingUp className="mr-1 size-4" />
               +0%
             </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Revenue this period <IconTrendingUp className="size-4" />
           </div>
-          <div className="text-muted-foreground">
-            {numIncomes} income entries
+
+          <div className="space-y-1 text-sm">
+            <div className="flex items-center gap-2 font-medium">
+              Revenue this period
+              <IconTrendingUp className="size-4" />
+            </div>
+
+            <p className="text-muted-foreground">{numIncomes} income entries</p>
           </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Total Expenses</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $
-            {totalExpenses.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-            })}
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline" className="hidden md:block">
-              <IconTrendingDown />
-              {/* Placeholder for % change */}
+        </div>
+
+        {/* Expenses */}
+        <div className="space-y-3 rounded-xl border p-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-muted-foreground text-sm">Total Expenses</p>
+
+              <h3 className="text-2xl font-semibold tabular-nums">
+                $
+                {totalExpenses.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
+              </h3>
+            </div>
+
+            <Badge variant="outline" className="hidden md:flex">
+              <IconTrendingDown className="mr-1 size-4" />
               +0%
             </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Expenses this period <IconTrendingDown className="size-4" />
           </div>
-          <div className="text-muted-foreground">
-            {numExpenses} expense entries
+
+          <div className="space-y-1 text-sm">
+            <div className="flex items-center gap-2 font-medium">
+              Expenses this period
+              <IconTrendingDown className="size-4" />
+            </div>
+
+            <p className="text-muted-foreground">
+              {numExpenses} expense entries
+            </p>
           </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Net Income</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            ${netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline" className="hidden md:block">
-              {netIncome >= 0 ? <IconTrendingUp /> : <IconTrendingDown />}
+        </div>
+
+        {/* Net Income */}
+        <div className="space-y-3 rounded-xl border p-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-muted-foreground text-sm">Net Income</p>
+
+              <h3 className="text-2xl font-semibold tabular-nums">
+                $
+                {netIncome.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
+              </h3>
+            </div>
+
+            <Badge variant="outline" className="hidden md:flex">
+              {netIncome >= 0 ? (
+                <IconTrendingUp className="mr-1 size-4" />
+              ) : (
+                <IconTrendingDown className="mr-1 size-4" />
+              )}
+
               {netIncome >= 0 ? "+" : ""}
               {netIncome.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
               })}
             </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            {netIncome >= 0 ? "Profit" : "Loss"} this period{" "}
-            {netIncome >= 0 ? (
-              <IconTrendingUp className="size-4" />
-            ) : (
-              <IconTrendingDown className="size-4" />
-            )}
           </div>
-          <div className="text-muted-foreground">Revenue minus expenses</div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Income Sources</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {Array.from(new Set(incomes.map((i) => i.source))).length}
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline" className="hidden md:block">
-              <IconTrendingUp />
-              {/* Placeholder for % change */}
-              +0%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Unique sources <IconTrendingUp className="size-4" />
+
+          <div className="space-y-1 text-sm">
+            <div className="flex items-center gap-2 font-medium">
+              {netIncome >= 0 ? "Profit" : "Loss"} this period
+              {netIncome >= 0 ? (
+                <IconTrendingUp className="size-4" />
+              ) : (
+                <IconTrendingDown className="size-4" />
+              )}
+            </div>
+
+            <p className="text-muted-foreground">Revenue minus expenses</p>
           </div>
-          <div className="text-muted-foreground">
-            {incomes.length > 0
-              ? incomes
-                  .map((i) => i.source)
-                  .filter((v, i, a) => a.indexOf(v) === i)
-                  .join(", ")
-              : "No income sources"}
-          </div>
-        </CardFooter>
-      </Card>
-    </div>
+        </div>
+
+        {/* Income Sources */}
+      </div>
+    </Card>
   );
 }
