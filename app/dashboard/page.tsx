@@ -28,23 +28,25 @@ export default async function Page() {
       ),
     ) as T;
 
-  const [incomesRaw, expensesRaw, hives] = await Promise.all([
-    prisma.income.findMany({
-      where: { userId: user.id },
-      orderBy: { date: "desc" },
-    }),
-    prisma.expense.findMany({
-      where: { userId: user.id },
-      orderBy: { date: "desc" },
-    }),
-    prisma.hive.findMany({
-      where: { userId: user.id },
-      orderBy: { hiveNumber: "asc" },
-    }),
-    prisma.swarmCatch.count({
-      where: { userId: user.id },
-    }),
-  ]);
+  const [incomesRaw, expensesRaw, hives, totalSwarmsCaught] = await Promise.all(
+    [
+      prisma.income.findMany({
+        where: { userId: user.id },
+        orderBy: { date: "desc" },
+      }),
+      prisma.expense.findMany({
+        where: { userId: user.id },
+        orderBy: { date: "desc" },
+      }),
+      prisma.hive.findMany({
+        where: { userId: user.id },
+        orderBy: { hiveNumber: "asc" },
+      }),
+      prisma.swarmCatch.count({
+        where: { userId: user.id },
+      }),
+    ],
+  );
 
   // 🔹 Convert Dates → Strings before passing to client components
   // const harvests = harvestsRaw.map((h) =>
@@ -126,7 +128,7 @@ export default async function Page() {
         <SectionCards
           expenses={expenses}
           incomes={incomes}
-          swarmCatches={swarmCatches}
+          totalSwarmsCaught={totalSwarmsCaught}
         />
 
         <ApiaryMapWrapper />
