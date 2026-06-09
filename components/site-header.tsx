@@ -19,7 +19,7 @@ export function SiteHeader() {
         <div className="ml-auto flex items-center gap-2">
           <ThemeSelector />
           <ModeToggle />
-          <ChatWidget />
+          {/* <ChatWidget /> */}
         </div>
       </div>
     </header>
