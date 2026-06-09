@@ -9,6 +9,7 @@ export const swarmTrapFormSchema = z.object({
   longitude: z.number().min(-180).max(180),
   notes: z.string().max(500).optional(),
   label: z.string().max(100),
+  catchCount: z.number().optional(), // For display purposes only, not part of form input
 });
 export const swarmTrapApiSchema = z.object({
   id: z.number().optional(),
@@ -18,6 +19,7 @@ export const swarmTrapApiSchema = z.object({
   longitude: z.number().min(-180).max(180),
   notes: z.string().max(500).optional(),
   label: z.string().max(100),
+  catchCount: z.number().optional(), // For display purposes only, not part of form input
 });
 
 export type SwarmInput = z.infer<typeof swarmTrapFormSchema>;

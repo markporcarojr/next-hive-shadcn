@@ -41,6 +41,9 @@ export default async function Page() {
       where: { userId: user.id },
       orderBy: { hiveNumber: "asc" },
     }),
+    prisma.swarmCatch.count({
+      where: { userId: user.id },
+    }),
   ]);
 
   // 🔹 Convert Dates → Strings before passing to client components
@@ -120,7 +123,11 @@ export default async function Page() {
           expenses={expenses}
         /> */}
 
-        <SectionCards expenses={expenses} incomes={incomes} />
+        <SectionCards
+          expenses={expenses}
+          incomes={incomes}
+          swarmCatches={swarmCatches}
+        />
 
         <ApiaryMapWrapper />
       </div>

@@ -21,6 +21,9 @@ export default async function SwarmPage() {
   const swarms = await prisma.swarmTrap.findMany({
     where: { userId: user.id },
     orderBy: { installedAt: "desc" },
+    include: {
+      _count: { select: { swarmCatches: true } },
+    },
   });
 
   const sanitized: SwarmInput[] = swarms.map((swarm) => ({
@@ -31,6 +34,7 @@ export default async function SwarmPage() {
     installedAt: swarm.installedAt,
     removedAt: swarm.removedAt ?? undefined,
     notes: swarm.notes ?? undefined,
+    catchCount: swarm._count.swarmCatches,
   }));
 
   return (

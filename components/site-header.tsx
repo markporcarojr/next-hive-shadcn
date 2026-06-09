@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ModeToggle } from "./mode-toggle";
 import { ThemeSelector } from "./theme-selector";
-import ChatWidget from "./chat-widget";
+// import ChatWidget from "./chat-widget";
 
 export function SiteHeader() {
   return (

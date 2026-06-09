@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Bug, PlusCircle } from "lucide-react";
 
 import { DataTable, DataTableSortableHeader } from "@/components/data-table";
 import {
@@ -18,6 +19,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -25,6 +33,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { SwarmInput } from "@/lib/schemas/swarmTrap";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -33,13 +44,19 @@ export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
+  // Log catch dialog state
+  const [logTrapId, setLogTrapId] = useState<number | null>(null);
+  const [catchDate, setCatchDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
+  const [catchNotes, setCatchNotes] = useState("");
+  const [isSavingCatch, setIsSavingCatch] = useState(false);
+
   const handleDelete = async () => {
     if (!deleteId) return;
-
     setIsDeleting(true);
     try {
       const res = await fetch(`/api/swarm/${deleteId}`, { method: "DELETE" });
-
       if (res.ok) {
         toast.success("Swarm trap deleted");
         router.refresh();
@@ -66,6 +83,31 @@ export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
       toast.error("Error deleting items");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleLogCatch = async () => {
+    if (!logTrapId) return;
+    setIsSavingCatch(true);
+    try {
+      const res = await fetch("/api/swarm-catches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          trapId: logTrapId,
+          catchDate,
+          notes: catchNotes,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Swarm catch logged!");
+      router.refresh(); // re-fetches catchCount from server
+      setLogTrapId(null);
+      setCatchNotes("");
+    } catch {
+      toast.error("Failed to log catch");
+    } finally {
+      setIsSavingCatch(false);
     }
   };
 
@@ -119,6 +161,20 @@ export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
       ),
     },
     {
+      accessorKey: "catchCount",
+      header: ({ column }) => (
+        <DataTableSortableHeader column={column} title="Catches" />
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 rounded-md bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-sm font-medium text-amber-700 dark:text-amber-400">
+            <Bug size={13} />
+            {row.original.catchCount ?? 0}
+          </div>
+        </div>
+      ),
+    },
+    {
       id: "actions",
       cell: ({ row }) => (
         <DropdownMenu>
@@ -128,6 +184,16 @@ export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
+            <DropdownMenuItem
+              onClick={() => {
+                setCatchDate(new Date().toISOString().split("T")[0]);
+                setCatchNotes("");
+                setLogTrapId(row.original.id ?? null);
+              }}
+            >
+              <PlusCircle size={14} className="mr-2" />
+              Log Catch
+            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href={`/swarm/edit/${row.original.id}`}>Edit</Link>
             </DropdownMenuItem>
@@ -152,9 +218,10 @@ export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
         searchKey="label"
         onDeleteRows={handleBulkDelete}
         searchPlaceholder="Search swarm traps..."
-        mobileColumns={["label", "installedAt", "actions"]}
+        mobileColumns={["label", "installedAt", "catchCount", "actions"]}
       />
 
+      {/* Delete confirmation */}
       <AlertDialog
         open={deleteId !== null}
         onOpenChange={() => setDeleteId(null)}
@@ -179,6 +246,47 @@ export default function SwarmTable({ swarms }: { swarms: SwarmInput[] }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Log Catch dialog */}
+      <Dialog
+        open={logTrapId !== null}
+        onOpenChange={(open) => !open && setLogTrapId(null)}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Log Swarm Catch</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="catchDate">Catch Date</Label>
+              <Input
+                id="catchDate"
+                type="date"
+                value={catchDate}
+                onChange={(e) => setCatchDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="catchNotes">Notes (optional)</Label>
+              <Textarea
+                id="catchNotes"
+                placeholder="Swarm size, behavior, anything notable..."
+                value={catchNotes}
+                onChange={(e) => setCatchNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLogTrapId(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleLogCatch} disabled={isSavingCatch}>
+              {isSavingCatch ? "Saving..." : "Log Swarm"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
