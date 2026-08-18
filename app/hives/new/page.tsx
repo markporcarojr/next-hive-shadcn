@@ -48,7 +48,7 @@ export default function NewHivePage() {
   const form = useForm<HiveInput>({
     resolver: zodResolver(hiveFormSchema),
     defaultValues: {
-      hiveDate: new Date(),
+      hiveDate: undefined,
       hiveNumber: 1,
       hiveSource: "",
       hiveImage: "",
@@ -131,8 +131,7 @@ export default function NewHivePage() {
                             )}
                           >
                             {field.value ? (
-                              // display string value as a formatted date
-                              format(new Date(field.value), "PPP")
+                              format(field.value, "PPP")
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -143,12 +142,8 @@ export default function NewHivePage() {
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={
-                            field.value ? new Date(field.value) : undefined
-                          }
-                          onSelect={(date) =>
-                            field.onChange(date ? date.toISOString() : "")
-                          }
+                          selected={field.value}
+                          onSelect={(date) => field.onChange(date)}
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")
                           }

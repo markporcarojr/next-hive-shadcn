@@ -167,7 +167,7 @@ export default function EditExpensePage() {
                         }
                         onChange={(e) =>
                           field.onChange(
-                            e.target.value === "" ? "" : Number(e.target.value)
+                            e.target.value === "" ? "" : Number(e.target.value),
                           )
                         }
                       />
@@ -191,7 +191,7 @@ export default function EditExpensePage() {
                             disabled={submitting}
                             className={cn(
                               "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (

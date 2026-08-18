@@ -33,24 +33,21 @@ import { cn, getColor, getStrengthLabel } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon, Edit } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-export default function EditHivesPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+export default function EditHivesPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params?.id as string;
   const [loading, setLoading] = useState(true);
 
   const form = useForm<HiveInput>({
     resolver: zodResolver(hiveFormSchema),
     defaultValues: {
-      hiveDate: new Date(),
+      hiveDate: undefined,
       hiveNumber: 1,
       hiveSource: "",
       hiveImage: "",
@@ -74,7 +71,7 @@ export default function EditHivesPage({
         if (!res.ok) throw new Error(data.message || "Failed to fetch data");
 
         form.reset({
-          hiveDate: new Date(data.hiveDate),
+          hiveDate: data.hiveDate ? new Date(data.hiveDate) : undefined,
           hiveNumber: data.hiveNumber,
           hiveSource: data.hiveSource,
           hiveImage: data.hiveImage || "",
@@ -169,11 +166,11 @@ export default function EditHivesPage({
                             variant="outline"
                             className={cn(
                               "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (
-                              format(new Date(field.value), "PPP")
+                              format(field.value, "PPP")
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -184,12 +181,8 @@ export default function EditHivesPage({
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={
-                            field.value ? new Date(field.value) : undefined
-                          }
-                          onSelect={(date) =>
-                            field.onChange(date ? date.toISOString() : "")
-                          }
+                          selected={field.value}
+                          onSelect={(date) => field.onChange(date)}
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")
                           }
