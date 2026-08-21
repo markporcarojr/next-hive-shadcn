@@ -68,7 +68,7 @@ export async function sendInvoiceEmail({
   // Styled email HTML
   const emailHTML = `
     <div style="font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 8px;">
-      <img src="https://www.apiary-tool.com/public/hive_tool@1x.png" alt="Hive Tool Logo" style="max-width: 150px; margin-bottom: 20px;" />
+      <img src="https://www.apiary-tool.com/hive_tool@1x.webp" alt="Hive Tool Logo" style="max-width: 150px; margin-bottom: 20px;" />
 
       <h2 style="color: #333;">Hi ${customerName},</h2>
 
