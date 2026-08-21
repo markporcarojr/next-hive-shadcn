@@ -27,7 +27,7 @@ export async function POST(_req: Request) {
     if (!parse.success) {
       return NextResponse.json(
         { error: "Validation failed", issues: parse.error.format() },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const data = parse.data;
@@ -64,6 +64,7 @@ export async function POST(_req: Request) {
 
     // send email safely with proper invoice structure
     if (invoice.email) {
+      console.log("Sending invoice email to:", invoice.email);
       try {
         await sendInvoiceEmail({
           to: invoice.email,
