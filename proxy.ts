@@ -7,6 +7,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/webhooks(.*)", // If you have Clerk webhooks
+  "/hive_tool@2x.png",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
