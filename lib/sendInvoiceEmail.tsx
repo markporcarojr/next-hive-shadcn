@@ -45,7 +45,7 @@ export async function sendInvoiceEmail({
       phone={phone}
       notes={notes}
       items={items}
-    />
+    />,
   );
 
   const base64PDF = pdfBuffer.toString("base64");
@@ -68,7 +68,7 @@ export async function sendInvoiceEmail({
   // Styled email HTML
   const emailHTML = `
     <div style="font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 8px;">
-      <img src="https://www.apiary-tool.com/static/logo.webp" alt="Hive Tool Logo" style="max-width: 150px; margin-bottom: 20px;" />
+      <img src="https://www.apiary-tool.com/public/hive_tool@1x.png" alt="Hive Tool Logo" style="max-width: 150px; margin-bottom: 20px;" />
 
       <h2 style="color: #333;">Hi ${customerName},</h2>
 
@@ -152,6 +152,6 @@ export async function generateInvoicePDF({
       phone={phone}
       notes={notes}
       items={items}
-    />
+    />,
   );
 }
